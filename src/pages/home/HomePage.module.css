@@ -1,0 +1,64 @@
+.container {
+  padding: 40px 20px;
+  margin-right: 220px; /* בגלל ה-navbar בצד ימין */
+  background-color: white;
+  min-height: 100vh;
+}
+
+.welcomeSection {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.welcomeSection h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.welcomeSection p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.authLinks {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.loginLink, .registerLink {
+  background-color: black;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.registerLink {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+
+.loginLink:hover, .registerLink:hover {
+  opacity: 0.8;
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.productCard {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
