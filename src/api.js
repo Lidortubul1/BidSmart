@@ -1,5 +1,5 @@
 // api.js
-
+import React, { useEffect, useState } from "react";
 // ייבוא axios - ספרייה לביצוע בקשות HTTP
 import axios from "axios";
 
@@ -46,5 +46,26 @@ export async function login(email, password) {
   } catch (e) {
     // במקרה של שגיאה - הצגת השגיאה
     alert(String(e));
+  }
+}
+
+export async function addProduct(productData) {
+  try {
+    const response = await axios.post(
+      "http://localhost:5000/api/product",
+      productData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    alert("Product added successfully!");
+    console.log(response.data);
+  } catch (error) {
+    alert(
+      "Failed to add product: " + (error.response?.data?.error || error.message)
+    );
   }
 }

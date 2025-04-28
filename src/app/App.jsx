@@ -7,6 +7,7 @@ import RegisterPage from "../pages/register/RegisterPage";
 import ProfilePage from "../pages/profile/ProfilePage";
 // import ProductPage from "../components/product/ProductPage";
 // import ProductList from "../components/productList/ProductList";
+import ProductPage from "../pages/productPage/ProductPage";
 
 import AddProductPage from "../pages/AddProductPage/AddProductPage";
 import ManageProductsPage from "../pages/manageProducts/ManageProductsPage";
@@ -27,7 +28,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        {/* <Route path="/product" element={<ProductPage />} /> */}
+        <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/add-product" element={<AddProductPage />} />
         <Route path="/manage-products" element={<ManageProductsPage />} />
         <Route path="/my-bids" element={<MyBidsPage />} />

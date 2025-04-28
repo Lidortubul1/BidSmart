@@ -1,3 +1,4 @@
+import ProductList from "../../components/productList/productList";
 import styles from "./HomePage.module.css";
 import { Link } from "react-router-dom";
 
@@ -17,15 +18,8 @@ function HomePage() {
         </div>
       </div>
 
-      <div className={styles.productsGrid}>
-        {/* תצוגת מוצרים */}
-        <div className={styles.productCard}>מוצר 1</div>
-        <div className={styles.productCard}>מוצר 2</div>
-        <div className={styles.productCard}>מוצר 3</div>
-        <div className={styles.productCard}>מוצר 4</div>
-        <div className={styles.productCard}>מוצר 5</div>
-        <div className={styles.productCard}>מוצר 6</div>
-      </div>
+      {/* כאן נטען את רשימת המוצרים */}
+      <ProductList />
     </div>
   );
 }
