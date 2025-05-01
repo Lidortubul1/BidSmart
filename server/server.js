@@ -1,12 +1,13 @@
+//ייבוא ספריות
 const express = require("express");
 const cors = require("cors");
 
-const app = express();
-const PORT = 5000;
+const app = express(); //האובייקט שמייצג את השרת
+const PORT = 5000; //הפורט שעליו השרת מאזין
 
-// אמצעים
-app.use(cors());
-app.use(express.json());
+// אמצעים - middlewares
+app.use(cors()); //מאפשר לשרת לקבל בקשות ממחשבים אחרים
+app.use(express.json()); // מאפשר לשרת להבין בקשות שמגיעות בפורמט JSON.
 
 // מסלול התחברות
 app.post("/api/login", (req, res) => {
@@ -21,17 +22,16 @@ app.post("/api/login", (req, res) => {
 });
 
 // מסלול הרשמה
-app.post('/api/register', (req, res) => {
+app.post("/api/register", (req, res) => {
   const { email, password, firstName, lastName } = req.body;
 
   if (!email || !password || !firstName || !lastName) {
-    return res.json({ success: false, message: 'נא למלא את כל השדות' });
+    return res.json({ success: false, message: "נא למלא את כל השדות" });
   }
 
   // כאן במקום שמירת משתמש אמיתי בבסיס נתונים, אנחנו רק מחזירים הצלחה
-  res.json({ success: true, message: 'נרשמת בהצלחה!' });
+  res.json({ success: true, message: "נרשמת בהצלחה!" });
 });
-
 
 // הפעלת השרת
 app.listen(PORT, () => {
