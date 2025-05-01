@@ -5,7 +5,10 @@ import HomePage from "../pages/home/HomePage";
 import LoginPage from "../pages/login/LoginPage";
 import RegisterPage from "../pages/register/RegisterPage";
 import ProfilePage from "../pages/profile/ProfilePage";
-import ProductPage from "../pages/product/ProductPage";
+// import ProductPage from "../components/product/ProductPage";
+// import ProductList from "../components/productList/ProductList";
+import ProductPage from "../pages/productPage/ProductPage";
+
 import AddProductPage from "../pages/AddProductPage/AddProductPage";
 import ManageProductsPage from "../pages/manageProducts/ManageProductsPage";
 import MyBidsPage from "../pages/myBids/MyBidsPage";
@@ -25,7 +28,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/product" element={<ProductPage />} />
+        <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/add-product" element={<AddProductPage />} />
         <Route path="/manage-products" element={<ManageProductsPage />} />
         <Route path="/my-bids" element={<MyBidsPage />} />
