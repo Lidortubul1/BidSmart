@@ -1,6 +1,6 @@
 // Product.jsx
 import React, { useState } from "react";
-import { addProduct } from "../api"; // ייבוא הפונקציה מה-API שלך
+import { addProduct } from "../api"; // ייבוא הפונקציה מה-API 
 
 export default function Product() {
   const [formData, setFormData] = useState({
@@ -11,7 +11,7 @@ export default function Product() {
     image: "",
     description: "",
     seller_id_number: "",
-    product_status: "for sale", // ברירת מחדל
+    product_status: "למכירה", // ברירת מחדל
     category: "",
   });
 

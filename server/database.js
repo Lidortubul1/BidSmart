@@ -1,6 +1,5 @@
 // database.js
 
-// ייבוא ספריית mysql2 עם תמיכה ב-Promise
 const mysql = require("mysql2/promise");
 
 // משתנה שישמור את החיבור למסד הנתונים
@@ -9,9 +8,9 @@ let connection = null;
 // פונקציה שמתחברת למסד הנתונים במידת הצורך
 async function connectDatabase() {
   if (!connection) {
-    // יצירת חיבור חדש ל-MySQL אם אין חיבור קיים
+    // יצירת חיבור חדש  אם אין חיבור קיים
     connection = await mysql.createConnection({
-      host: "localhost", // כתובת השרת (במקרה זה מקומי)
+      host: "localhost",
       user: "root", // שם המשתמש במסד הנתונים
       database: "bidsmart", // שם מסד הנתונים
     });

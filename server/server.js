@@ -1,21 +1,23 @@
-//ייבוא ספריות
+// ייבוא ספריות
 const express = require("express");
 const cors = require("cors");
+const productRoutes = require("./products");
+const db = require("./database");
 
-const app = express(); //האובייקט שמייצג את השרת
-const PORT = 5000; //הפורט שעליו השרת מאזין
+const app = express(); // האובייקט שמייצג את השרת
+const PORT = 5000; // הפורט שעליו השרת מאזין
 
 // אמצעים - middlewares
-app.use(cors()); //מאפשר לשרת לקבל בקשות ממחשבים אחרים
-app.use(express.json()); // מאפשר לשרת להבין בקשות שמגיעות בפורמט JSON.
+app.use(cors()); // מאפשר לשרת לקבל בקשות ממחשבים אחרים
+app.use(express.json()); // מאפשר לשרת להבין בקשות שמגיעות בפורמט JSON
 
-// זה בסדר
+// שימוש בראוטים של מוצרים
 app.use("/api/product", productRoutes);
 
-const db = require("./database");
+// התחברות למסד הנתונים
 db.getConnection();
 
-// const bcrypt = require("bcrypt"); // אם בעתיד תשתמש בסיסמאות מוצפנות, לא חובה כרגע
+// התחברות משתמש
 app.post("/api/login", async (req, res) => {
   const email = req.body.email.trim();
   const password = req.body.password.trim();
@@ -46,7 +48,6 @@ app.post("/api/register", (req, res) => {
     return res.json({ success: false, message: "נא למלא את כל השדות" });
   }
 
-  // כאן במקום שמירת משתמש אמיתי בבסיס נתונים, אנחנו רק מחזירים הצלחה
   res.json({ success: true, message: "נרשמת בהצלחה!" });
 });
 
