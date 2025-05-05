@@ -1,0 +1,28 @@
+.container {
+  padding: 40px 20px;
+  margin-right: 220px;
+  background-color: white;
+  min-height: 100vh;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #f9f9f9;
+  font-size: 1rem;
+}
+
+th, td {
+  padding: 12px 16px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+th {
+  background-color: #ddd;
+}

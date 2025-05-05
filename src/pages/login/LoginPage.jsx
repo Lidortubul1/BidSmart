@@ -9,26 +9,38 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate(); // ניווט אחרי התחברות מוצלחת
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+async function handleSubmit(e) {
+  e.preventDefault();
 
-    try {
-      const response = await axios.post("http://localhost:5000/api/login", {
-        email,
-        password,
-      });
+  try {
+    const response = await axios.post("http://localhost:5000/api/login", {
+      email,
+      password,
+    });
 
-      if (response.data.success) {
-        // התחברות מוצלחת
-        navigate("/"); // מעביר לעמוד הבית
+    if (response.data.success) {
+      const user = response.data.user;
+
+      // שמירת המשתמש בזיכרון המקומי
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // ניתוב לפי role
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else if (user.role === "seller") {
+        navigate("/seller");
       } else {
-        alert("אימייל או סיסמה לא נכונים");
+        navigate("/buyer");
       }
-    } catch (error) {
-      alert("שגיאה בהתחברות");
-      console.error(error);
+    } else {
+      alert("אימייל או סיסמה לא נכונים");
     }
+  } catch (error) {
+    alert("שגיאה בהתחברות");
+    console.error(error);
   }
+}
+
 
   return (
     <div

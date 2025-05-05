@@ -40,6 +40,8 @@ router.post("/", async (req, res) => {
 
   try {
     const connection = await db.getConnection();
+
+    // הוספת המוצר למסד הנתונים
     await connection.execute(
       `INSERT INTO product
         (product_name, start_date, end_date, price, image, description, seller_id_number, product_status, category)
@@ -56,11 +58,19 @@ router.post("/", async (req, res) => {
         category || null,
       ]
     );
+
+    // שינוי תפקיד המשתמש ל"seller" אם הוא עדיין "buyer"
+    await connection.execute(
+      `UPDATE users SET role = 'seller' WHERE id_number = ? AND role = 'buyer'`,
+      [seller_id_number]
+    );
+
     res.json({ message: "Product created successfully" });
   } catch (e) {
     res.status(500).json({ error: "Failed to create product" });
   }
 });
+
 
 
 module.exports = router;

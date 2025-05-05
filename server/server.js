@@ -17,6 +17,7 @@ app.use("/api/product", productRoutes);
 // התחברות למסד הנתונים
 db.getConnection();
 
+
 // התחברות משתמש
 app.post("/api/login", async (req, res) => {
   const email = req.body.email.trim();
@@ -30,15 +31,26 @@ app.post("/api/login", async (req, res) => {
     );
 
     if (rows.length > 0) {
-      res.json({ success: true });
+      const user = rows[0]; // ← שליפת המשתמש הראשון שמצאת
+
+      // ← מחזיר גם את כל הנתונים הנדרשים ל-frontend
+      res.json({
+        success: true,
+        user: {
+          email: user.email,
+          role: user.role,
+          id_number: user.id_number,
+        },
+      });
     } else {
-      res.json({ success: false });
+      res.json({ success: false }); // ← התחברות נכשלה
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
+
 
 // מסלול הרשמה
 app.post("/api/register", (req, res) => {
