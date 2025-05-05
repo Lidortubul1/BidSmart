@@ -15,6 +15,8 @@ router.get("/", async (req, res) => {
 
 // הוספת מוצר חדש
 router.post("/", async (req, res) => {
+  console.log("קיבלתי מוצר:", req.body); // ✅ בדיקה חשובה
+
   const {
     product_name,
     start_date,
@@ -35,16 +37,14 @@ router.post("/", async (req, res) => {
     !seller_id_number ||
     !product_status
   ) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.json({ success: false, message: "יש למלא את כל השדות החובה" });
   }
 
   try {
     const connection = await db.getConnection();
-
-    // הוספת המוצר למסד הנתונים
     await connection.execute(
       `INSERT INTO product
-        (product_name, start_date, end_date, price, image, description, seller_id_number, product_status, category)
+      (product_name, start_date, end_date, price, image, description, seller_id_number, product_status, category)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         product_name,
@@ -58,18 +58,13 @@ router.post("/", async (req, res) => {
         category || null,
       ]
     );
-
-    // שינוי תפקיד המשתמש ל"seller" אם הוא עדיין "buyer"
-    await connection.execute(
-      `UPDATE users SET role = 'seller' WHERE id_number = ? AND role = 'buyer'`,
-      [seller_id_number]
-    );
-
-    res.json({ message: "Product created successfully" });
-  } catch (e) {
-    res.status(500).json({ error: "Failed to create product" });
+    res.json({ success: true });
+  } catch (error) {
+    console.error("שגיאה בהוספה:", error);
+    res.status(500).json({ success: false });
   }
 });
+
 
 
 

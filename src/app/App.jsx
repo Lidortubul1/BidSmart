@@ -5,7 +5,7 @@ import HomePage from "../pages/home/HomePage";
 import LoginPage from "../pages/login/LoginPage";
 import RegisterPage from "../pages/register/RegisterPage";
 import ProfilePage from "../pages/profile/ProfilePage";
-import ProductPage from "../pages/productPage/ProductPage"; 
+import ProductPage from "../pages/productPage/ProductPage";
 
 import AddProductPage from "../pages/AddProductPage/AddProductPage";
 import ManageProductsPage from "../pages/manageProducts/ManageProductsPage";
@@ -17,44 +17,46 @@ import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
 import DashboardRouter from "../components/DashboardRouter/DashboardRouter.jsx";
 
-
 import BuyerDashboard from "../pages/home/BuyerDashboard";
 import SellerDashboard from "../pages/home/SellerDashboard.jsx";
-import AdminDashboard from "../pages/home/AdminDashboard"; 
-
-
-
+import AdminDashboard from "../pages/home/AdminDashboard";
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Navbar />
-        <div className="App-content">
-          <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/dashboard" element={<DashboardRouter />} />
-              <Route path="/buyer" element={<BuyerDashboard />} />
-              <Route path="/seller" element={<SellerDashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+    <div className="App">
+      <Navbar />
+      <div className="App-content">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/dashboard" element={<DashboardRouter />} />
+          <Route path="/buyer" element={<BuyerDashboard />} />
+          <Route path="/seller" element={<SellerDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
 
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/product/:id" element={<ProductPage />} />
-            
-            <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />}roles={["admin"]} />} />
-            <Route path="/add-product"element={<ProtectedRoute element={<AddProductPage />} roles={["seller"]}/>}/>
-            <Route path="/manage-products" element={<ManageProductsPage />} />
-            <Route path="/my-bids" element={<MyBidsPage />} />
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-            <Route path="/sale-summary" element={<SaleSummaryPage />} />
-            <Route path="/search-results" element={<SearchResultsPage />} />
-          </Routes>
-        </div>
-        <Footer />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/product/:id" element={<ProductPage />} />
+
+          {/* נתיבים מוגנים */}
+          <Route path="/admin-dashboard" element={
+              <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />
+            }
+          />
+          <Route path="/add-product"element={
+              <ProtectedRoute element={<AddProductPage />} roles={["seller"]} />
+            }
+          />
+          <Route path="/add-product" element={<AddProductPage />} />
+
+          <Route path="/manage-products" element={<ManageProductsPage />} />
+          <Route path="/my-bids" element={<MyBidsPage />} />
+          <Route path="/sale-summary" element={<SaleSummaryPage />} />
+          <Route path="/search-results" element={<SearchResultsPage />} />
+        </Routes>
       </div>
-    </Router>
+      <Footer />
+    </div>
   );
 }
 

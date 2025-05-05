@@ -11,7 +11,7 @@ export default function Product() {
     image: "",
     description: "",
     seller_id_number: "",
-    product_status: "למכירה", // ברירת מחדל
+    product_status: "",
     category: "",
   });
 

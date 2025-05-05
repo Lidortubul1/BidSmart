@@ -1,20 +1,24 @@
 import styles from "./Navbar.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
 
 function Navbar() {
-  // שליפת המשתמש המחובר מ-localStorage
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const isLoggedIn = user && user.role; // בודק אם יש משתמש עם תפקיד
 
   return (
     <nav className={styles.navbar}>
       <div className={styles.logo}>BidSmart</div>
       <ul className={styles.navLinks}>
-        {/* קישורים נוספים */}
         <li>
-          <Link to="/direct-sell">מכירה ישירה</Link>
-        </li>
-        <li>
-          <Link to="/direct-buy">קנייה ישירה</Link>
+          <Link to="/">דף הבית</Link>
         </li>
         <li>
           <Link to="/about">מי אנחנו</Link>
@@ -23,8 +27,7 @@ function Navbar() {
           <Link to="/info">מידע</Link>
         </li>
 
-        {/* רק אם המשתמש לא מחובר – הצג התחברות והרשמה */}
-        {!user && (
+        {!isLoggedIn && (
           <>
             <li>
               <Link to="/login">התחברות</Link>
@@ -34,16 +37,43 @@ function Navbar() {
             </li>
           </>
         )}
-        <li>
-          <Link to="/">דף הבית</Link>
-        </li>
-        {/* פרופיל יוצג רק אם המשתמש מחובר */}
-        {user && (
-          <li>
-            <Link to="/profile">פרופיל</Link>
-          </li>
+
+        {isLoggedIn && (
+          <>
+            <li>
+              <Link to="/profile">פרופיל</Link>
+            </li>
+
+            {user.role === "buyer" && (
+              <li>
+                <Link to="/my-bids">ההצעות שלי</Link>
+              </li>
+            )}
+
+            {user.role === "seller" && (
+              <>
+                <li>
+                  <Link to="/add-product">הוסף מוצר</Link>
+                </li>
+                <li>
+                  <Link to="/manage-products">ניהול מוצרים</Link>
+                </li>
+              </>
+            )}
+
+            {user.role === "admin" && (
+              <li>
+                <Link to="/admin-dashboard">ניהול מערכת</Link>
+              </li>
+            )}
+
+            <li>
+              <button onClick={handleLogout} className={styles.logoutButton}>
+                התנתקות
+              </button>
+            </li>
+          </>
         )}
-     
       </ul>
     </nav>
   );
