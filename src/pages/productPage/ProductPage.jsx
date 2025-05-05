@@ -35,7 +35,7 @@ function ProductPage() {
           <p className={styles.description}>{product.description}</p>
           <p className={styles.price}>מחיר פתיחה: {product.price} ₪</p>
           <p className={styles.status}>סטטוס: {product.product_status}</p>
-          <button className={styles.bidButton}>הגש הצעה</button>
+          <button className={styles.bidButton}>לחץ להרשמה למכירה</button>
         </div>
       </div>
     </div>
