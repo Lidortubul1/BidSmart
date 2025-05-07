@@ -1,20 +1,27 @@
-// RegisterPage.jsx
-
 import styles from "./RegisterPage.module.css";
 import backgroundImage from "../../assets/images/background.jpg";
 import { registerUser } from "../../services/api";
+import { useNavigate } from "react-router-dom"; // ✅ ייבוא הניווט
 
 function RegisterPage() {
+  const navigate = useNavigate(); // ✅ יצירת פונקציית ניווט
+
   const doRegister = async (e) => {
     e.preventDefault();
 
     const formData = new FormData(e.target);
-    const name = formData.get("name");
-    const surname = formData.get("surname");
+    const firstName = formData.get("name");
+    const lastName = formData.get("surname");
     const email = formData.get("email");
     const password = formData.get("password");
 
-    await registerUser(name, surname, email, password);
+    try {
+      await registerUser(firstName, lastName, email, password);
+      alert("נרשמת בהצלחה!");
+      navigate("/buyer"); // ✅ מעבר לדף הבית של הקונה
+    } catch (err) {
+      alert("אירעה שגיאה בהרשמה. נסה שוב");
+    }
   };
 
   return (
