@@ -10,8 +10,8 @@ function RegisterPage() {
     e.preventDefault();
 
     const formData = new FormData(e.target);
-    const firstName = formData.get("name");
-    const lastName = formData.get("surname");
+    const firstName = formData.get("first_name");
+    const lastName = formData.get("last_name");
     const email = formData.get("email");
     const password = formData.get("password");
 
@@ -20,7 +20,7 @@ function RegisterPage() {
       alert("נרשמת בהצלחה!");
       navigate("/buyer"); // ✅ מעבר לדף הבית של הקונה
     } catch (err) {
-      alert("אירעה שגיאה בהרשמה. נסה שוב");
+alert("שגיאה: " + err.response?.data?.message || err.message);
     }
   };
 
@@ -32,8 +32,9 @@ function RegisterPage() {
       <div className={styles.formContainer}>
         <h1 className={styles.title}>הרשמה</h1>
         <form onSubmit={doRegister} className={styles.form}>
-          <input type="text" name="name" placeholder="שם פרטי" required />
-          <input type="text" name="surname" placeholder="שם משפחה" required />
+          <input type="text" name="first_name" placeholder="שם פרטי" required />
+          <input type="text" name="last_name" placeholder="שם משפחה" required />
+
           <input type="email" name="email" placeholder="אימייל" required />
           <input type="password" name="password" placeholder="סיסמה" required />
           <button type="submit">הירשם</button>

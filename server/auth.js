@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const db = require("./database");
 const bcrypt = require("bcrypt");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" }); // אם לא הוגדר כבר
 
 //קובץ שכאן נמצא הבאקאנד של הכניסה וההרשמה
 // התחברות משתמש
@@ -48,6 +50,7 @@ router.post("/login", async (req, res) => {
 
 router.post("/register", async (req, res) => {
   const { first_name, last_name, email, password } = req.body;
+console.log("REGISTER BODY:", req.body);
 
   if (!first_name || !last_name || !email || !password) {
     return res.status(400).json({ message: "נא למלא את כל השדות" });
@@ -77,5 +80,28 @@ router.post("/register", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
+router.put("/users/upgrade-role", upload.single("id_card_photo"), async (req, res) => {
+  const { email, id_number } = req.body;
+
+  if (!email || !id_number) {
+    return res.status(400).json({ message: "חסר אימייל או תז" });
+  }
+
+  try {
+    const conn = await db.getConnection();
+
+    await conn.execute(
+      "UPDATE users SET id_number = ?, id_card_photo = ?, role = 'seller' WHERE email = ?",
+      [id_number, req.file?.filename || null, email]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("שגיאה בשדרוג למוכר:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
 
 module.exports = router;

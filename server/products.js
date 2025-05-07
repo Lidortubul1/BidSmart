@@ -1,6 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // ודא שהתיקיה קיימת
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "_" + file.originalname);
+  },
+});
+
+const upload = multer({ storage });
 
 // קבלת כל המוצרים
 router.get("/", async (req, res) => {
@@ -13,10 +25,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// הוספת מוצר חדש
-router.post("/", async (req, res) => {
-  console.log("קיבלתי מוצר:", req.body); // ✅ בדיקה חשובה
-
+// הוספת מוצר חדש (למוכרים בלבד)
+router.post("/", upload.none(), async (req, res) => {
   const {
     product_name,
     start_date,
@@ -37,11 +47,15 @@ router.post("/", async (req, res) => {
     !seller_id_number ||
     !product_status
   ) {
-    return res.json({ success: false, message: "יש למלא את כל השדות החובה" });
+    return res.status(400).json({
+      success: false,
+      message: "יש למלא את כל שדות החובה",
+    });
   }
 
   try {
     const connection = await db.getConnection();
+
     await connection.execute(
       `INSERT INTO product
       (product_name, start_date, end_date, price, image, description, seller_id_number, product_status, category)
@@ -58,14 +72,12 @@ router.post("/", async (req, res) => {
         category || null,
       ]
     );
+
     res.json({ success: true });
   } catch (error) {
-    console.error("שגיאה בהוספה:", error);
-    res.status(500).json({ success: false });
+    console.error("❌ שגיאה בהוספה:", error);
+    res.status(500).json({ success: false, message: "שגיאה בשמירת המוצר" });
   }
 });
-
-
-
 
 module.exports = router;

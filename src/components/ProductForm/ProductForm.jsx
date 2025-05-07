@@ -10,7 +10,7 @@ function ProductForm({ onSubmit }) {
     image: "",
     description: "",
     category: "",
-  });   
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,35 +20,27 @@ function ProductForm({ onSubmit }) {
     }));
   };
 
- const handleSubmit = (e) => {
-   e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-   const { product_name, start_date, end_date, price } = formData;
+    const { product_name, start_date, end_date, price } = formData;
+    if (!product_name || !start_date || !end_date || !price) {
+      alert("נא למלא את כל שדות החובה");
+      return;
+    }
 
-   // בדיקת שדות חובה
-   if (!product_name || !start_date || !end_date || !price) {
-     alert("נא למלא את כל שדות החובה");
-     return;
-   }
+    if (new Date(end_date) <= new Date(start_date)) {
+      alert("תאריך סיום חייב להיות אחרי תאריך התחלה");
+      return;
+    }
 
-   // בדיקת תוקף תאריכים
-   const start = new Date(start_date);
-   const end = new Date(end_date);
+    const preparedData = {
+      ...formData,
+      price: parseFloat(formData.price),
+    };
 
-   if (end <= start) {
-     alert("תאריך סיום חייב להיות אחרי תאריך התחלה");
-     return;
-   }
-
-   // המרת מחיר למספר
-   const preparedData = {
-     ...formData,
-     price: parseFloat(formData.price),
-   };
-
-   onSubmit(preparedData);
- };
-
+    onSubmit(preparedData);
+  };
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
@@ -100,7 +92,7 @@ function ProductForm({ onSubmit }) {
       </label>
 
       <label>
-        כתובת תמונה (לא חובה)
+        כתובת תמונה
         <input
           type="text"
           name="image"
@@ -110,7 +102,7 @@ function ProductForm({ onSubmit }) {
       </label>
 
       <label>
-        תיאור המוצר
+        תיאור
         <textarea
           name="description"
           value={formData.description}
