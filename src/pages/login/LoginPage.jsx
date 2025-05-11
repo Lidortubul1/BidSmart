@@ -1,15 +1,15 @@
+// LoginPage.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./LoginPage.module.css";
-import backgroundImage from "../../assets/images/background.jpg";
 import axios from "axios";
-import { useAuth } from "../../auth/AuthContext"; 
+import { useAuth } from "../../auth/AuthContext";
 
-function LoginPage() {
+function LoginPage({ isModal = false, redirectAfterLogin = "/" }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth(); 
+  const { login } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -22,20 +22,9 @@ function LoginPage() {
 
       if (response.data.success) {
         const user = response.data.user;
-
-        // שימוש בקונטקסט כדי לעדכן את המשתמש
         login(user);
         localStorage.setItem("user", JSON.stringify(user));
-
-
-        // ניתוב לפי role
-        if (user.role === "admin") {
-          navigate("/admin");
-        } else if (user.role === "seller") {
-          navigate("/seller");
-        } else {
-          navigate("/buyer");
-        }
+        navigate(redirectAfterLogin);
       } else {
         alert("אימייל או סיסמה לא נכונים");
       }
@@ -46,10 +35,7 @@ function LoginPage() {
   }
 
   return (
-    <div
-      className={styles.container}
-      style={{ backgroundImage: `url(${backgroundImage})` }}
-    >
+    <div className={isModal ? styles.modalContainer : styles.container}>
       <div className={styles.formContainer}>
         <h1 className={styles.title}>התחברות</h1>
         <form className={styles.form} onSubmit={handleSubmit}>

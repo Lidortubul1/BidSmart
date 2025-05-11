@@ -6,13 +6,15 @@ export default function Product({ product }) {
   return (
     <Link to={`/product/${product.product_id}`} className={styles.link}>
       <div className={styles.productCard}>
-        {product.image && (
-          <img
-            src={product.image}
-            alt={product.product_name}
-            className={styles.productImage}
-          />
-        )}
+        <div className={styles.imageWrapper}>
+          {product.image && (
+            <img
+              src={product.image}
+              alt={product.product_name}
+              className={styles.productImage}
+            />
+          )}
+        </div>
         <h3>{product.product_name}</h3>
         <p>מחיר פתיחה: ₪{product.price} </p>
         <p>סטטוס: {product.product_status}</p>

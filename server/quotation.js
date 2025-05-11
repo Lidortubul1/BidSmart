@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require("./database");
 const nodemailer = require("nodemailer");
 
-// שליחת הרשמה או הצעה
+// שליחת הרשמה או הצעת מחיר
 router.post("/api/quotation", async (req, res) => {
   const { product_id, buyer_id_number, price } = req.body;
 
@@ -13,17 +13,6 @@ router.post("/api/quotation", async (req, res) => {
 
   try {
     const conn = await db.getConnection();
-
-    const [existing] = await conn.execute(
-      "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
-      [product_id, buyer_id_number]
-    );
-
-    if (existing.length > 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "כבר נרשמת למכירה הזו" });
-    }
 
     const [products] = await conn.execute(
       "SELECT * FROM product WHERE product_id = ?",
@@ -38,56 +27,89 @@ router.post("/api/quotation", async (req, res) => {
     const now = new Date();
     const endDate = new Date(product.end_date);
 
-    if (price > 0) {
-      if (now > endDate) {
+    // הרשמה בלבד (price === 0)
+    if (price === 0) {
+      const [existing] = await conn.execute(
+        "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
+        [product_id, buyer_id_number]
+      );
+
+      if (existing.length > 0) {
         return res
           .status(400)
-          .json({ success: false, message: "המכירה הסתיימה" });
+          .json({ success: false, message: "כבר נרשמת למכירה הזו" });
       }
 
-      if (price < product.price) {
-        return res
-          .status(400)
-          .json({ success: false, message: "הצעה נמוכה ממחיר פתיחה" });
+      await conn.execute(
+        "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
+        [product_id, buyer_id_number, 0]
+      );
+
+      // שליחת מייל אישור הרשמה
+      const [userData] = await conn.execute(
+        "SELECT email FROM users WHERE id_number = ?",
+        [buyer_id_number]
+      );
+
+      if (userData.length > 0) {
+        const buyerEmail = userData[0].email;
+
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: "bidsmart2025@gmail.com",
+            pass: "כאן אני אשים את סיסמת האפליקציה מגוגל",
+          },
+        });
+
+        const mailOptions = {
+          from: "BidSmart <bidsmart2025@gmail.com>",
+          to: buyerEmail,
+          subject: "נרשמת למכירה בהצלחה",
+          text: `${product.product_name}:נרשמת בהצלחה למכירה על המוצר `,
+        };
+
+        transporter.sendMail(mailOptions, (err, info) => {
+          if (err) console.error("שגיאה בשליחת מייל:", err);
+          else console.log("נשלח מייל:", info.response);
+        });
       }
+
+      return res.json({ success: true, message: "נרשמת למכירה" });
     }
 
-    await conn.execute(
-      "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
-      [product_id, buyer_id_number, price]
-    );
-
-    // שליחת מייל למשתמש שנרשם
-    const [userData] = await conn.execute(
-      "SELECT email FROM users WHERE id_number = ?",
-      [buyer_id_number]
-    );
-
-    if (userData.length > 0) {
-      const buyerEmail = userData[0].email;
-
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: "bidsmart2025@gmail.com",
-          pass: "צריך להשלים כאן את הסיסמא אחרי שנסיים את האימות הדו שלבי בגוגל",
-        },
-      });
-
-      const mailOptions = {
-        from: "BidSmart <bidsmart2025@gmail.com>",
-        to: buyerEmail,
-        subject: "נרשמת למכירה בהצלחה!",
-        text: `שלום, נרשמת בהצלחה למכירה על המוצר: ${product.product_name}`,
-      };
-
-      transporter.sendMail(mailOptions, (err, info) => {
-        if (err) console.error("שגיאה בשליחת מייל:", err);
-        else console.log("אימייל נשלח:", info.response);
-      });
+    // אם זו הצעת מחיר
+    if (now > endDate) {
+      return res
+        .status(400)
+        .json({ success: false, message: "המכירה הסתיימה" });
     }
 
-    res.json({ success: true });
+    if (price < product.price) {
+      return res
+        .status(400)
+        .json({ success: false, message: "הצעה נמוכה ממחיר פתיחה" });
+    }
+
+    // בדיקה האם המשתמש כבר קיים עם הצעת מחיר 
+    const [existingBid] = await conn.execute(
+      "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
+      [product_id, buyer_id_number]
+    );
+
+    if (existingBid.length > 0) {
+      await conn.execute(
+        "UPDATE quotation SET price = ? WHERE product_id = ? AND buyer_id_number = ?",
+        [price, product_id, buyer_id_number]
+      );
+    } else {
+      await conn.execute(
+        "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
+        [product_id, buyer_id_number, price]
+      );
+    }
+
+    res.json({ success: true, message: "ההצעה נשמרה בהצלחה" });
   } catch (err) {
     console.error("שגיאה בהוספת הצעה/הרשמה:", err);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });

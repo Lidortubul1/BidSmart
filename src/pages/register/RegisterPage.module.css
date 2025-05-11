@@ -1,11 +1,23 @@
+/* RegisterPage.module.css */
 .container {
+  background-image: url("../../assets/images/background.jpg");
   background-size: cover;
-  background-position: center;
+  background-position: center center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
-  padding-top: 100px;
-  margin-right: 220px;
+  padding: 100px 0 50px; 
+  box-sizing: border-box;
+  flex-direction: column;
+}
+
+.modalContainer {
+  background-color: transparent;
+  padding: 20px;
+  margin: 0;
 }
 
 .formContainer {
@@ -14,7 +26,9 @@
   margin: auto;
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
 }
 
 .form {
@@ -40,4 +54,11 @@ button {
 
 button:hover {
   background-color: #333;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden; 
 }

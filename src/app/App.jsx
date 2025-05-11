@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// ייבוא הדפים
+// דפים
 import HomePage from "../pages/home/HomePage";
 import LoginPage from "../pages/login/LoginPage";
 import RegisterPage from "../pages/register/RegisterPage";
@@ -12,11 +12,15 @@ import ManageProductsPage from "../pages/manageProducts/ManageProductsPage";
 import MyBidsPage from "../pages/myBids/MyBidsPage";
 import SaleSummaryPage from "../pages/saleSummary/SaleSummaryPage";
 import SearchResultsPage from "../pages/searchResults/SearchResultsPage";
+import "./App.css";
+
+// קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
 import DashboardRouter from "../components/DashboardRouter/DashboardRouter.jsx";
 
+// לוחות ניהול
 import BuyerDashboard from "../pages/home/BuyerDashboard";
 import SellerDashboard from "../pages/home/SellerDashboard.jsx";
 import AdminDashboard from "../pages/home/AdminDashboard";
@@ -32,13 +36,10 @@ function App() {
           <Route path="/buyer" element={<BuyerDashboard />} />
           <Route path="/seller" element={<SellerDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
-
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-
-          {/* נתיבים מוגנים */}
           <Route
             path="/admin-dashboard"
             element={
@@ -49,8 +50,7 @@ function App() {
             path="/add-product"
             element={<ProtectedRoute element={<AddProductPage />} />}
           />
-          <Route path="/become-seller" element={<BecomeSeller/>} />
-
+          <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />
           <Route path="/my-bids" element={<MyBidsPage />} />
           <Route path="/sale-summary" element={<SaleSummaryPage />} />
