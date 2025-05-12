@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import styles from "./ProductForm.module.css";
 
 function ProductForm({ onSubmit }) {
@@ -9,8 +10,24 @@ function ProductForm({ onSubmit }) {
     price: "",
     image: "",
     description: "",
-    category: "",
   });
+
+  const [categories, setCategories] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await axios.get("http://localhost:5000/api/categories");
+        setCategories(res.data);
+      } catch (error) {
+        console.error("שגיאה בטעינת קטגוריות:", error);
+      }
+    }
+
+    fetchCategories();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,8 +41,15 @@ function ProductForm({ onSubmit }) {
     e.preventDefault();
 
     const { product_name, start_date, end_date, price } = formData;
-    if (!product_name || !start_date || !end_date || !price) {
-      alert("נא למלא את כל שדות החובה");
+    if (
+      !product_name ||
+      !start_date ||
+      !end_date ||
+      !price ||
+      !selectedCategory ||
+      !selectedSubCategory
+    ) {
+      alert("נא למלא את כל שדות החובה כולל קטגוריה ותת קטגוריה");
       return;
     }
 
@@ -37,10 +61,13 @@ function ProductForm({ onSubmit }) {
     const preparedData = {
       ...formData,
       price: parseFloat(formData.price),
+      category: selectedCategory,
+      sub_category: selectedSubCategory, // ← שינוי פה
     };
 
     onSubmit(preparedData);
   };
+  
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
@@ -111,14 +138,40 @@ function ProductForm({ onSubmit }) {
       </label>
 
       <label>
-        קטגוריה
-        <input
-          type="text"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-        />
+        קטגוריה *
+        <select
+          value={selectedCategory}
+          onChange={(e) => {
+            setSelectedCategory(e.target.value);
+            setSelectedSubCategory("");
+          }}
+          required >
+          <option value="">בחר קטגוריה</option>
+          {Object.keys(categories).map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
       </label>
+
+      {selectedCategory && (
+        <label>
+          תת קטגוריה *
+          <select
+            value={selectedSubCategory}
+            onChange={(e) => setSelectedSubCategory(e.target.value)}
+            required
+          >
+            <option value="">בחר תת קטגוריה</option>
+            {categories[selectedCategory].map((sub) => (
+              <option key={sub} value={sub}>
+                {sub}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <button type="submit" className={styles.submitButton}>
         💾 שמור מוצר

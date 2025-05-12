@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// הוספת מוצר חדש (למוכרים בלבד)
+// הוספת מוצר חדש
 router.post("/", upload.none(), async (req, res) => {
   const {
     product_name,
@@ -37,6 +37,7 @@ router.post("/", upload.none(), async (req, res) => {
     seller_id_number,
     product_status,
     category,
+    sub_category, // ← חדש
   } = req.body;
 
   if (
@@ -58,8 +59,8 @@ router.post("/", upload.none(), async (req, res) => {
 
     await connection.execute(
       `INSERT INTO product
-      (product_name, start_date, end_date, price, image, description, seller_id_number, product_status, category)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (product_name, start_date, end_date, price, image, description, seller_id_number, product_status, category, sub_category)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         product_name,
         start_date,
@@ -70,6 +71,7 @@ router.post("/", upload.none(), async (req, res) => {
         seller_id_number,
         product_status,
         category || null,
+        sub_category || null, 
       ]
     );
 

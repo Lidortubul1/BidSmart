@@ -11,7 +11,8 @@ import AddProductPage from "../pages/AddProductPage/AddProductPage";
 import ManageProductsPage from "../pages/manageProducts/ManageProductsPage";
 import MyBidsPage from "../pages/myBids/MyBidsPage";
 import SaleSummaryPage from "../pages/saleSummary/SaleSummaryPage";
-import SearchResultsPage from "../pages/searchResults/SearchResultsPage";
+import SearchResultsPage from "../components/search/SearchResultsPage.jsx"
+import InfoPage from "../pages/infoPage/InfoPage.jsx";
 import "./App.css";
 
 // קומפוננטות
@@ -38,18 +39,12 @@ function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/info" element={<InfoPage />} />
+
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-          <Route
-            path="/admin-dashboard"
-            element={
-              <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />
-            }
-          />
-          <Route
-            path="/add-product"
-            element={<ProtectedRoute element={<AddProductPage />} />}
-          />
+          <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} roles={["admin"]} /> }/>
+           <Route path="/add-product"element={<ProtectedRoute element={<AddProductPage />} />}/>
           <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />
           <Route path="/my-bids" element={<MyBidsPage />} />

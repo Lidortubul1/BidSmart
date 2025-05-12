@@ -4,6 +4,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import styles from "./AddProductPage.module.css";
 
+
+
 function AddProductPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -43,6 +45,9 @@ function AddProductPage() {
       alert("שגיאה בעת שליחת המוצר לשרת");
     }
   };
+
+
+
 
   return (
     <div className={styles.container}>

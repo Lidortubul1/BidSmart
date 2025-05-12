@@ -4,6 +4,9 @@ const productRoutes = require("./products");
 const authRoutes = require("./auth");
 const quotationRoutes = require("./quotation");
 const db = require("./database");
+const categoryRoutes = require("./categories.js");
+
+
 
 const app = express();
 const PORT = 5000;
@@ -22,9 +25,11 @@ app.use("/api", quotationRoutes);
 
 // נתיבים של מוצרים – קבלה, הוספה
 app.use("/api/product", productRoutes);
-
+//נתיב של קטגוריות
+app.use("/api/categories", categoryRoutes);
 // בדיקה שהחיבור למסד נתונים תקין
 db.getConnection();
+console.log("✅ קטגוריות נטענו", categoryRoutes);
 
 // מפעיל את השרת
 app.listen(PORT, () => {

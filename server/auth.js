@@ -57,7 +57,7 @@ console.log("REGISTER BODY:", req.body);
   }
 
   try {
-    const conn = await db.getConnection(); // כאן משתמשים בפונקציה הקיימת שלך
+    const conn = await db.getConnection(); // כאן משתמשים בפונקציה הקיימת
 
     const [existing] = await conn.execute(
       "SELECT * FROM users WHERE email = ?",

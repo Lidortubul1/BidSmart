@@ -1,33 +1,61 @@
 import styles from "./Navbar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
+import { useState } from "react";
 
 function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  const isLoggedIn = user && user.role; // בודק אם יש משתמש עם תפקיד
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (query.trim() !== "") {
+      navigate(`/search-results?query=${encodeURIComponent(query)}`);
+      setQuery("");
+    }
+  };
+
+  const isLoggedIn = user && user.role;
+
+  let homePath = "/";
+  if (user?.role === "admin") homePath = "/admin";
+  else if (user?.role === "seller") homePath = "/seller";
+  else if (user?.role === "buyer") homePath = "/buyer";
 
   return (
     <nav className={styles.navbar}>
       <div className={styles.logo}>BidSmart</div>
+
+      <div className={styles.centerSearch}>
+        <form onSubmit={handleSearch} className={styles.searchForm}>
+          <input
+            type="text"
+            placeholder="חפש מוצר..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className={styles.searchInput}
+          />
+          <button type="submit" className={styles.searchButton}>
+            חיפוש
+          </button>
+        </form>
+      </div>
+
       <ul className={styles.navLinks}>
         <li>
-          <Link to="/">דף הבית</Link>
+          <Link to={homePath}>דף הבית</Link>
         </li>
         <li>
-          <Link to="/about">מי אנחנו</Link>
-        </li>
-        <li>
-          <Link to="/info">מידע</Link>
+          <Link to="/info">?מי אנחנו</Link>
         </li>
 
-        {!isLoggedIn && (
+        {!isLoggedIn ? (
           <>
             <li>
               <Link to="/login">התחברות</Link>
@@ -36,9 +64,7 @@ function Navbar() {
               <Link to="/register">הרשמה</Link>
             </li>
           </>
-        )}
-
-        {isLoggedIn && (
+        ) : (
           <>
             <li>
               <Link to="/profile">פרופיל</Link>
