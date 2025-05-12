@@ -28,6 +28,7 @@ import AdminDashboard from "../pages/home/AdminDashboard";
 
 function App() {
   return (
+   
     <div className="App">
       <Navbar />
       <div className="App-content">

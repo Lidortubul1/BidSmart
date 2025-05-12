@@ -1,14 +1,18 @@
 .categoryBar {
   display: flex;
-  gap: 16px;
+  justify-content: flex-start;
+  gap: 12px;
   padding: 12px 24px;
-  background: linear-gradient(to right, #ffffff, #f9f9f9);
-  border-bottom: 1px solid #ddd;
-  position: relative;
-  z-index: 999;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-
+  background-color: black;
+  border-bottom: 1px solid #ccc;
   direction: rtl;
+  width: 97vw;  
+  box-sizing: border-box;
+  position: relative;
+  z-index: 50;
+  height: 70px;
+  margin: 0 auto;
+
 }
 
 .categoryItem {
@@ -17,36 +21,69 @@
 }
 
 .categoryButton {
-  padding: 8px 16px;
-  background-color: #f1f1f1;
-  color: #333;
+  background-color: white;
+  color: black;
+  padding: 8px 18px;
   border-radius: 25px;
-  border: 1px solid transparent;
-  cursor: pointer;
+  border: 1px solid black;
   font-size: 0.95rem;
   font-weight: 500;
-  white-space: nowrap;
+  cursor: pointer;
   transition: all 0.3s ease;
-  font-family: "Varela Round", sans-serif;
+  white-space: nowrap;
 }
 
 .categoryButton:hover {
-  background-color: #e0e0e0;
-  border-color: #bbb;
+  background-color: #e5e5e5;
 }
 
 .subcategoryDropdown {
   position: absolute;
-  top: calc(100% + 6px);
+  top: 100%;
   right: 0;
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid black;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  padding: 6px 0;
+  margin-top: 6px;
   z-index: 9999;
-  padding: 8px 0;
-  font-family: "Varela Round", sans-serif;
+}
+
+.subcategoryItem {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: black;
+  text-align: right;
+  transition: background-color 0.2s ease;
+}
+
+.subcategoryItem:hover {
+  background-color: #f2f2f2;
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .categoryBar {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  .categoryButton {
+    font-size: 0.85rem;
+    padding: 6px 14px;
+  }
+
+  .subcategoryDropdown {
+    min-width: 150px;
+    font-size: 0.85rem;
+  }
+
+  .subcategoryItem {
+    padding: 8px 12px;
+  }
 }
 
 .subcategoryItem {

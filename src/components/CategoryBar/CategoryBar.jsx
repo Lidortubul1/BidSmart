@@ -22,23 +22,17 @@ function CategoryBar({ categories }) {
           key={cat}
           className={styles.categoryItem}
           onMouseEnter={() => setHovered(cat)}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <div
-            className={styles.categoryButton}
-            onClick={() => handleNavigate(cat)}
-          >
+          onMouseLeave={() => setHovered(null)}>
+          <div className={styles.categoryButton}
+               onClick={() => handleNavigate(cat)} >
             {cat}
           </div>
 
           {hovered === cat && (
             <div className={styles.subcategoryDropdown}>
               {categories[cat].map((sub) => (
-                <div
-                  key={sub}
-                  className={styles.subcategoryItem}
-                  onClick={() => handleNavigate(cat, sub)}
-                >
+                <div key={sub} className={styles.subcategoryItem}
+                     onClick={() => handleNavigate(cat, sub)} >
                   {sub}
                 </div>
               ))}
