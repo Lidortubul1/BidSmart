@@ -66,7 +66,7 @@ router.post("/api/quotation", async (req, res) => {
           from: "BidSmart <bidsmart2025@gmail.com>",
           to: buyerEmail,
           subject: "נרשמת למכירה בהצלחה",
-          text: `${product.product_name}:נרשמת בהצלחה למכירה על המוצר `,
+          text: `${product.product_name}: נרשמת בהצלחה למכירה על המוצר`,
         };
 
         transporter.sendMail(mailOptions, (err, info) => {
@@ -91,7 +91,7 @@ router.post("/api/quotation", async (req, res) => {
         .json({ success: false, message: "הצעה נמוכה ממחיר פתיחה" });
     }
 
-    // בדיקה האם המשתמש כבר קיים עם הצעת מחיר 
+    // בדיקה האם המשתמש כבר קיים עם הצעת מחיר
     const [existingBid] = await conn.execute(
       "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
       [product_id, buyer_id_number]
@@ -99,15 +99,27 @@ router.post("/api/quotation", async (req, res) => {
 
     if (existingBid.length > 0) {
       await conn.execute(
-        "UPDATE quotation SET price = ? WHERE product_id = ? AND buyer_id_number = ?",
+        "UPDATE quotation SET price = ?, payment_status = 'completed' WHERE product_id = ? AND buyer_id_number = ?",
         [price, product_id, buyer_id_number]
       );
     } else {
       await conn.execute(
-        "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
+        "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'completed')",
         [product_id, buyer_id_number, price]
       );
     }
+
+    // עדכון סטטוס המוצר ל-sold
+    await conn.execute(
+      "UPDATE product SET product_status = 'sold' WHERE product_id = ?",
+      [product_id]
+    );
+
+    // הוספה לטבלת sale
+    await conn.execute(
+      "INSERT INTO sale (product_id, buyer_id_number) VALUES (?, ?)",
+      [product_id, buyer_id_number]
+    );
 
     res.json({ success: true, message: "ההצעה נשמרה בהצלחה" });
   } catch (err) {
@@ -116,7 +128,28 @@ router.post("/api/quotation", async (req, res) => {
   }
 });
 
-// שליפת כל ההצעות למוצר מסוים
+// שליפת כל ההצעות עם JOIN (לשימוש ב-my-bids)
+router.get("/api/quotation/all", async (req, res) => {
+  try {
+    const conn = await db.getConnection();
+
+    const [results] = await conn.execute(`
+      SELECT 
+        q.*, 
+        p.product_name, 
+        p.image
+      FROM quotation q
+      JOIN product p ON q.product_id = p.product_id
+    `);
+
+    res.json(results);
+  } catch (err) {
+    console.error("שגיאה בשליפת הצעות:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+// שליפת הצעות לפי product_id
 router.get("/api/quotation/:product_id", async (req, res) => {
   const { product_id } = req.params;
 
