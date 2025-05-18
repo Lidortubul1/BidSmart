@@ -95,25 +95,15 @@ router.post("/", async (req, res) => {
 
     if (existingBid.length > 0) {
       await conn.execute(
-        "UPDATE quotation SET price = ?, payment_status = 'completed' WHERE product_id = ? AND buyer_id_number = ?",
+        "UPDATE quotation SET price = ? WHERE product_id = ? AND buyer_id_number = ?",
         [price, product_id, buyer_id_number]
       );
     } else {
       await conn.execute(
-        "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'completed')",
+        "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
         [product_id, buyer_id_number, price]
       );
     }
-
-    await conn.execute(
-      "UPDATE product SET product_status = 'sold' WHERE product_id = ?",
-      [product_id]
-    );
-
-    await conn.execute(
-      "INSERT INTO sale (product_id, buyer_id_number) VALUES (?, ?)",
-      [product_id, buyer_id_number]
-    );
 
     res.json({ success: true, message: "ההצעה נשמרה בהצלחה" });
   } catch (err) {
@@ -122,28 +112,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// הנתיב שצריך ל-my-bids: /api/quotation/all
-router.get("/quotation/all", async (req, res) => {
-  try {
-    const conn = await db.getConnection();
-
-    const [results] = await conn.execute(`
-      SELECT 
-        q.*, 
-        p.product_name, 
-        p.image
-      FROM quotation q
-      JOIN product p ON q.product_id = p.product_id
-    `);
-
-    res.json(results);
-  } catch (err) {
-    console.error("שגיאה בשליפת כל ההצעות:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
-  }
-});
-
-// שליפת כל ההצעות למוצר מסוים
+// שליפת הצעות לפי product_id
 router.get("/:product_id", async (req, res) => {
   const { product_id } = req.params;
 

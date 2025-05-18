@@ -15,22 +15,20 @@ app.use(cors());
 // כדי שנוכל לקרוא את מה שנשלח ב־req.body כ־JSON
 app.use(express.json());
 
-// נתיבים
-app.use("/api", authRoutes); // התחברות, הרשמה
-app.use("/api", quotationRoutes); // הצעות ומכירה
-app.use("/api/product", productRoutes); // מוצרים
-app.use("/api/categories", categoryRoutes); // קטגוריות
+// נתיבים של התחברות, הרשמה וכו'
+app.use("/api", authRoutes);
+
+// נתיב שמקבל הצעות מחיר ממוצרים
+app.use("/api", quotationRoutes);
+
+// נתיבים של מוצרים – קבלה, הוספה
+app.use("/api/product", productRoutes);
+
+// נתיב של קטגוריות
+app.use("/api/categories", categoryRoutes);
 
 // בדיקה שהחיבור למסד נתונים תקין
-db.getConnection()
-  .then(async (conn) => {
-    const [rows] = await conn.execute("SELECT COUNT(*) as count FROM product");
-    console.log("מספר מוצרים במסד הנתונים:", rows[0].count);
-  })
-  .catch((err) => {
-    console.error("שגיאה בבדיקת מסד הנתונים:", err.message);
-  });
-
+db.getConnection();
 console.log("קטגוריות נטענו");
 
 // הפעלת השרת

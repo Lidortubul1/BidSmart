@@ -18,13 +18,11 @@ const upload = multer({ storage });
 router.get("/", async (req, res) => {
   try {
     const connection = await db.getConnection();
-    const [products] = await connection.execute(
-      "SELECT * FROM product WHERE product_status = 'for sale'"
-    );
+    const [products] = await connection.execute("SELECT * FROM product");
+
     res.json(products);
   } catch (e) {
-    console.error("שגיאה בקבלת מוצרים:", e);
-    res.status(500).json({ error: "Failed to fetch products" });
+    res.status(500).json({ error: "Failed to fetch product" });
   }
 });
 
