@@ -5,7 +5,7 @@ const multer = require("multer");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // ודא שהתיקיה קיימת
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "_" + file.originalname);
@@ -14,14 +14,17 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// קבלת כל המוצרים
+// קבלת כל המוצרים למכירה בלבד
 router.get("/", async (req, res) => {
   try {
     const connection = await db.getConnection();
-    const [products] = await connection.execute("SELECT * FROM product");
+    const [products] = await connection.execute(
+      "SELECT * FROM product WHERE product_status = 'for sale'"
+    );
     res.json(products);
   } catch (e) {
-    res.status(500).json({ error: "Failed to fetch product" });
+    console.error("שגיאה בקבלת מוצרים:", e);
+    res.status(500).json({ error: "Failed to fetch products" });
   }
 });
 
@@ -37,7 +40,7 @@ router.post("/", upload.none(), async (req, res) => {
     seller_id_number,
     product_status,
     category,
-    sub_category, // ← חדש
+    sub_category,
   } = req.body;
 
   if (
@@ -71,13 +74,13 @@ router.post("/", upload.none(), async (req, res) => {
         seller_id_number,
         product_status,
         category || null,
-        sub_category || null, 
+        sub_category || null,
       ]
     );
 
     res.json({ success: true });
   } catch (error) {
-    console.error("❌ שגיאה בהוספה:", error);
+    console.error("שגיאה בשמירת מוצר:", error);
     res.status(500).json({ success: false, message: "שגיאה בשמירת המוצר" });
   }
 });

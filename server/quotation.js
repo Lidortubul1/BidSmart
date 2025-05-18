@@ -4,7 +4,7 @@ const db = require("./database");
 const nodemailer = require("nodemailer");
 
 // שליחת הרשמה או הצעת מחיר
-router.post("/api/quotation", async (req, res) => {
+router.post("/", async (req, res) => {
   const { product_id, buyer_id_number, price } = req.body;
 
   if (!product_id || !buyer_id_number || price === undefined) {
@@ -27,7 +27,6 @@ router.post("/api/quotation", async (req, res) => {
     const now = new Date();
     const endDate = new Date(product.end_date);
 
-    // הרשמה בלבד (price === 0)
     if (price === 0) {
       const [existing] = await conn.execute(
         "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
@@ -45,7 +44,6 @@ router.post("/api/quotation", async (req, res) => {
         [product_id, buyer_id_number, 0]
       );
 
-      // שליחת מייל אישור הרשמה
       const [userData] = await conn.execute(
         "SELECT email FROM users WHERE id_number = ?",
         [buyer_id_number]
@@ -78,7 +76,6 @@ router.post("/api/quotation", async (req, res) => {
       return res.json({ success: true, message: "נרשמת למכירה" });
     }
 
-    // אם זו הצעת מחיר
     if (now > endDate) {
       return res
         .status(400)
@@ -91,7 +88,6 @@ router.post("/api/quotation", async (req, res) => {
         .json({ success: false, message: "הצעה נמוכה ממחיר פתיחה" });
     }
 
-    // בדיקה האם המשתמש כבר קיים עם הצעת מחיר
     const [existingBid] = await conn.execute(
       "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
       [product_id, buyer_id_number]
@@ -109,13 +105,11 @@ router.post("/api/quotation", async (req, res) => {
       );
     }
 
-    // עדכון סטטוס המוצר ל-sold
     await conn.execute(
       "UPDATE product SET product_status = 'sold' WHERE product_id = ?",
       [product_id]
     );
 
-    // הוספה לטבלת sale
     await conn.execute(
       "INSERT INTO sale (product_id, buyer_id_number) VALUES (?, ?)",
       [product_id, buyer_id_number]
@@ -128,8 +122,8 @@ router.post("/api/quotation", async (req, res) => {
   }
 });
 
-// שליפת כל ההצעות עם JOIN (לשימוש ב-my-bids)
-router.get("/api/quotation/all", async (req, res) => {
+// הנתיב שצריך ל-my-bids: /api/quotation/all
+router.get("/quotation/all", async (req, res) => {
   try {
     const conn = await db.getConnection();
 
@@ -144,13 +138,13 @@ router.get("/api/quotation/all", async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error("שגיאה בשליפת הצעות:", err);
+    console.error("שגיאה בשליפת כל ההצעות:", err);
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
 
-// שליפת הצעות לפי product_id
-router.get("/api/quotation/:product_id", async (req, res) => {
+// שליפת כל ההצעות למוצר מסוים
+router.get("/:product_id", async (req, res) => {
   const { product_id } = req.params;
 
   try {

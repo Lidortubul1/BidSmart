@@ -13,20 +13,22 @@ function MyBidsPage() {
         const response = await axios.get(
           "http://localhost:5000/api/quotation/all"
         );
+
+        if (!user?.id_number) return;
+
         const paidBids = response.data.filter(
           (bid) =>
-            bid.buyer_id_number === user?.id_number &&
+            String(bid.buyer_id_number) === String(user.id_number) &&
             bid.payment_status === "completed"
         );
+
         setBids(paidBids);
       } catch (error) {
         console.error("שגיאה בשליפת ההצעות:", error);
       }
     }
 
-    if (user?.id_number) {
-      fetchMyPaidBids();
-    }
+    fetchMyPaidBids();
   }, [user?.id_number]);
 
   return (

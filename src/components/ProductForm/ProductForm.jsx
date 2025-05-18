@@ -62,7 +62,7 @@ function ProductForm({ onSubmit }) {
       ...formData,
       price: parseFloat(formData.price),
       category: selectedCategory,
-      sub_category: selectedSubCategory, // ← שינוי פה
+      sub_category: selectedSubCategory, 
     };
 
     onSubmit(preparedData);
@@ -71,7 +71,7 @@ function ProductForm({ onSubmit }) {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      <h2 className={styles.title}>🛍️ הוספת מוצר חדש</h2>
+      <h2 className={styles.title}> הוספת מוצר חדש</h2>
 
       <label>
         שם המוצר *
@@ -174,7 +174,7 @@ function ProductForm({ onSubmit }) {
       )}
 
       <button type="submit" className={styles.submitButton}>
-        💾 שמור מוצר
+         שמור מוצר
       </button>
     </form>
   );
