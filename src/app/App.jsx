@@ -1,4 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import axios from "axios"; // 👈 חסר
+import { useAuth } from "../auth/AuthContext"; // 👈 חשוב מאוד
 
 // דפים
 import HomePage from "../pages/home/HomePage";
@@ -11,7 +14,7 @@ import AddProductPage from "../pages/AddProductPage/AddProductPage";
 import ManageProductsPage from "../pages/manageProducts/ManageProductsPage";
 import MyBidsPage from "../pages/myBids/MyBidsPage";
 import SaleSummaryPage from "../pages/saleSummary/SaleSummaryPage";
-import SearchResultsPage from "../components/search/SearchResultsPage.jsx"
+import SearchResultsPage from "../components/search/SearchResultsPage.jsx";
 import InfoPage from "../pages/infoPage/InfoPage.jsx";
 import "./App.css";
 
@@ -27,8 +30,20 @@ import SellerDashboard from "../pages/home/SellerDashboard.jsx";
 import AdminDashboard from "../pages/home/AdminDashboard";
 
 function App() {
+  const { setUser } = useAuth(); // 👈 שימוש בקונטקסט של משתמש
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/auth/session", { withCredentials: true })
+      .then((res) => {
+        if (res.data.loggedIn) {
+          setUser(res.data.user);
+        }
+      })
+      .catch((err) => console.error("שגיאה בשליפת session:", err));
+  }, [setUser]);
+
   return (
-   
     <div className="App">
       <Navbar />
       <div className="App-content">
@@ -41,11 +56,18 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/info" element={<InfoPage />} />
-
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} roles={["admin"]} /> }/>
-           <Route path="/add-product"element={<ProtectedRoute element={<AddProductPage />} />}/>
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />
+            }
+          />
+          <Route
+            path="/add-product"
+            element={<ProtectedRoute element={<AddProductPage />} />}
+          />
           <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />
           <Route path="/my-bids" element={<MyBidsPage />} />

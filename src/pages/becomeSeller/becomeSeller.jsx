@@ -25,7 +25,7 @@ function BecomeSellerPage() {
 
     try {
       await axios.put(
-        "http://localhost:5000/api/users/upgrade-role",
+        "http://localhost:5000/api/auth/upgrade-role",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

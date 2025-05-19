@@ -3,66 +3,86 @@ const router = express.Router();
 const db = require("./database");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" }); // אם לא הוגדר כבר
+const path = require("path");
+const fs = require("fs");
 
-//קובץ שכאן נמצא הבאקאנד של הכניסה וההרשמה
-// התחברות משתמש
+// ⚙️ הגדרת אחסון לקבצים (צילום ת"ז)
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, "../uploads");
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = Date.now() + "_" + file.originalname;
+    cb(null, uniqueName);
+  },
+});
+const upload = multer({ storage });
+
+/** 🟢 התחברות */
 router.post("/login", async (req, res) => {
-  const email = req.body.email.trim();
-  const password = req.body.password.trim();
+  const { email, password } = req.body;
 
   try {
-    const connection = await db.getConnection();
-    const [rows] = await connection.execute(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
-    );
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
 
     if (rows.length === 0) {
       return res.json({ success: false, message: "משתמש לא נמצא" });
     }
 
     const user = rows[0];
-
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.json({ success: false, message: "סיסמה שגויה" });
     }
 
-    // התחברות מוצלחת
-    res.json({
-      success: true,
-      user: {
-        email: user.email,
-        role: user.role,
-        id_number: user.id_number,
-      },
-    });
-  } catch (error) {
-    console.error(error);
+    req.session.user = {
+      email: user.email,
+      role: user.role,
+      id_number: user.id_number,
+      id_card_photo: user.id_card_photo,
+      first_name: user.first_name,
+      last_name: user.last_name,
+    };
+
+    res.json({ success: true, user: req.session.user });
+  } catch (err) {
+    console.error("שגיאה בהתחברות:", err);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
 
+/** 🟡 בדיקת session */
+router.get("/session", (req, res) => {
+  if (req.session.user) {
+    res.json({ loggedIn: true, user: req.session.user });
+  } else {
+    res.json({ loggedIn: false });
+  }
+});
 
-// בקשת POST להרשמה
-
+/** 🟢 הרשמה */
 router.post("/register", async (req, res) => {
   const { first_name, last_name, email, password } = req.body;
-console.log("REGISTER BODY:", req.body);
 
   if (!first_name || !last_name || !email || !password) {
     return res.status(400).json({ message: "נא למלא את כל השדות" });
   }
 
   try {
-    const conn = await db.getConnection(); // כאן משתמשים בפונקציה הקיימת
-
+    const conn = await db.getConnection();
     const [existing] = await conn.execute(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
+
     if (existing.length > 0) {
       return res.status(400).json({ message: "האימייל כבר קיים" });
     }
@@ -76,32 +96,124 @@ console.log("REGISTER BODY:", req.body);
 
     res.status(201).json({ message: "נרשמת בהצלחה!" });
   } catch (err) {
-    console.error("שגיאה בשרת:", err);
+    console.error("שגיאה בהרשמה:", err);
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
 
-router.put("/users/upgrade-role", upload.single("id_card_photo"), async (req, res) => {
-  const { email, id_number } = req.body;
+/** 🟢 שדרוג ל־seller עם ת"ז ותמונה */
+router.put("/registerToQuotaion",upload.single("id_card_photo"),async (req, res) => {
+    const { email, id_number } = req.body;
+    const idCardPath = req.file?.filename;
 
-  if (!email || !id_number) {
-    return res.status(400).json({ message: "חסר אימייל או תז" });
+    if (!email || !id_number || !idCardPath) {
+      return res.status(400).json({ message: "נא למלא את כל השדות כולל קובץ" });
+    }
+
+    try {
+      const conn = await db.getConnection();
+
+      const [existingUsers] = await conn.execute(
+        "SELECT * FROM users WHERE email = ?",
+        [email]
+      );
+      if (existingUsers.length === 0) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+
+      await conn.execute(
+        "UPDATE users SET id_number = ?, id_card_photo = ?, WHERE email = ?",
+        [id_number, idCardPath, email]
+      );
+
+      res.json({ success: true, fileName: idCardPath });
+    } catch (err) {
+      console.error("שגיאה בשדרוג משתמש:", err.message);
+      res.status(500).json({ message: "שגיאה בשרת" });
+    }
+  }
+);
+
+
+//עדכון מקונה למוכר
+router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => {
+  const { email, id_number } = req.body;
+  const id_card_photo = req.file?.filename;
+
+  if (!email || !id_number || !id_card_photo) {
+    return res.status(400).json({ message: "חסרים שדות" });
   }
 
   try {
     const conn = await db.getConnection();
-
     await conn.execute(
       "UPDATE users SET id_number = ?, id_card_photo = ?, role = 'seller' WHERE email = ?",
-      [id_number, req.file?.filename || null, email]
+      [id_number, id_card_photo, email]
     );
-
     res.json({ success: true });
   } catch (err) {
-    console.error("שגיאה בשדרוג למוכר:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
+    console.error("שגיאה בשדרוג משתמש:", err);
+    res.status(500).json({ success: false });
   }
 });
 
+
+
+
+
+/** 🟢 יציאה מהמערכת */
+router.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "שגיאה בהתנתקות" });
+    }
+    res.clearCookie("connect.sid");
+    res.json({ success: true });
+  });
+});
+
+/** 🟢 עדכון פרופיל כללי */
+router.put(
+  "/update-profile",
+  upload.single("id_card_photo"),
+  async (req, res) => {
+    const { email, first_name, last_name, id_number, password } = req.body;
+    const id_card_photo = req.file?.filename;
+
+    try {
+      const conn = await db.getConnection();
+
+      let query =
+        "UPDATE users SET first_name = ?, last_name = ?, id_number = ?";
+      const values = [first_name, last_name, id_number];
+
+      if (id_card_photo) {
+        query += ", id_card_photo = ?";
+        values.push(id_card_photo);
+      }
+
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        query += ", password = ?";
+        values.push(hashedPassword);
+      }
+
+      query += " WHERE email = ?";
+      values.push(email);
+
+      await conn.execute(query, values);
+
+      const [updated] = await conn.execute(
+        "SELECT * FROM users WHERE email = ?",
+        [email]
+      );
+
+      res.json({ success: true, updatedUser: updated[0] });
+    } catch (err) {
+      console.error("שגיאה בעדכון פרופיל:", err.message);
+      res.status(500).json({ success: false, message: "שגיאה בשרת" });
+    }
+  }
+);
 
 module.exports = router;

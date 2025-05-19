@@ -8,10 +8,11 @@ function Navbar() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout(); // מחכה לסיום הקריאה
     navigate("/");
   };
+  
 
   const handleSearch = (e) => {
     e.preventDefault();

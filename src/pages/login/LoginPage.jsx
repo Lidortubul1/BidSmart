@@ -20,8 +20,12 @@ function LoginPage({ isModal = false }) {
         {
           email,
           password,
+        },
+        {
+          withCredentials: true, //sessionחשוב ל
         }
       );
+      
 
       if (response.data.success) {
         const user = response.data.user;
