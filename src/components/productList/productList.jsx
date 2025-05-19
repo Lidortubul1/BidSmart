@@ -41,15 +41,18 @@ export default function ProductList({
 
   return (
     <div className={styles.container}>
-      {filteredProducts.length === 0 ? (
-        <p className={styles.empty}>לא נמצאו מוצרים תואמים.</p>
-      ) : (
-        <div className={styles.productsGrid}>
-          {filteredProducts.map((product) => (
-            <Product key={product.product_id} product={product} />
-          ))}
-        </div>
-      )}
+      <div className={styles.productsWrapper}>
+        {filteredProducts.length === 0 ? (
+          <p className={styles.empty}>לא נמצאו מוצרים תואמים.</p>
+        ) : (
+          <div className={styles.productsGrid}>
+            {filteredProducts.map((product) => (
+              <Product key={product.product_id} product={product} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
+  
 }
