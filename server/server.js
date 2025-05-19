@@ -1,16 +1,20 @@
 const express = require("express");
 const cors = require("cors");
-const productRoutes = require("./products");
+const productRoutes = require("./products.js");
 const authRoutes = require("./auth");
 const quotationRoutes = require("./quotation");
 const categoryRoutes = require("./categories.js");
-const db = require("./database");
+const db = require("./database.js");
 
 const app = express();
 const PORT = 5000;
+// גישה לתמונות בתקייה uploads
+app.use("/uploads", express.static("uploads"));
 
 // מאפשר קריאות מהדפדפן
 app.use(cors());
+
+app.use("/api/product", productRoutes);
 
 // כדי שנוכל לקרוא את מה שנשלח ב־req.body כ־JSON
 app.use(express.json());
@@ -22,14 +26,18 @@ app.use("/api", authRoutes);
 app.use("/api", quotationRoutes);
 
 // נתיבים של מוצרים – קבלה, הוספה
-app.use("/api/product", productRoutes);
+
 
 // נתיב של קטגוריות
 app.use("/api/categories", categoryRoutes);
 
 // בדיקה שהחיבור למסד נתונים תקין
-db.getConnection();
-console.log("קטגוריות נטענו");
+// db.getConnection();
+db.getConnection().then((conn) => {
+  conn.query("SELECT DATABASE() AS db").then(([rows]) => {
+    console.log("📛 מחובר למסד:", rows[0].db);
+  });
+});
 
 // הפעלת השרת
 app.listen(PORT, () => {
