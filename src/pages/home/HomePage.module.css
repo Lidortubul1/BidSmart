@@ -1,13 +1,19 @@
 .container {
-  padding: 40px 20px;
-  margin-right: 220px; /* בגלל ה-navbar בצד ימין */
+  padding: 0;
+  margin: 0;
   background-color: white;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
 .welcomeSection {
   text-align: center;
-  margin-bottom: 50px;
+  margin: 40px auto;
+  padding: 0 20px;
+  max-width: 1200px;
+  width: 100%;
 }
 
 .welcomeSection h1 {

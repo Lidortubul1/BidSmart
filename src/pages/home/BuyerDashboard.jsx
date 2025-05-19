@@ -29,9 +29,7 @@ function BuyerDashboard() {
   }, []);
   return (
     <div className={styles.container}>
-      <div>
-        <CategoryBar categories={categories} />
-      </div>
+      <CategoryBar categories={categories} />
       <div className={styles.welcomeSection}>
         <h1>ברוך הבא לקונה ב-BidSmart!</h1>
         <p>כאן תוכל לצפות בכל המוצרים ולהציע הצעות.</p>
@@ -43,7 +41,9 @@ function BuyerDashboard() {
         )}
       </div>
 
-      <ProductList />
+      <div className={styles.content}>
+        <ProductList />
+      </div>
     </div>
   );
 }

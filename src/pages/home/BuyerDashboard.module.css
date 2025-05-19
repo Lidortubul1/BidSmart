@@ -1,21 +1,44 @@
 .container {
-  padding: 40px 20px;
-  margin-right: 220px;
+  padding: 0;
+  margin: 0;
   background-color: white;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
 .welcomeSection {
   text-align: center;
-  margin-bottom: 50px;
+  margin: 40px auto;
+  padding: 0 20px;
+  max-width: 1200px;
+  width: 100%;
 }
 
 .welcomeSection h1 {
   font-size: 2.5rem;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .welcomeSection p {
   font-size: 1.2rem;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  color: #666;
+}
+
+.sellButton {
+  background-color: black;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sellButton:hover {
+  background-color: #333;
+  transform: translateY(-1px);
 }

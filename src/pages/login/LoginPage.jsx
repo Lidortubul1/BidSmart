@@ -15,10 +15,13 @@ function LoginPage({ isModal = false }) {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5000/api/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        {
+          email,
+          password,
+        }
+      );
 
       if (response.data.success) {
         const user = response.data.user;

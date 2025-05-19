@@ -1,28 +1,54 @@
 .container {
-  padding: 40px 20px;
-  margin-right: 220px;
+  padding: 0;
+  margin: 0;
   background-color: white;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
-h1 {
+.welcomeSection {
   text-align: center;
-  margin-bottom: 30px;
+  margin: 40px auto;
+  padding: 0 20px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.welcomeSection h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.content {
+  padding: 24px;
+  margin: 0 auto;
+  max-width: 1200px;
+  width: 100%;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #f9f9f9;
+  margin-top: 20px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
   font-size: 1rem;
 }
 
 th, td {
   padding: 12px 16px;
-  border: 1px solid #ccc;
-  text-align: center;
+  text-align: right;
+  border-bottom: 1px solid #eee;
 }
 
 th {
-  background-color: #ddd;
+  background-color: #f8f8f8;
+  font-weight: 600;
+}
+
+tr:hover {
+  background-color: #f5f5f5;
 }

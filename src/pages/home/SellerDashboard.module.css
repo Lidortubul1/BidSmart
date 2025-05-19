@@ -1,23 +1,24 @@
 .container {
-  padding: 40px 20px;
-  margin-right: 220px;
+  padding: 0;
+  margin: 0;
   background-color: white;
   min-height: 100vh;
-  position: relative;
-  z-index: 1;
-  overflow: visible; /* ← לא hidden, לא auto */
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
 
 .welcomeSection {
   text-align: center;
-  margin-bottom: 30px;
+  margin: 40px auto;
+  padding: 0 20px;
+  max-width: 1200px;
+  width: 100%;
   position: relative;
   z-index: 2;
-  overflow: visible;
   background-color: #ffffff;
-  padding-bottom: 20px;
 }
 
 .welcomeSection h1 {

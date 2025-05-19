@@ -13,14 +13,15 @@ app.use("/uploads", express.static("uploads"));
 
 // מאפשר קריאות מהדפדפן
 app.use(cors());
-
+//נתיב של המוצרים
 app.use("/api/product", productRoutes);
-
+// נתיב של קטגוריות
+app.use("/api/categories", categoryRoutes);
 // כדי שנוכל לקרוא את מה שנשלח ב־req.body כ־JSON
 app.use(express.json());
 
 // נתיבים של התחברות, הרשמה וכו'
-app.use("/api", authRoutes);
+app.use("/api/auth", authRoutes);
 
 // נתיב שמקבל הצעות מחיר ממוצרים
 app.use("/api", quotationRoutes);
@@ -28,8 +29,7 @@ app.use("/api", quotationRoutes);
 // נתיבים של מוצרים – קבלה, הוספה
 
 
-// נתיב של קטגוריות
-app.use("/api/categories", categoryRoutes);
+
 
 // בדיקה שהחיבור למסד נתונים תקין
 // db.getConnection();

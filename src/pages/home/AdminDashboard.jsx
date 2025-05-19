@@ -20,25 +20,30 @@ function AdminDashboard() {
 
   return (
     <div className={styles.container}>
-      <h1>ניהול משתמשים</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>אימייל</th>
-            <th>תפקיד</th>
-            <th>ת.ז</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id_number}>
-              <td>{user.email}</td>
-              <td>{user.role}</td>
-              <td>{user.id_number}</td>
+      <div className={styles.welcomeSection}>
+        <h1>ניהול משתמשים</h1>
+        <p>ניהול ובקרה על משתמשי המערכת</p>
+      </div>
+      <div className={styles.content}>
+        <table>
+          <thead>
+            <tr>
+              <th>אימייל</th>
+              <th>תפקיד</th>
+              <th>ת.ז</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id_number}>
+                <td>{user.email}</td>
+                <td>{user.role}</td>
+                <td>{user.id_number}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

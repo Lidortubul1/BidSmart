@@ -22,7 +22,7 @@ function SellerDashboard() {
   }, []);
   return (
     <div className={styles.container}>
-      <div >
+      <div>
         <CategoryBar categories={categories} />
       </div>
 
@@ -43,7 +43,6 @@ function SellerDashboard() {
       <ProductList />
     </div>
   );
-  
 }
 
 export default SellerDashboard;

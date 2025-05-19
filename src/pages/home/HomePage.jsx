@@ -22,9 +22,7 @@ function HomePage() {
   }, []);
   return (
     <div className={styles.container}>
-      <div>
-        <CategoryBar categories={categories} />
-      </div>
+      <CategoryBar categories={categories} />
       <div className={styles.welcomeSection}>
         <h1>ברוכים הבאים ל-BidSmart!</h1>
         <p>מכירות פומביות חכמות, מחירים נגישים לכולם.</p>

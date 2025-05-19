@@ -13,9 +13,11 @@ html, body, #root {
 
 .App-content {
   flex: 1;
-  padding: 20px;
+  padding: 0;
+  padding-top: 64px;
   box-sizing: border-box;
-  overflow-y: auto; 
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 footer {
