@@ -30,7 +30,7 @@ import SellerDashboard from "../pages/home/SellerDashboard.jsx";
 import AdminDashboard from "../pages/home/AdminDashboard";
 
 function App() {
-  const { setUser } = useAuth(); // 👈 שימוש בקונטקסט של משתמש
+  const { setUser } = useAuth(); // שימוש בקונטקסט של משתמש
 
   useEffect(() => {
     axios

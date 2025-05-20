@@ -6,7 +6,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// ⚙️ הגדרת אחסון לקבצים (צילום ת"ז)
+// הגדרת אחסון לקבצים (צילום ת"ז + תמונת פרופיל)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, "../uploads");
@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-/** 🟢 התחברות */
+/** התחברות */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -48,9 +48,18 @@ router.post("/login", async (req, res) => {
       role: user.role,
       id_number: user.id_number,
       id_card_photo: user.id_card_photo,
+      profile_photo: user.profile_photo,
       first_name: user.first_name,
       last_name: user.last_name,
+      phone: user.phone,
+      country: user.country,
+      zip: user.zip,
+      city: user.city,
+      street: user.street,
+      house_number: user.house_number,
+      apartment_number: user.apartment_number,
     };
+    
 
     res.json({ success: true, user: req.session.user });
   } catch (err) {
@@ -59,7 +68,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-/** 🟡 בדיקת session */
+/**  בדיקת session */
 router.get("/session", (req, res) => {
   if (req.session.user) {
     res.json({ loggedIn: true, user: req.session.user });
@@ -68,7 +77,7 @@ router.get("/session", (req, res) => {
   }
 });
 
-/** 🟢 הרשמה */
+/**  הרשמה */
 router.post("/register", async (req, res) => {
   const { first_name, last_name, email, password } = req.body;
 
@@ -101,8 +110,11 @@ router.post("/register", async (req, res) => {
   }
 });
 
-/** 🟢 שדרוג ל־seller עם ת"ז ותמונה */
-router.put("/registerToQuotaion",upload.single("id_card_photo"),async (req, res) => {
+/** שדרוג ל־seller עם ת"ז ותמונה */
+router.put(
+  "/registerToQuotaion",
+  upload.single("id_card_photo"),
+  async (req, res) => {
     const { email, id_number } = req.body;
     const idCardPath = req.file?.filename;
 
@@ -122,7 +134,7 @@ router.put("/registerToQuotaion",upload.single("id_card_photo"),async (req, res)
       }
 
       await conn.execute(
-        "UPDATE users SET id_number = ?, id_card_photo = ?, WHERE email = ?",
+        "UPDATE users SET id_number = ?, id_card_photo = ? WHERE email = ?",
         [id_number, idCardPath, email]
       );
 
@@ -134,34 +146,32 @@ router.put("/registerToQuotaion",upload.single("id_card_photo"),async (req, res)
   }
 );
 
+router.put(
+  "/upgrade-role",
+  upload.single("id_card_photo"),
+  async (req, res) => {
+    const { email, id_number } = req.body;
+    const id_card_photo = req.file?.filename;
 
-//עדכון מקונה למוכר
-router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => {
-  const { email, id_number } = req.body;
-  const id_card_photo = req.file?.filename;
+    if (!email || !id_number || !id_card_photo) {
+      return res.status(400).json({ message: "חסרים שדות" });
+    }
 
-  if (!email || !id_number || !id_card_photo) {
-    return res.status(400).json({ message: "חסרים שדות" });
+    try {
+      const conn = await db.getConnection();
+      await conn.execute(
+        "UPDATE users SET id_number = ?, id_card_photo = ?, role = 'seller' WHERE email = ?",
+        [id_number, id_card_photo, email]
+      );
+      res.json({ success: true });
+    } catch (err) {
+      console.error("שגיאה בשדרוג משתמש:", err);
+      res.status(500).json({ success: false });
+    }
   }
+);
 
-  try {
-    const conn = await db.getConnection();
-    await conn.execute(
-      "UPDATE users SET id_number = ?, id_card_photo = ?, role = 'seller' WHERE email = ?",
-      [id_number, id_card_photo, email]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error("שגיאה בשדרוג משתמש:", err);
-    res.status(500).json({ success: false });
-  }
-});
-
-
-
-
-
-/** 🟢 יציאה מהמערכת */
+/** יציאה מהמערכת */
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -172,24 +182,59 @@ router.post("/logout", (req, res) => {
   });
 });
 
-/** 🟢 עדכון פרופיל כללי */
+/**  עדכון פרופיל כללי */
 router.put(
   "/update-profile",
-  upload.single("id_card_photo"),
+  upload.fields([
+    { name: "id_card_photo", maxCount: 1 },
+    { name: "profile_photo", maxCount: 1 },
+  ]),
   async (req, res) => {
-    const { email, first_name, last_name, id_number, password } = req.body;
-    const id_card_photo = req.file?.filename;
+    const {
+      email,
+      first_name,
+      last_name,
+      id_number,
+      password,
+      phone,
+      country,
+      zip,
+      city,
+      street,
+      house_number,
+      apartment_number,
+    } = req.body;
+
+    const id_card_photo = req.files?.id_card_photo?.[0]?.filename;
+    const profile_photo = req.files?.profile_photo?.[0]?.filename;
 
     try {
       const conn = await db.getConnection();
 
       let query =
-        "UPDATE users SET first_name = ?, last_name = ?, id_number = ?";
-      const values = [first_name, last_name, id_number];
+        "UPDATE users SET first_name = ?, last_name = ?, id_number = ?, phone = ?, country = ?, zip = ?, city = ?, street = ?, house_number = ?, apartment_number = ?";
+
+      const values = [
+        first_name,
+        last_name,
+        id_number,
+        phone,
+        country,
+        zip,
+        city,
+        street,
+        house_number,
+        apartment_number,
+      ];
 
       if (id_card_photo) {
         query += ", id_card_photo = ?";
         values.push(id_card_photo);
+      }
+
+      if (profile_photo) {
+        query += ", profile_photo = ?";
+        values.push(profile_photo);
       }
 
       if (password) {
