@@ -1,6 +1,6 @@
 import axios from "axios";
 
-// פונקציית התחברות (ללא שינוי)
+// פונקציית התחברות
 export async function loginUser(email, password) {
   try {
     const response = await axios.post("http://localhost:5000/api/auth/login", {
@@ -14,15 +14,17 @@ export async function loginUser(email, password) {
   }
 }
 
-// פונקציית הרשמה מתוקנת עם שמות שמתאימים למסד הנתונים
 export async function registerUser(firstName, lastName, email, password) {
   try {
-    const response = await axios.post("http://localhost:5000/api/auth/register", {
-      first_name: firstName, // זה תואם לשם העמודה במסד
-      last_name: lastName, // אותו דבר כאן
-      email,
-      password,
-    });
+    const response = await axios.post(
+      "http://localhost:5000/api/auth/register",
+      {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error registering:", error);

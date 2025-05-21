@@ -10,10 +10,10 @@ const db = require("./database.js");
 const app = express();
 const PORT = 5000;
 
-// כדי שנוכל לקרוא JSON מ־req.body
+//כדי שנוכל לקרוא JSON מ־req.body
 app.use(express.json());
 
-// ✅ הגדרת CORS אחת ויחידה – לפני session והראוטים
+//הגדרת CORS אחת ויחידה – לפני session והראוטים
 app.use(
   cors({
     origin: "http://localhost:3000", // כתובת הפרונט
@@ -21,7 +21,7 @@ app.use(
   })
 );
 
-// ✅ הגדרת session – תמיד אחרי CORS
+// הגדרת session – תמיד אחרי CORS
 app.use(
   session({
     secret: "my_secret_key",
@@ -35,23 +35,23 @@ app.use(
   })
 );
 
-// ✅ קבצים סטטיים (כמו תמונות) - לא חובה לשים בראש
+// קבצים סטטיים (כמו תמונות) - לא חובה לשים בראש
 app.use("/uploads", express.static("uploads"));
 
-// ✅ כל הנתיבים
+// כל הנתיבים
 app.use("/api/product", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/quotation", quotationRoutes);
 
-// ✅ בדיקת חיבור למסד הנתונים
+// בדיקת חיבור למסד הנתונים
 db.getConnection().then((conn) => {
   conn.query("SELECT DATABASE() AS db").then(([rows]) => {
-    console.log("📛 מחובר למסד:", rows[0].db);
+    console.log(" מחובר למסד:", rows[0].db);
   });
 });
 
-// ✅ הרצת השרת
+// הרצת השרת
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

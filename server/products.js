@@ -25,12 +25,12 @@ router.get("/", async (req, res) => {
 
 
     if (products.length === 0) {
-      console.log("⚠️ אין מוצרים בטבלה product (לפי SELECT)");
+      console.log(" אין מוצרים בטבלה product (לפי SELECT)");
     }
 
     res.json(products);
   } catch (e) {
-    console.error("❌ שגיאה בקבלת מוצרים:", e);
+    console.error(" שגיאה בקבלת מוצרים:", e);
     res.status(500).json({ error: "Failed to fetch product" });
   }
 });

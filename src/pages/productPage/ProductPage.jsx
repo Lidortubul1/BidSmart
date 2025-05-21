@@ -11,11 +11,12 @@ function ProductPage() {
 
   const [product, setProduct] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
-
   const [idNumberInput, setIdNumberInput] = useState("");
   const [idPhotoFile, setIdPhotoFile] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showIdForm, setShowIdForm] = useState(false);
+  const [showAlreadyRegisteredModal, setShowAlreadyRegisteredModal] =
+    useState(false);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -31,7 +32,9 @@ function ProductPage() {
     async function checkRegistration() {
       if (!user?.id_number) return;
       try {
-        const res = await axios.get(`http://localhost:5000/api/quotation/${id}`);
+        const res = await axios.get(
+          `http://localhost:5000/api/quotation/${id}`
+        );
         const alreadyRegistered = res.data.some(
           (q) => q.buyer_id_number === user.id_number && q.price === 0
         );
@@ -44,14 +47,15 @@ function ProductPage() {
     fetchProduct();
     if (user) checkRegistration();
   }, [id, user]);
+
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // ינואר זה 0
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
-  
+
   const handleRegisterToSale = () => {
     if (!user) {
       navigate("/login");
@@ -79,14 +83,17 @@ function ProductPage() {
           `נרשמת בהצלחה! המכירה תחל בתאריך: ${formatDate(product.start_date)}`
         );
       } else {
-        alert(res.data.message || "שגיאה בהרשמה");
+        if (res.data.message === "כבר נרשמת למכירה הזו") {
+          setShowAlreadyRegisteredModal(true);
+        } else {
+          alert(res.data.message || "שגיאה בהרשמה");
+        }
       }
     } catch (err) {
       console.error("שגיאה בהרשמה:", err);
       alert("שגיאה בשרת");
     }
   };
-  
 
   const handleIdSubmit = async (e) => {
     e.preventDefault();
@@ -102,12 +109,20 @@ function ProductPage() {
     formData.append("email", user.email);
 
     try {
-      await axios.put("http://localhost:5000/api/auth/registerToQuotaion", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      });
+      await axios.put(
+        "http://localhost:5000/api/auth/registerToQuotaion",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        }
+      );
 
-      const updatedUser = { ...user, id_number: idNumberInput, id_card_photo: "uploaded" };
+      const updatedUser = {
+        ...user,
+        id_number: idNumberInput,
+        id_card_photo: "uploaded",
+      };
       setUser(updatedUser);
       setShowIdForm(false);
       completeRegistration(idNumberInput);
@@ -136,7 +151,9 @@ function ProductPage() {
           <p className={styles.price}>מחיר פתיחה: {product.price} ₪</p>
           <p className={styles.status}>סטטוס: {product.product_status}</p>
 
-          {feedbackMessage && <p className={styles.success}>{feedbackMessage}</p>}
+          {feedbackMessage && (
+            <p className={styles.success}>{feedbackMessage}</p>
+          )}
 
           {!isRegistered && !feedbackMessage && (
             <button className={styles.bidButton} onClick={handleRegisterToSale}>
@@ -170,6 +187,17 @@ function ProductPage() {
           )}
         </div>
       </div>
+
+      {showAlreadyRegisteredModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <p>כבר נרשמת למכירה הזו.</p>
+            <button onClick={() => setShowAlreadyRegisteredModal(false)}>
+              סגור
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

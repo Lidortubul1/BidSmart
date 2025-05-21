@@ -7,6 +7,11 @@ const nodemailer = require("nodemailer");
 router.post("/", async (req, res) => {
   const { product_id, buyer_id_number, price } = req.body;
 
+  console.log(" קיבלנו בקשת הצעה/הרשמה:");
+  console.log(" product_id:", product_id);
+  console.log(" buyer_id_number:", buyer_id_number);
+  console.log(" price:", price);
+
   if (!product_id || !buyer_id_number || price === undefined) {
     return res.status(400).json({ success: false, message: "חסרים שדות" });
   }
@@ -39,10 +44,18 @@ router.post("/", async (req, res) => {
           .json({ success: false, message: "כבר נרשמת למכירה הזו" });
       }
 
-      await conn.execute(
-        "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
-        [product_id, buyer_id_number, 0]
-      );
+      try {
+        await conn.execute(
+          "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
+          [product_id, buyer_id_number, 0]
+        );
+        console.log(" נרשם בהצלחה ל־quotation");
+      } catch (err) {
+        console.error(" שגיאה בהכנסת שורת הרשמה ל־quotation:", err.message);
+        return res
+          .status(500)
+          .json({ success: false, message: "שגיאה בשמירת ההרשמה" });
+      }
 
       const [userData] = await conn.execute(
         "SELECT email FROM users WHERE id_number = ?",
@@ -56,7 +69,7 @@ router.post("/", async (req, res) => {
           service: "gmail",
           auth: {
             user: "bidsmart2025@gmail.com",
-            pass: "כאן אני אשים את סיסמת האפליקציה מגוגל",
+            pass: "zjkkgwzmwjjtcylr",
           },
         });
 
@@ -69,7 +82,7 @@ router.post("/", async (req, res) => {
 
         transporter.sendMail(mailOptions, (err, info) => {
           if (err) console.error("שגיאה בשליחת מייל:", err);
-          else console.log("נשלח מייל:", info.response);
+          else console.log("📧 נשלח מייל:", info.response);
         });
       }
 
@@ -94,20 +107,36 @@ router.post("/", async (req, res) => {
     );
 
     if (existingBid.length > 0) {
-      await conn.execute(
-        "UPDATE quotation SET price = ? WHERE product_id = ? AND buyer_id_number = ?",
-        [price, product_id, buyer_id_number]
-      );
+      try {
+        await conn.execute(
+          "UPDATE quotation SET price = ? WHERE product_id = ? AND buyer_id_number = ?",
+          [price, product_id, buyer_id_number]
+        );
+        console.log(" הצעה עודכנה בהצלחה");
+      } catch (err) {
+        console.error(" שגיאה בעדכון הצעה קיימת:", err.message);
+        return res
+          .status(500)
+          .json({ success: false, message: "שגיאה בעדכון ההצעה" });
+      }
     } else {
-      await conn.execute(
-        "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
-        [product_id, buyer_id_number, price]
-      );
+      try {
+        await conn.execute(
+          "INSERT INTO quotation (product_id, buyer_id_number, price, payment_status) VALUES (?, ?, ?, 'not_completed')",
+          [product_id, buyer_id_number, price]
+        );
+        console.log(" הצעה חדשה נשמרה");
+      } catch (err) {
+        console.error(" שגיאה בהכנסת הצעה חדשה:", err.message);
+        return res
+          .status(500)
+          .json({ success: false, message: "שגיאה בשמירת ההצעה" });
+      }
     }
 
     res.json({ success: true, message: "ההצעה נשמרה בהצלחה" });
   } catch (err) {
-    console.error("שגיאה בהוספת הצעה/הרשמה:", err);
+    console.error(" שגיאה כללית בהוספת הצעה/הרשמה:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
@@ -126,7 +155,7 @@ router.get("/:product_id", async (req, res) => {
 
     res.json(bids);
   } catch (err) {
-    console.error("שגיאה בשליפת הצעות:", err);
+    console.error("שגיאה בשליפת הצעות:", err.message);
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });

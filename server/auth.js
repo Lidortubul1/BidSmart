@@ -6,7 +6,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// הגדרת אחסון לקבצים (צילום ת"ז + תמונת פרופיל)
+// אחסון קבצים
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, "../uploads");
@@ -59,7 +59,6 @@ router.post("/login", async (req, res) => {
       house_number: user.house_number,
       apartment_number: user.apartment_number,
     };
-    
 
     res.json({ success: true, user: req.session.user });
   } catch (err) {
@@ -68,7 +67,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-/**  בדיקת session */
+/** בדיקת session */
 router.get("/session", (req, res) => {
   if (req.session.user) {
     res.json({ loggedIn: true, user: req.session.user });
@@ -77,7 +76,7 @@ router.get("/session", (req, res) => {
   }
 });
 
-/**  הרשמה */
+/** הרשמה */
 router.post("/register", async (req, res) => {
   const { first_name, last_name, email, password } = req.body;
 
@@ -110,79 +109,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-/** שדרוג ל־seller עם ת"ז ותמונה */
-router.put(
-  "/registerToQuotaion",
-  upload.single("id_card_photo"),
-  async (req, res) => {
-    const { email, id_number } = req.body;
-    const idCardPath = req.file?.filename;
-
-    if (!email || !id_number || !idCardPath) {
-      return res.status(400).json({ message: "נא למלא את כל השדות כולל קובץ" });
-    }
-
-    try {
-      const conn = await db.getConnection();
-
-      const [existingUsers] = await conn.execute(
-        "SELECT * FROM users WHERE email = ?",
-        [email]
-      );
-      if (existingUsers.length === 0) {
-        return res.status(404).json({ message: "משתמש לא נמצא" });
-      }
-
-      await conn.execute(
-        "UPDATE users SET id_number = ?, id_card_photo = ? WHERE email = ?",
-        [id_number, idCardPath, email]
-      );
-
-      res.json({ success: true, fileName: idCardPath });
-    } catch (err) {
-      console.error("שגיאה בשדרוג משתמש:", err.message);
-      res.status(500).json({ message: "שגיאה בשרת" });
-    }
-  }
-);
-
-router.put(
-  "/upgrade-role",
-  upload.single("id_card_photo"),
-  async (req, res) => {
-    const { email, id_number } = req.body;
-    const id_card_photo = req.file?.filename;
-
-    if (!email || !id_number || !id_card_photo) {
-      return res.status(400).json({ message: "חסרים שדות" });
-    }
-
-    try {
-      const conn = await db.getConnection();
-      await conn.execute(
-        "UPDATE users SET id_number = ?, id_card_photo = ?, role = 'seller' WHERE email = ?",
-        [id_number, id_card_photo, email]
-      );
-      res.json({ success: true });
-    } catch (err) {
-      console.error("שגיאה בשדרוג משתמש:", err);
-      res.status(500).json({ success: false });
-    }
-  }
-);
-
-/** יציאה מהמערכת */
-router.post("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ message: "שגיאה בהתנתקות" });
-    }
-    res.clearCookie("connect.sid");
-    res.json({ success: true });
-  });
-});
-
-/**  עדכון פרופיל כללי */
+/** עדכון פרופיל כללי */
 router.put(
   "/update-profile",
   upload.fields([
@@ -205,15 +132,17 @@ router.put(
       apartment_number,
     } = req.body;
 
-    const id_card_photo = req.files?.id_card_photo?.[0]?.filename;
-    const profile_photo = req.files?.profile_photo?.[0]?.filename;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "חסר שדה אימייל" });
+    }
 
     try {
+      const id_card_photo = req.files?.id_card_photo?.[0]?.filename;
+      const profile_photo = req.files?.profile_photo?.[0]?.filename;
       const conn = await db.getConnection();
 
       let query =
         "UPDATE users SET first_name = ?, last_name = ?, id_number = ?, phone = ?, country = ?, zip = ?, city = ?, street = ?, house_number = ?, apartment_number = ?";
-
       const values = [
         first_name,
         last_name,
@@ -246,6 +175,12 @@ router.put(
       query += " WHERE email = ?";
       values.push(email);
 
+      //  הדפסות דיבאג שיעזרו לבדוק מה נשלח מהפרונט:
+      console.log(">> BODY:", req.body);
+      console.log(">> FILES:", req.files);
+      console.log(">> QUERY:", query);
+      console.log(">> VALUES:", values);
+
       await conn.execute(query, values);
 
       const [updated] = await conn.execute(
@@ -260,5 +195,6 @@ router.put(
     }
   }
 );
+
 
 module.exports = router;

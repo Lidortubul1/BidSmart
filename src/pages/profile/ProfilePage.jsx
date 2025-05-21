@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import axios from "axios";
 import styles from "./ProfilePage.module.css";
-import backgroundImage from "../../assets/images/background.jpg";
+import citiesData from "../../assets/data/cities_with_streets.json";
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -16,7 +16,6 @@ function ProfilePage() {
 
   const [phonePrefix, setPhonePrefix] = useState("+972");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [country, setCountry] = useState("");
   const [zip, setZip] = useState("");
   const [city, setCity] = useState("");
   const [street, setStreet] = useState("");
@@ -24,8 +23,12 @@ function ProfilePage() {
   const [apartmentNumber, setApartmentNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
-  const [touchedPhone, setTouchedPhone] = useState(false);
 
+  const [selectedCity, setSelectedCity] = useState("");
+  const [availableStreets, setAvailableStreets] = useState([]);
+  const [selectedStreet, setSelectedStreet] = useState("");
+  const [cityTouched, setCityTouched] = useState(false);
+  const [country, setCountry] = useState("ישראל");
 
   useEffect(() => {
     if (user) {
@@ -33,21 +36,38 @@ function ProfilePage() {
       setLastName(user.last_name || "");
       setIdNumber(user.id_number || "");
       setPhoneNumber(user.phone?.slice(phonePrefix.length) || "");
-      setCountry(user.country || "");
       setZip(user.zip || "");
       setCity(user.city || "");
       setStreet(user.street || "");
       setHouseNumber(user.house_number || "");
       setApartmentNumber(user.apartment_number || "");
+      setSelectedCity(user.city || "");
+      setSelectedStreet(user.street || "");
+      const found = citiesData.find((c) => c.city === user.city);
+      setAvailableStreets(found ? found.streets : []);
     }
   }, [user]);
 
+  const handleCityChange = (e) => {
+    const city = e.target.value;
+    setSelectedCity(city);
+    setCityTouched(true);
+    const found = citiesData.find((c) => c.city === city);
+    setAvailableStreets(found ? found.streets : []);
+    setSelectedStreet("");
+  };
   const handleSave = async (e) => {
     e.preventDefault();
 
+    //  בדיקה מוקדמת למקרה ש-user לא נטען או שאין לו אימייל
+    if (!user || !user.email) {
+      alert("אירעה שגיאה – לא ניתן לעדכן את הפרופיל ללא אימייל.");
+      return;
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const zipRegex = /^\d{5,7}$/;
-    const idRegex = /^\d{8}$/;
+    const idRegex = /^\d{9}$/;
     const houseRegex = /^\d+$/;
 
     if (!emailRegex.test(user.email)) {
@@ -66,18 +86,18 @@ function ProfilePage() {
       return;
     }
 
-    if (!zipRegex.test(zip)) {
+    if (zip && !zipRegex.test(zip)) {
       alert("מיקוד לא תקין");
       return;
     }
 
-    if (!houseRegex.test(houseNumber)) {
+    if (houseNumber && !houseRegex.test(houseNumber)) {
       alert("שדה מספר בית לא תקין");
       return;
     }
 
-    if (!idRegex.test(idNumber)) {
-      alert("  תעודת זהות חייבת להכיל  9 ספרות כולל ספרת ביקורת");
+    if (idNumber && !idRegex.test(idNumber)) {
+      alert("תעודת זהות חייבת להכיל 9 ספרות כולל ספרת ביקורת");
       return;
     }
 
@@ -87,10 +107,10 @@ function ProfilePage() {
     formData.append("last_name", lastName);
     formData.append("id_number", idNumber);
     formData.append("phone", phonePrefix + phoneNumber);
-    formData.append("country", "ישראל"); 
+    formData.append("country", "ישראל");
     formData.append("zip", zip);
-    formData.append("city", city);
-    formData.append("street", street);
+    formData.append("city", selectedCity);
+    formData.append("street", selectedStreet);
     formData.append("house_number", houseNumber);
     formData.append("apartment_number", apartmentNumber);
     if (newPassword) formData.append("password", newPassword);
@@ -118,8 +138,6 @@ function ProfilePage() {
       alert("שגיאה בשרת");
     }
   };
-  
-  
 
   return (
     <div className={styles.page}>
@@ -201,11 +219,7 @@ function ProfilePage() {
                     onChange={(e) => {
                       const onlyNums = e.target.value.replace(/\D/g, "");
                       setPhoneNumber(onlyNums);
-
-                      // בדיקה רק אם השדה כבר הוזן
-                      if (onlyNums.length === 7) {
-                        setPhoneError(false);
-                      }
+                      if (onlyNums.length === 7) setPhoneError(false);
                     }}
                     onBlur={() => {
                       if (phoneNumber.length !== 7) {
@@ -217,23 +231,54 @@ function ProfilePage() {
                 </div>
               </div>
 
-              <label>מדינה</label>
-              <input
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-              />
+              <div className={styles.inputGroup}>
+                <label>מדינה</label>
+                <input value={country} disabled />
+              </div>
 
-              <label>מיקוד</label>
-              <input value={zip} onChange={(e) => setZip(e.target.value)} />
+              <div className={styles.inputGroup}>
+                <label>מיקוד</label>
+                <input value={zip} onChange={(e) => setZip(e.target.value)} />
+              </div>
 
-              <label>עיר</label>
-              <input value={city} onChange={(e) => setCity(e.target.value)} />
+              <div className={styles.inputGroup}>
+                <label>יישוב</label>
+                <select
+                  value={selectedCity}
+                  onChange={handleCityChange}
+                  onBlur={() => setCityTouched(true)}
+                  className={cityTouched && !selectedCity ? styles.error : ""}
+                >
+                  <option value="">בחר יישוב</option>
+                  {citiesData.map((c, index) => (
+                    <option key={index} value={c.city}>
+                      {c.city}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              <label>רחוב</label>
-              <input
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-              />
+              <div className={styles.inputGroup}>
+                <label>רחוב</label>
+                <select
+                  value={selectedStreet}
+                  onChange={(e) => {
+                    if (!selectedCity) {
+                      setCityTouched(true);
+                      alert("יש לבחור קודם יישוב");
+                      return;
+                    }
+                    setSelectedStreet(e.target.value);
+                  }}
+                >
+                  <option value="">בחר רחוב</option>
+                  {availableStreets.map((street, index) => (
+                    <option key={index} value={street}>
+                      {street}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <label>מספר בית</label>
               <input
