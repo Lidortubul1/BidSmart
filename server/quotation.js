@@ -141,6 +141,31 @@ router.post("/", async (req, res) => {
   }
 });
 
+
+// שליפת כל ההצעות של משתמש לפי תעודת זהות
+router.get("/user/:id_number", async (req, res) => {
+  const idNumber = req.params.id_number;
+
+  try {
+    const conn = await db.getConnection();
+
+    // לוג לבדיקה
+    console.log("🔍 מחפש הצעות למשתמש:", idNumber);
+
+    const [results] = await conn.execute(
+      "SELECT * FROM quotation WHERE buyer_id_number = ?",
+      [idNumber]
+    );
+
+    console.log("✅ נמצאו הצעות:", results);
+    res.json(results);
+  } catch (err) {
+    console.error("❌ שגיאה בשליפת הצעות למשתמש:", err.message);
+    res.status(500).json({ error: "שגיאה בשליפת הצעות למשתמש" });
+  }
+});
+
+
 // שליפת הצעות לפי product_id
 router.get("/:product_id", async (req, res) => {
   const { product_id } = req.params;
@@ -159,5 +184,18 @@ router.get("/:product_id", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
+// שליפת כל ההצעות
+router.get("/all", async (req, res) => {
+  try {
+    const [results] = await db.query("SELECT * FROM quotation");
+    res.json(results);
+  } catch (err) {
+    console.error("שגיאה בשליפת הצעות:", err);
+    res.status(500).json({ error: "שגיאה בשליפת הצעות" });
+  }
+});
+
+
 
 module.exports = router;

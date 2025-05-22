@@ -5,7 +5,10 @@ const productRoutes = require("./products.js");
 const authRoutes = require("./auth");
 const quotationRoutes = require("./quotation");
 const categoryRoutes = require("./categories.js");
+const saleRoutes = require("./sale.js");
+
 const db = require("./database.js");
+
 
 const app = express();
 const PORT = 5000;
@@ -43,6 +46,8 @@ app.use("/api/product", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/quotation", quotationRoutes);
+app.use("/api/sale", saleRoutes);
+
 
 // בדיקת חיבור למסד הנתונים
 db.getConnection().then((conn) => {
