@@ -7,6 +7,7 @@ import citiesData from "../../assets/data/cities_with_streets.json";
 function ProfilePage() {
   const { user, setUser } = useAuth();
 
+  const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [idNumber, setIdNumber] = useState("");
@@ -32,6 +33,7 @@ function ProfilePage() {
 
   useEffect(() => {
     if (user) {
+      setEmail(user.email || "");
       setFirstName(user.first_name || "");
       setLastName(user.last_name || "");
       setIdNumber(user.id_number || "");
@@ -56,21 +58,17 @@ function ProfilePage() {
     setAvailableStreets(found ? found.streets : []);
     setSelectedStreet("");
   };
+
   const handleSave = async (e) => {
     e.preventDefault();
 
-    //  בדיקה מוקדמת למקרה ש-user לא נטען או שאין לו אימייל
-    if (!user || !user.email) {
-      alert("אירעה שגיאה – לא ניתן לעדכן את הפרופיל ללא אימייל.");
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.(com|org|net|edu|gov|il|co\.il|gmail\.com|hotmail\.com|outlook\.com)$/;
     const zipRegex = /^\d{5,7}$/;
     const idRegex = /^\d{9}$/;
     const houseRegex = /^\d+$/;
 
-    if (!emailRegex.test(user.email)) {
+    if (!emailRegex.test(email)) {
       alert("כתובת אימייל לא תקינה");
       return;
     }
@@ -102,7 +100,8 @@ function ProfilePage() {
     }
 
     const formData = new FormData();
-    formData.append("email", user.email);
+    formData.append("email", user.email); // אימייל הנוכחי
+    formData.append("new_email", email); // אימייל החדש
     formData.append("first_name", firstName);
     formData.append("last_name", lastName);
     formData.append("id_number", idNumber);
@@ -154,7 +153,12 @@ function ProfilePage() {
 
               <div className={styles.inputGroup}>
                 <label>אימייל</label>
-                <input type="email" value={user?.email || ""} disabled />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
 
               <div className={styles.inputGroup}>
@@ -177,10 +181,7 @@ function ProfilePage() {
                 <label>סיסמה</label>
                 <input
                   type={showPassword ? "text" : "password"}
-                  value={
-                    newPassword ||
-                    (user?.password ? "*".repeat(user.password.length) : "")
-                  }
+                  value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
                 <label>

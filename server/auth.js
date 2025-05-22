@@ -118,7 +118,8 @@ router.put(
   ]),
   async (req, res) => {
     const {
-      email,
+      email: currentEmail,
+      new_email,
       first_name,
       last_name,
       id_number,
@@ -132,8 +133,10 @@ router.put(
       apartment_number,
     } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ success: false, message: "חסר שדה אימייל" });
+    if (!currentEmail) {
+      return res
+        .status(400)
+        .json({ success: false, message: "חסר שדה אימייל" });
     }
 
     try {
@@ -141,8 +144,11 @@ router.put(
       const profile_photo = req.files?.profile_photo?.[0]?.filename;
       const conn = await db.getConnection();
 
-      let query =
-        "UPDATE users SET first_name = ?, last_name = ?, id_number = ?, phone = ?, country = ?, zip = ?, city = ?, street = ?, house_number = ?, apartment_number = ?";
+      let query = `
+        UPDATE users SET
+        first_name = ?, last_name = ?, id_number = ?, phone = ?, country = ?,
+        zip = ?, city = ?, street = ?, house_number = ?, apartment_number = ?
+      `;
       const values = [
         first_name,
         last_name,
@@ -172,21 +178,22 @@ router.put(
         values.push(hashedPassword);
       }
 
-      query += " WHERE email = ?";
-      values.push(email);
+      if (new_email) {
+        query += ", email = ?";
+        values.push(new_email);
+      }
 
-      //  הדפסות דיבאג שיעזרו לבדוק מה נשלח מהפרונט:
-      console.log(">> BODY:", req.body);
-      console.log(">> FILES:", req.files);
-      console.log(">> QUERY:", query);
-      console.log(">> VALUES:", values);
+      query += " WHERE email = ?";
+      values.push(currentEmail);
 
       await conn.execute(query, values);
 
       const [updated] = await conn.execute(
         "SELECT * FROM users WHERE email = ?",
-        [email]
+        [new_email || currentEmail]
       );
+
+      req.session.user = updated[0];
 
       res.json({ success: true, updatedUser: updated[0] });
     } catch (err) {
@@ -195,6 +202,5 @@ router.put(
     }
   }
 );
-
 
 module.exports = router;
