@@ -35,13 +35,12 @@ router.get("/", async (req, res) => {
   }
 });
 
-
-
 // הוספת מוצר חדש
 router.post("/", upload.none(), async (req, res) => {
   const {
     product_name,
     start_date,
+    start_time, // ⬅️ חדש
     end_date,
     price,
     image,
@@ -51,9 +50,11 @@ router.post("/", upload.none(), async (req, res) => {
     category,
     sub_category,
   } = req.body;
+  
 
   if (
     !product_name ||
+    !start_time ||
     !start_date ||
     !end_date ||
     !price ||
@@ -71,13 +72,15 @@ router.post("/", upload.none(), async (req, res) => {
 
     await connection.execute(
       `INSERT INTO product
-      (product_name, start_date, end_date, price, image, description, seller_id_number, product_status, category, sub_category)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+(product_name, start_date, start_time, end_date, price, current_price, image, description, seller_id_number, product_status, category, sub_category)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         product_name,
         start_date,
+        start_time,
         end_date,
         price,
+        price, // current_price
         image || null,
         description || null,
         seller_id_number,
@@ -86,6 +89,7 @@ router.post("/", upload.none(), async (req, res) => {
         sub_category || null,
       ]
     );
+    
 
     res.json({ success: true });
   } catch (error) {
@@ -93,5 +97,29 @@ router.post("/", upload.none(), async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בשמירת המוצר" });
   }
 });
+
+//מחזיר מוצר לפי product_id (אם עוד לא קיים)
+// שליפת מוצר בודד לפי product_id
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(
+      "SELECT * FROM product WHERE product_id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "המוצר לא נמצא" });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("❌ שגיאה בשרת בשליפת מוצר:", err.message);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
 
 module.exports = router;

@@ -23,6 +23,9 @@ import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
 import DashboardRouter from "../components/DashboardRouter/DashboardRouter.jsx";
+// import LiveAuction from "../components/LiveAuction/LiveAuction.jsx";
+import LiveAuctionWrapper from "../components/LiveAuctionWrapper/LiveAuctionWrapper.jsx";
+
 
 // לוחות ניהול
 import BuyerDashboard from "../pages/home/BuyerDashboard";
@@ -58,16 +61,11 @@ function App() {
           <Route path="/info" element={<InfoPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-          <Route
-            path="/admin-dashboard"
-            element={
-              <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />
-            }
-          />
-          <Route
-            path="/add-product"
-            element={<ProtectedRoute element={<AddProductPage />} />}
-          />
+          <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />}/>
+          <Route path="/add-product" element={<ProtectedRoute element={<AddProductPage />} />}/>
+
+          <Route path="/live-auction/:id" element={<LiveAuctionWrapper />} />
+
           <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />
           <Route path="/my-bids" element={<MyBidsPage />} />

@@ -13,10 +13,18 @@ function ProductPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [idNumberInput, setIdNumberInput] = useState("");
   const [idPhotoFile, setIdPhotoFile] = useState(null);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showIdForm, setShowIdForm] = useState(false);
-  const [showAlreadyRegisteredModal, setShowAlreadyRegisteredModal] =
-    useState(false);
+
+  const [timeUntilStart, setTimeUntilStart] = useState(null);
+
+
+  useEffect(() => {
+    if (product?.is_live === 1 && isRegistered) {
+      navigate(`/live-auction/${product.product_id}`);
+    }
+  }, [product, isRegistered]);
+  
+
 
   useEffect(() => {
     async function fetchProduct() {
@@ -28,9 +36,25 @@ function ProductPage() {
         console.error("שגיאה בטעינת מוצר:", err);
       }
     }
+    fetchProduct();
+  }, [id]);
 
+  useEffect(() => {
+    if (!product || product.is_live !== 0) return;
+
+    const now = new Date();
+    const startTime = new Date(product.start_date);
+    const diffMs = startTime - now;
+
+    if (diffMs > 0) {
+      const seconds = Math.floor(diffMs / 1000);
+      setTimeUntilStart(seconds);
+    }
+  }, [product]);
+
+  useEffect(() => {
     async function checkRegistration() {
-      if (!user?.id_number) return;
+      if (!user?.id_number || !product) return;
       try {
         const res = await axios.get(
           `http://localhost:5000/api/quotation/${id}`
@@ -44,9 +68,25 @@ function ProductPage() {
       }
     }
 
-    fetchProduct();
-    if (user) checkRegistration();
-  }, [id, user]);
+    checkRegistration();
+  }, [user, product, id]);
+
+  useEffect(() => {
+    if (!timeUntilStart || timeUntilStart <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimeUntilStart((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeUntilStart]);
+
+  const formatTime = (seconds) => {
+    const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const secs = String(seconds % 60).padStart(2, "0");
+    return `${hrs}:${mins}:${secs}`;
+  };
 
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
@@ -73,27 +113,25 @@ function ProductPage() {
     try {
       const res = await axios.post("http://localhost:5000/api/quotation", {
         product_id: product.product_id,
-        buyer_id_number: idNum,
+        buyer_id_number: String(idNum),
         price: 0,
       });
-
-      if (res.data.success) {
+      
+      // אם הצליח או כבר היה רשום – נסמן כ־רשום
+      if (res.data.success || res.data.message === "כבר נרשמת למכירה הזו") {
         setIsRegistered(true);
-        setFeedbackMessage(
-          `נרשמת בהצלחה! המכירה תחל בתאריך: ${formatDate(product.start_date)}`
-        );
-      } else {
-        if (res.data.message === "כבר נרשמת למכירה הזו") {
-          setShowAlreadyRegisteredModal(true);
-        } else {
-          alert(res.data.message || "שגיאה בהרשמה");
-        }
+        setShowIdForm(false);
       }
     } catch (err) {
-      console.error("שגיאה בהרשמה:", err);
-      alert("שגיאה בשרת");
+      console.error("שגיאה בהרשמה:", err.response?.data || err.message);
+      // נוסיף fallback – גם אם קיבלנו שגיאה 400 כי כבר רשום
+      if (err.response?.data?.message === "כבר נרשמת למכירה הזו") {
+        setIsRegistered(true);
+        setShowIdForm(false);
+      }
     }
   };
+  
 
   const handleIdSubmit = async (e) => {
     e.preventDefault();
@@ -128,7 +166,6 @@ function ProductPage() {
       completeRegistration(idNumberInput);
     } catch (err) {
       console.error("שגיאה בשמירת תעודת זהות:", err);
-      alert("שגיאה בשמירת תעודת זהות");
     }
   };
 
@@ -151,11 +188,12 @@ function ProductPage() {
           <p className={styles.price}>מחיר פתיחה: {product.price} ₪</p>
           <p className={styles.status}>סטטוס: {product.product_status}</p>
 
-          {feedbackMessage && (
-            <p className={styles.success}>{feedbackMessage}</p>
-          )}
-
-          {!isRegistered && !feedbackMessage && (
+          {isRegistered ? (
+            <p className={styles.success}>
+              נרשמת למכירה זו! <br />
+              המכירה תחל בתאריך: {formatDate(product.start_date)}
+            </p>
+          ) : (
             <button className={styles.bidButton} onClick={handleRegisterToSale}>
               לחץ להרשמה למכירה
             </button>
@@ -185,19 +223,17 @@ function ProductPage() {
               <button type="submit">שלח ואשר הרשמה</button>
             </form>
           )}
+
+          {product.is_live === 1 && isRegistered && (
+            <button
+              className={styles.bidButton}
+              onClick={() => navigate(`/live-auction/${product.product_id}`)}
+            >
+              הצטרף למכירה הפומבית
+            </button>
+          )}
         </div>
       </div>
-
-      {showAlreadyRegisteredModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <p>כבר נרשמת למכירה הזו.</p>
-            <button onClick={() => setShowAlreadyRegisteredModal(false)}>
-              סגור
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

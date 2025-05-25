@@ -318,8 +318,7 @@ function ProfilePage() {
 
               <div className={styles.box}>
                 <label>תעודת זהות (קובץ)</label>
-                <input
-                  type="file"
+                <input type="file"
                   onChange={(e) => setIdCardPhoto(e.target.files[0])}
                 />
                 {user?.id_card_photo && (

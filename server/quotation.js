@@ -11,10 +11,12 @@ router.post("/", async (req, res) => {
   console.log(" product_id:", product_id);
   console.log(" buyer_id_number:", buyer_id_number);
   console.log(" price:", price);
+  console.log("📥 קיבלנו בקשה עם body:", req.body);
 
-  if (!product_id || !buyer_id_number || price === undefined) {
+  if (product_id == null || buyer_id_number == null || price == null) {
     return res.status(400).json({ success: false, message: "חסרים שדות" });
   }
+  
 
   try {
     const conn = await db.getConnection();
@@ -109,16 +111,19 @@ router.post("/", async (req, res) => {
     if (existingBid.length > 0) {
       try {
         await conn.execute(
-          "UPDATE quotation SET price = ? WHERE product_id = ? AND buyer_id_number = ?",
-          [price, product_id, buyer_id_number]
+          `INSERT INTO quotation (product_id, buyer_id_number, price, bid_time, payment_status)
+           VALUES (?, ?, ?, NOW(), 'not_completed')
+           ON DUPLICATE KEY UPDATE price = VALUES(price), bid_time = NOW()`,
+          [product_id, String(buyer_id_number), price]
         );
-        console.log(" הצעה עודכנה בהצלחה");
+        console.log("✅ הצעה נשמרה או עודכנה");
       } catch (err) {
-        console.error(" שגיאה בעדכון הצעה קיימת:", err.message);
+        console.error("❌ שגיאה בשמירת/עדכון הצעה:", err.message);
         return res
           .status(500)
-          .json({ success: false, message: "שגיאה בעדכון ההצעה" });
+          .json({ success: false, message: "שגיאה בשמירת ההצעה" });
       }
+      
     } else {
       try {
         await conn.execute(

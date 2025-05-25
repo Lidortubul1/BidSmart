@@ -6,11 +6,13 @@ function ProductForm({ onSubmit }) {
   const [formData, setFormData] = useState({
     product_name: "",
     start_date: "",
+    start_time: "", // 🆕
     end_date: "",
     price: "",
     image: "",
     description: "",
   });
+  
 
   const [categories, setCategories] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -94,6 +96,16 @@ function ProductForm({ onSubmit }) {
           required
         />
       </label>
+      <label>
+        שעת התחלה *
+        <input
+          type="time"
+          name="start_time"
+          value={formData.start_time}
+          onChange={handleChange}
+          required
+        />
+      </label>
 
       <label>
         תאריך סיום *
@@ -145,7 +157,8 @@ function ProductForm({ onSubmit }) {
             setSelectedCategory(e.target.value);
             setSelectedSubCategory("");
           }}
-          required >
+          required
+        >
           <option value="">בחר קטגוריה</option>
           {Object.keys(categories).map((cat) => (
             <option key={cat} value={cat}>
@@ -174,7 +187,7 @@ function ProductForm({ onSubmit }) {
       )}
 
       <button type="submit" className={styles.submitButton}>
-         שמור מוצר
+        שמור מוצר
       </button>
     </form>
   );

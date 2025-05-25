@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 router.get("/", (req, res) => {
-  console.log("📦 נתיב /api/categories נקרא");
+  // console.log("📦 נתיב /api/categories נקרא");
 
   const categories = {
     אלקטרוניקה: [

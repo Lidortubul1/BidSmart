@@ -110,9 +110,7 @@ router.post("/register", async (req, res) => {
 });
 
 /** עדכון פרופיל כללי */
-router.put(
-  "/update-profile",
-  upload.fields([
+router.put( "/update-profile",upload.fields([
     { name: "id_card_photo", maxCount: 1 },
     { name: "profile_photo", maxCount: 1 },
   ]),
@@ -202,5 +200,55 @@ router.put(
     }
   }
 );
+/** התנתקות */
+router.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("שגיאה במחיקת session:", err);
+      return res.status(500).json({ success: false, message: "שגיאה בהתנתקות" });
+    }
 
+    res.clearCookie("connect.sid"); // מוחק את הקוקי של הסשן
+    res.json({ success: true, message: "התנתקת בהצלחה" });
+  });
+});
+
+
+
+// הפיכה מקונה למוכר
+router.put("/upgrade-role", upload.single("id_card_photo"),
+  async (req, res) => {
+    const { id_number, email } = req.body;
+    const idCardPath = req.file?.filename;
+
+    if (!id_number || !email || !idCardPath) {
+      return res.status(400).json({ message: "נא למלא את כל השדות כולל קובץ" });
+    }
+
+    try {
+      const conn = await db.getConnection();
+
+      // בדיקה אם המשתמש קיים
+      const [existingUsers] = await conn.execute(
+        "SELECT * FROM users WHERE email = ?",
+        [email]
+      );
+
+      if (existingUsers.length === 0) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+
+      // עדכון ת"ז וקובץ ת"ז
+      await conn.execute(
+        "UPDATE users SET id_number = ?, id_card_photo = ? WHERE email = ?",
+        [id_number, idCardPath, email]
+      );
+
+      res.json({ message: "המשתמש עודכן בהצלחה" });
+    } catch (err) {
+      console.error("שגיאה בעדכון משתמש:", err.message, err.stack);
+      res.status(500).json({ message: "שגיאה בשרת" });
+    }
+  }
+);
 module.exports = router;
