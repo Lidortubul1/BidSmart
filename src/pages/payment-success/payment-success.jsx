@@ -1,34 +1,52 @@
-// /payment-success/:productId?token=ORDER_ID
+// PaymentSuccess.jsx
 import { useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
 
-export default function PaymentSuccess() {
-  const { productId } = useParams();
-  const [searchParams] = useSearchParams();
-  const orderID = searchParams.get("token");
+function PaymentSuccess() {
+  const { id } = useParams(); // שליפת מזהה המוצר מה-URL (לדוגמה: /payment-success/12)
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    async function confirmPayment() {
+    // ברגע שהרכיב עולה, אנו מאשרים את התשלום לשרת וממשיכים
+    async function finalizeSale() {
       try {
-        const res = await axios.post(
-          "http://localhost:5000/api/payment/capture-order",
-          {
-            orderID,
-            product_id: productId,
-          }
-        );
-        console.log("✅ התשלום אושר:", res.data);
-        // פה תוכל להפנות לדף איסוף או הזנת משלוח
+        // שליחת product_id לשרת לצורך אישור וסיום העסקה
+        const res = await fetch("http://localhost:5000/api/payment/confirm", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ product_id: id }), // שימו לב: id נשלח מה-URL
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          console.log("✅ התשלום אושר, ממשיכים למסך משלוח");
+          // הפניה לדף שבו המשתמש בוחר אם לבצע משלוח או איסוף עצמי
+          navigate(`/delivery-choice/${id}`);
+        } else {
+          console.error("❌ אישור התשלום נכשל בשרת");
+        }
       } catch (err) {
         console.error("❌ שגיאה באישור תשלום:", err);
       }
     }
 
-    if (orderID && productId) {
-      confirmPayment();
+    if (id) {
+      finalizeSale();
+    } else {
+      console.error("❌ לא נמצא product_id בכתובת ה-URL");
     }
-  }, [orderID, productId]);
+  }, [id]);
 
-  return <p>מאשר את התשלום שלך... ⏳</p>;
+  return (
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h2>✔️ תודה על התשלום!</h2>
+      <p>מעבד את ההזמנה שלך...</p>
+    </div>
+  );
 }
+
+export default PaymentSuccess;

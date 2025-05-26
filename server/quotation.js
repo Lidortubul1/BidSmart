@@ -41,10 +41,9 @@ router.post("/", async (req, res) => {
       );
 
       if (existing.length > 0) {
-        return res
-          .status(400)
-          .json({ success: false, message: "כבר נרשמת למכירה הזו" });
+        return res.json({ success: false, message: "כבר נרשמת למכירה הזו" });
       }
+      
 
       try {
         await conn.execute(
@@ -201,6 +200,29 @@ router.get("/all", async (req, res) => {
   }
 });
 
+
+//מחיקת הצעה של משתמש לפני שהתחילה המכירה
+router.delete("/:productId/:buyerId", async (req, res) => {
+  const { productId, buyerId } = req.params;
+
+  try {
+    const conn = await db.getConnection();
+
+    const [result] = await conn.execute(
+      "DELETE FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
+      [productId, buyerId]
+    );
+
+    if (result.affectedRows > 0) {
+      res.json({ success: true, message: "ההצעה נמחקה בהצלחה" });
+    } else {
+      res.status(404).json({ success: false, message: "ההצעה לא נמצאה" });
+    }
+  } catch (err) {
+    console.error("❌ שגיאה במחיקת הצעה:", err.message);
+    res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
 
 
 module.exports = router;

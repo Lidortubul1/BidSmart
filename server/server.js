@@ -15,6 +15,7 @@ const db = require("./database.js");
 const paymentRoutes = require("./payment");
 const { checkIsLiveProducts } = require("./liveChecker.js");
 const { checkUnpaidWinners } = require("./saleChecker");
+const { notifyUpcomingAuctions } = require("./liveChecker");
 
 
 
@@ -91,3 +92,8 @@ setInterval(() => {
   checkUnpaidWinners();
 }, 12 * 60 * 60 * 1000); // כל 12 שעות
 
+
+// בדיקה כל דקה על מכירות שמתחילות בעוד 10 דקות (ושולחות התראה למשתתפים)
+setInterval(() => {
+  notifyUpcomingAuctions(); // מייבא מ־liveChecker
+}, 60000); // כל דקה

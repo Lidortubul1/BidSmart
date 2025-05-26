@@ -72,7 +72,7 @@ router.post("/create-order", async (req, res) => {
         cancel_url: `http://localhost:3000/payment-cancelled`,
       },
     };
-
+console.log({product_id});
     const response = await fetch(`${BASE}/v2/checkout/orders`, {
       method: "POST",
       headers: {
@@ -91,5 +91,32 @@ router.post("/create-order", async (req, res) => {
     res.status(500).json({ error: "שגיאה בשרת" });
   }
 });
+
+//sale עדכון שדה סטטוס מוצר לנמכר והוספה לטבלת 
+router.post("/confirm", async (req, res) => {
+  const productId = req.body.product_id; // אם מגיע כפרמטר, אחרת לשלוף ממשתמש מחובר
+
+  try {
+    const conn = await db.getConnection();
+
+    // 1. עדכון product_status
+    await conn.query("UPDATE product SET product_status = 'sale' WHERE product_id = ?", [productId]);
+
+    // 2. הוספה ל־sale (אם לא קיים)
+    const [rows] = await conn.query("SELECT * FROM sale WHERE product_id = ?", [productId]);
+    if (!rows.length) {
+      await conn.query(
+        "INSERT INTO sale (product_id, product_name, final_price, end_date) SELECT product_id, product_name, current_price, NOW() FROM product WHERE product_id = ?",
+        [productId]
+      );
+    }
+
+    res.json({ success: true, product_id: productId });
+  } catch (err) {
+    console.error("❌ שגיאה באישור תשלום:", err.message);
+    res.status(500).json({ success: false });
+  }
+});
+
 
 module.exports = router;

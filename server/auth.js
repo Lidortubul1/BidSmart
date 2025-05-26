@@ -200,6 +200,8 @@ router.put( "/update-profile",upload.fields([
     }
   }
 );
+
+
 /** התנתקות */
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
