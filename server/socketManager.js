@@ -85,12 +85,7 @@ function setupSocket(io) {
               [productId]
             );
 
-            await conn.query(
-              `INSERT INTO sale 
-                (product_id, product_name, final_price, end_date, payment_status)
-               VALUES (?, ?, ?, NOW(), 'not_paid')`,
-              [productId, finalProduct.product_name, finalProduct.current_price]
-            );
+
 
             const [topBids] = await conn.query(
               `SELECT buyer_id_number FROM quotation 
@@ -109,10 +104,18 @@ function setupSocket(io) {
               [winner, second, third, productId]
             );
 
-            io.to(`room_${productId}`).emit("auctionEnded", {
-              winnerId: finalProduct.winner_id_number,
-              finalPrice: finalProduct.current_price,
+            // 🆕 שליפה מחודשת כדי לקבל את הנתונים המעודכנים
+            const [updatedRows] = await conn.query(
+              "SELECT * FROM product WHERE product_id = ?",
+              [productId]
+            );
+            const updatedProduct = updatedRows[0];
+
+            io.to(`room_${productId}`).emit("auctionEnded", {winnerId: updatedProduct.winner_id_number,
+              finalPrice: updatedProduct.current_price,
             });
+            
+            console.log("📤 שולחת ללקוח winnerId:", updatedProduct.winner_id_number);
 
             console.log(
               `🔔 המוצר ${productId} הסתיים. זוכה: ${finalProduct.winner_id_number}`

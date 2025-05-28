@@ -94,19 +94,29 @@ console.log({product_id});
 
 //sale עדכון שדה סטטוס מוצר לנמכר והוספה לטבלת 
 router.post("/confirm", async (req, res) => {
-  const productId = req.body.product_id; // אם מגיע כפרמטר, אחרת לשלוף ממשתמש מחובר
+  const productId = req.body.product_id;
 
   try {
     const conn = await db.getConnection();
 
-    // 1. עדכון product_status
-    await conn.query("UPDATE product SET product_status = 'sale' WHERE product_id = ?", [productId]);
+    // 1. עדכון הסטטוס של המוצר ל־"sale"
+    await conn.query(
+      "UPDATE product SET product_status = 'sale' WHERE product_id = ?",
+      [productId]
+    );
 
-    // 2. הוספה ל־sale (אם לא קיים)
-    const [rows] = await conn.query("SELECT * FROM sale WHERE product_id = ?", [productId]);
+    // 2. בדיקה אם כבר קיים ב־sale
+    const [rows] = await conn.query("SELECT * FROM sale WHERE product_id = ?", [
+      productId,
+    ]);
+
+    // 3. הוספה לטבלת sale כולל תעודת זהות של הזוכה
     if (!rows.length) {
       await conn.query(
-        "INSERT INTO sale (product_id, product_name, final_price, end_date) SELECT product_id, product_name, current_price, NOW() FROM product WHERE product_id = ?",
+        `INSERT INTO sale (product_id, product_name, final_price, end_date, buyer_id_number)
+         SELECT product_id, product_name, current_price, NOW(), winner_id_number
+         FROM product
+         WHERE product_id = ?`,
         [productId]
       );
     }
@@ -117,6 +127,7 @@ router.post("/confirm", async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
+
 
 
 module.exports = router;

@@ -97,7 +97,10 @@ function LiveAuction({ productId, buyerId }) {
       </div>
     );
   }
-
+  console.log("🔍 בדיקת זכייה:");
+  console.log("buyerId:", buyerId, typeof buyerId);
+  console.log("winnerId:", winnerId, typeof winnerId);
+  console.log("השוואה ===:", buyerId === winnerId);
   // תצוגת מכירה חיה
   return (
     <div className={styles.container}>
@@ -144,6 +147,7 @@ function LiveAuction({ productId, buyerId }) {
 
           {auctionEnded && (
             <div className={styles.resultBox}>
+            
               {buyerId === winnerId ? (
                 <>
                   <p className={styles.winner}>🎉 זכית במכירה!</p>

@@ -38,8 +38,6 @@ const io = new Server(server, {
 // הגדרת socket.io
 setupSocket(io);
 
-
-
 app.use(
   cors({
     origin: "http://localhost:3000",

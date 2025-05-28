@@ -6,28 +6,25 @@ import { useAuth } from "../../auth/AuthContext";
 function MyBidsPage() {
   const { user } = useAuth();
   const [bids, setBids] = useState([]);
-  const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
-  const [view, setView] = useState("all"); // all | upcoming | won
+  const [sales, setSales] = useState([]);
+  const [view, setView] = useState("registered"); // registered | won
 
   useEffect(() => {
     if (!user?.id_number) return;
-    console.log("👤 משתמש מחובר:", user);
 
     async function fetchData() {
       try {
-       
-
-        const [quotationRes, productRes, saleRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/quotation/user/${user.id_number}`),
+        const [bidsRes, productsRes, salesRes] = await Promise.all([
+          axios.get(
+            `http://localhost:5000/api/quotation/user/${user.id_number}`
+          ),
           axios.get("http://localhost:5000/api/product"),
           axios.get("http://localhost:5000/api/sale/all"),
         ]);
-        console.log("user.id_number:", user?.id_number);
-        console.log("bids:", quotationRes.data);
-        setBids(quotationRes.data);
-        setProducts(productRes.data);
-        setSales(saleRes.data);
+        setBids(bidsRes.data);
+        setProducts(productsRes.data);
+        setSales(salesRes.data);
       } catch (err) {
         console.error("שגיאה בטעינת נתונים:", err);
       }
@@ -36,76 +33,139 @@ function MyBidsPage() {
     fetchData();
   }, [user?.id_number]);
 
-  const getProductById = (id) => {
-    return products.find((p) => p.product_id === id);
+  const getProductById = (id) => products.find((p) => p.product_id === id);
+
+  // סינון מוצרים שנרשמת אליהם
+  const registeredBids = bids.filter(
+    (b) => !sales.some((s) => s.product_id === b.product_id && s.buyer_id_number === user.id_number)
+  );
+  
+  // סינון מוצרים שזכית בהם
+  const wonSales = sales.filter((s) => s.buyer_id_number === user?.id_number);
+
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}/${d.getFullYear()}`;
   };
 
-  const filteredBids = bids.filter((bid) => {
-    const product = getProductById(bid.product_id);
-    const isWinner = sales.some(
-      (s) => s.product_id === bid.product_id && s.payment_status === "completed"
-    );
-
-    if (view === "all") return true;
-    if (view === "upcoming")
-      return product && new Date(product.start_date) > new Date();
-    if (view === "won") return isWinner;
-    return false;
-  });
-
-  const getViewTitle = () => {
-    if (view === "all") return "כל ההצעות שלי";
-    if (view === "upcoming") return "הצעות שטרם התחילו";
-    if (view === "won") return "מוצרים שזכיתי בהם";
-    return "";
+  const handleMarkDelivered = async (product_id) => {
+    try {
+      await axios.put("http://localhost:5000/api/sale/mark-delivered", {
+        product_id,
+      });
+      setSales((prev) =>
+        prev.map((s) =>
+          s.product_id === product_id ? { ...s, is_delivered: 1 } : s
+        )
+      );
+    } catch (err) {
+      console.error("שגיאה בעדכון סטטוס משלוח:", err);
+    }
   };
 
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>ההצעות שלי</h1>
 
-      {/* כפתורים */}
       <div className={styles.buttons}>
-        <button onClick={() => setView("all")}>כלל ההצעות</button>
-        <button onClick={() => setView("upcoming")}>הצעות שטרם התחילו</button>
-        <button onClick={() => setView("won")}>מוצרים שזכיתי</button>
+        <button onClick={() => setView("registered")}>הצעות שנרשמתי</button>
+        <button onClick={() => setView("won")}>מוצרים שזכיתי בהם</button>
       </div>
 
-      {/* כותרת משתנה */}
-      <h2 className={styles.subtitle}>{getViewTitle()}</h2>
-
-      {filteredBids.length === 0 ? (
-        <p className={styles.empty}>לא נמצאו הצעות מתאימות</p>
-      ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>תמונה</th>
-              <th>שם מוצר</th>
-              <th>הצעה</th>
-              <th>סטטוס תשלום</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredBids.map((bid, index) => {
-              const product = getProductById(bid.product_id);
-              return product ? (
-                <tr key={index}>
-                  <td>
-                    <img
-                      src={product.image}
-                      alt={product.product_name}
-                      className={styles.image}
-                    />
-                  </td>
-                  <td>{product.product_name}</td>
-                  <td>{bid.price} ₪</td>
-                  <td>{bid.payment_status}</td>
+      {view === "registered" && (
+        <>
+          <h2 className={styles.subtitle}>רשימת הרשמות</h2>
+          {registeredBids.length === 0 ? (
+            <p className={styles.empty}>לא נרשמת למוצרים</p>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>תמונה</th>
+                  <th>שם מוצר</th>
+                  <th>תאריך התחלה</th>
+                  <th>שעת התחלה</th>
                 </tr>
-              ) : null;
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {registeredBids.map((bid, i) => {
+                  const product = getProductById(bid.product_id);
+                  if (!product) return null;
+                  return (
+                    <tr key={i}>
+                      <td>
+                        <img
+                          src={product.image}
+                          alt={product.product_name}
+                          className={styles.image}
+                        />
+                      </td>
+                      <td>{product.product_name}</td>
+                      <td>{formatDate(product.start_date)}</td>
+                      <td>{product.start_time}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
+
+      {view === "won" && (
+        <>
+          <h2 className={styles.subtitle}>מוצרים שזכית בהם</h2>
+          {wonSales.length === 0 ? (
+            <p className={styles.empty}>לא נמצאו זכיות</p>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>תמונה</th>
+                  <th>שם מוצר</th>
+                  <th>מחיר סופי</th>
+                  <th>סטטוס משלוח</th>
+                  <th>פעולה</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wonSales.map((sale, i) => {
+                  const product = getProductById(sale.product_id);
+                  if (!product) return null;
+                  return (
+                    <tr key={i}>
+                      <td>
+                        <img
+                          src={product.image}
+                          alt={product.product_name}
+                          className={styles.image}
+                        />
+                      </td>
+                      <td>{product.product_name}</td>
+                      <td>{sale.final_price} ₪</td>
+                      <td>
+                        {sale.is_delivered === 1
+                          ? "📦 נמסר"
+                          : "🕒 ממתין למסירה"}
+                      </td>
+                      <td>
+                        {sale.is_delivered === 0 && (
+                          <button
+                            onClick={() => handleMarkDelivered(sale.product_id)}
+                          >
+                            סמן כבוצע
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </>
       )}
     </div>
   );

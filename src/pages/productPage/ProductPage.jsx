@@ -3,23 +3,22 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import axios from "axios";
 import styles from "./ProductPage.module.css";
-import CustomModal from "../../components/CustomModal/CustomModal"; // קומפוננטת מודאל כללית
+import CustomModal from "../../components/CustomModal/CustomModal";
 
 function ProductPage() {
   const { id } = useParams(); // מזהה מוצר מה-URL
-  const navigate = useNavigate();
-  const { user, setUser } = useAuth(); // משתמש מהקונטקסט
+  const navigate = useNavigate(); // מאפשר ניווט בין דפים
+  const { user, setUser } = useAuth(); // המשתמש המחובר מהקונטקסט
 
-  // סטייטים עיקריים
-  const [product, setProduct] = useState(null);
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [product, setProduct] = useState(null); // המוצר הנוכחי
+  const [isRegistered, setIsRegistered] = useState(false); // האם המשתמש כבר נרשם
   const [idNumberInput, setIdNumberInput] = useState("");
   const [idPhotoFile, setIdPhotoFile] = useState(null);
-  const [showIdForm, setShowIdForm] = useState(false);
+  const [showIdForm, setShowIdForm] = useState(false); // האם להציג טופס ת"ז
 
-  // סטייטים עבור מודאל
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false); // האם להציג מודאל
   const [modalConfig, setModalConfig] = useState({
+    // תצורת מודאל
     title: "",
     message: "",
     confirmText: "",
@@ -27,7 +26,6 @@ function ProductPage() {
     onConfirm: null,
   });
 
-  // טעינת פרטי המוצר
   useEffect(() => {
     async function fetchProduct() {
       try {
@@ -41,10 +39,10 @@ function ProductPage() {
     fetchProduct();
   }, [id]);
 
-  // בדיקה אם המשתמש רשום כבר למכרז
   useEffect(() => {
+    if (!user?.id_number || !product) return;
+
     async function checkRegistration() {
-      if (!user?.id_number || !product) return;
       try {
         const res = await axios.get(
           `http://localhost:5000/api/quotation/${id}`
@@ -57,10 +55,10 @@ function ProductPage() {
         openModal("שגיאה", "שגיאה בבדיקת הרשמה למכרז", "סגור");
       }
     }
-    checkRegistration();
-  }, [user, product, id]);
 
-  // פונקציה לפתיחת מודאל עם כפתור אחד, שניים או שלושה
+    checkRegistration();
+  }, [product]);
+
   const openModal = (
     title,
     message,
@@ -82,7 +80,6 @@ function ProductPage() {
     setShowModal(true);
   };
 
-  // לחיצה על כפתור הרשמה למכרז
   const handleRegisterToSale = () => {
     if (!user) {
       openModal(
@@ -104,7 +101,6 @@ function ProductPage() {
     }
   };
 
-  // שליחת ההרשמה לשרת
   const completeRegistration = async (idNum) => {
     try {
       const res = await axios.post("http://localhost:5000/api/quotation", {
@@ -127,6 +123,7 @@ function ProductPage() {
       }
 
       if (!res.data.success && res.data.message === "כבר נרשמת למכירה הזו") {
+        setIsRegistered(true);
         openModal(
           "כבר נרשמת!",
           `כבר נרשמת למכירה זו! המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`,
@@ -138,7 +135,6 @@ function ProductPage() {
     }
   };
 
-  // שליחת טופס עם ת"ז
   const handleIdSubmit = async (e) => {
     e.preventDefault();
 
@@ -174,7 +170,6 @@ function ProductPage() {
     }
   };
 
-  // הסרה מהמכרז
   const handleCancelRegistration = async () => {
     try {
       await axios.delete(
@@ -187,7 +182,6 @@ function ProductPage() {
     }
   };
 
-  // עיצוב תאריך להצגה
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
     const day = String(date.getDate()).padStart(2, "0");
@@ -196,7 +190,6 @@ function ProductPage() {
     return `${day}/${month}/${year}`;
   };
 
-  // אם המוצר עדיין לא נטען
   if (!product) return <p>טוען מוצר...</p>;
 
   return (
@@ -216,7 +209,6 @@ function ProductPage() {
           <p className={styles.price}>מחיר פתיחה: {product.price} ₪</p>
           <p className={styles.status}>סטטוס: {product.product_status}</p>
 
-          {/* תצוגת הודעה אם כבר נרשם */}
           {isRegistered ? (
             <p className={styles.success}>
               נרשמת למכירה זו! <br />
@@ -229,7 +221,6 @@ function ProductPage() {
             </button>
           )}
 
-          {/* טופס ת"ז וצילום */}
           {showIdForm && (
             <form onSubmit={handleIdSubmit} className={styles.idForm}>
               <h3>נא להזין תעודת זהות וצרף תמונה</h3>
@@ -255,29 +246,26 @@ function ProductPage() {
             </form>
           )}
 
-          {/* הסרה מהמכרז */}
           {isRegistered && (
-            <button
-              className={styles.cancelButton}
-              onClick={handleCancelRegistration}
-            >
-              הסרה מהמכרז
-            </button>
-          )}
+            <>
+              <button
+                className={styles.cancelButton}
+                onClick={handleCancelRegistration}
+              >
+                הסרה מהמכרז
+              </button>
 
-          {/* מעבר למכירה הפומבית */}
-          {isRegistered && (
-            <button
-              className={styles.bidButton}
-              onClick={() => navigate(`/live-auction/${product.product_id}`)}
-            >
-              למעבר למכירה הפומבית לחץ כאן!
-            </button>
+              <button
+                className={styles.bidButton}
+                onClick={() => navigate(`/live-auction/${product.product_id}`)}
+              >
+                למעבר למכירה הפומבית לחץ כאן!
+              </button>
+            </>
           )}
         </div>
       </div>
 
-      {/* מודאל כללי לתצוגה */}
       {showModal && (
         <CustomModal
           title={modalConfig.title}

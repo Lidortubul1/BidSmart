@@ -17,17 +17,22 @@ export default function CustomModal({
         <h2 className={styles.title}>{title}</h2>
         <p className={styles.message}>{message}</p>
         <div className={styles.actions}>
-          {onCancel && (
+          {/* כפתור ביטול - מוצג רק אם גם הפונקציה וגם הטקסט קיימים */}
+          {cancelText && onCancel && (
             <button className={styles.cancel} onClick={onCancel}>
-              {cancelText || "ביטול"}
+              {cancelText}
             </button>
           )}
-          {onExtra && (
+
+          {/* כפתור נוסף - מוצג רק אם גם הפונקציה וגם הטקסט קיימים */}
+          {extraButtonText && onExtra && (
             <button className={styles.cancel} onClick={onExtra}>
               {extraButtonText}
             </button>
           )}
-          {onConfirm && (
+
+          {/* כפתור אישור - מוצג רק אם גם הפונקציה וגם הטקסט קיימים */}
+          {confirmText && onConfirm && (
             <button className={styles.confirm} onClick={onConfirm}>
               {confirmText}
             </button>
