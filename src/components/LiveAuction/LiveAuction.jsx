@@ -61,16 +61,18 @@ function LiveAuction({ productId, buyerId }) {
   }, [timeLeft, auctionEnded]);
   //פונקציה לעיצוב תאריך
   const formatDateTime = (dateStr, timeStr) => {
-    const date = new Date(
-      `${dateStr.split("T")[0]}T${timeStr.padEnd(8, ":00")}`
-    );
+    if (!dateStr || !timeStr) return "תאריך לא זמין";
+
+    const date = new Date(`${dateStr}T${timeStr}`);
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
+
     return `${day}/${month}/${year} בשעה ${hours}:${minutes}`;
   };
+  
   // מצב לפני התחלה
   if (product && !isLive) {
     return (
@@ -87,10 +89,12 @@ function LiveAuction({ productId, buyerId }) {
             <p>
               מחיר פתיחה: <strong>{product.price} ₪</strong>
             </p>
-           
+
             <p className={styles.startText}>
               המכירה תתחיל בתאריך{" "}
-              {formatDateTime(product.start_date, product.start_time)}
+              {product.start_date && product.start_time
+                ? formatDateTime(product.start_date, product.start_time)
+                : "תאריך לא זמין"}
             </p>
           </div>
         </div>

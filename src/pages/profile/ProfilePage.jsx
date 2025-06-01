@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/AuthContext";
 import axios from "axios";
 import styles from "./ProfilePage.module.css";
 import citiesData from "../../assets/data/cities_with_streets.json";
+import ChangePassword from "../../components/ChangePassword/ChangePassword";
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -11,10 +12,8 @@ function ProfilePage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [idNumber, setIdNumber] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [idCardPhoto, setIdCardPhoto] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
-
   const [phonePrefix, setPhonePrefix] = useState("+972");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [zip, setZip] = useState("");
@@ -22,14 +21,13 @@ function ProfilePage() {
   const [street, setStreet] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
   const [apartmentNumber, setApartmentNumber] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
-
   const [selectedCity, setSelectedCity] = useState("");
   const [availableStreets, setAvailableStreets] = useState([]);
   const [selectedStreet, setSelectedStreet] = useState("");
   const [cityTouched, setCityTouched] = useState(false);
   const [country, setCountry] = useState("ישראל");
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -68,51 +66,32 @@ function ProfilePage() {
     const idRegex = /^\d{9}$/;
     const houseRegex = /^\d+$/;
 
-    if (!emailRegex.test(email)) {
-      alert("כתובת אימייל לא תקינה");
-      return;
-    }
-
-    if (firstName.trim() === "" || lastName.trim() === "") {
-      alert("שם פרטי ושם משפחה חייב להכיל אותיות");
-      return;
-    }
-
+    if (!emailRegex.test(email)) return alert("כתובת אימייל לא תקינה");
+    if (firstName.trim() === "" || lastName.trim() === "")
+      return alert("שם פרטי ושם משפחה חייב להכיל אותיות");
     if (phoneNumber.length !== 7) {
       setPhoneError(true);
-      alert("מספר הטלפון לא תקין");
-      return;
+      return alert("מספר הטלפון לא תקין");
     }
-
-    if (zip && !zipRegex.test(zip)) {
-      alert("מיקוד לא תקין");
-      return;
-    }
-
-    if (houseNumber && !houseRegex.test(houseNumber)) {
-      alert("שדה מספר בית לא תקין");
-      return;
-    }
-
-    if (idNumber && !idRegex.test(idNumber)) {
-      alert("תעודת זהות חייבת להכיל 9 ספרות כולל ספרת ביקורת");
-      return;
-    }
+    if (zip && !zipRegex.test(zip)) return alert("מיקוד לא תקין");
+    if (houseNumber && !houseRegex.test(houseNumber))
+      return alert("שדה מספר בית לא תקין");
+    if (idNumber && !idRegex.test(idNumber))
+      return alert("תעודת זהות חייבת להכיל 9 ספרות כולל ספרת ביקורת");
 
     const formData = new FormData();
-    formData.append("email", user.email); // אימייל הנוכחי
-    formData.append("new_email", email); // אימייל החדש
+    formData.append("email", user.email); // אימייל נוכחי
+    formData.append("new_email", email); // אימייל חדש
     formData.append("first_name", firstName);
     formData.append("last_name", lastName);
     formData.append("id_number", idNumber);
     formData.append("phone", phonePrefix + phoneNumber);
-    formData.append("country", "ישראל");
+    formData.append("country", country);
     formData.append("zip", zip);
     formData.append("city", selectedCity);
     formData.append("street", selectedStreet);
     formData.append("house_number", houseNumber);
     formData.append("apartment_number", apartmentNumber);
-    if (newPassword) formData.append("password", newPassword);
     if (idCardPhoto) formData.append("id_card_photo", idCardPhoto);
     if (profilePhoto) formData.append("profile_photo", profilePhoto);
 
@@ -178,20 +157,14 @@ function ProfilePage() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label>סיסמה</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={showPassword}
-                    onChange={() => setShowPassword(!showPassword)}
-                  />
-                  הצג סיסמה
-                </label>
+                <label>שינוי סיסמה</label>
+                <button
+                  type="button"
+                  className={styles.changePasswordButton}
+                  onClick={() => setShowChangePassword(true)}
+                >
+                  לחץ כאן
+                </button>
               </div>
 
               <div className={styles.inputGroup}>
@@ -225,7 +198,7 @@ function ProfilePage() {
                     onBlur={() => {
                       if (phoneNumber.length !== 7) {
                         setPhoneError(true);
-                        alert("שגיאה באחד או יותר מהפרטים שהוזנו");
+                        alert("מספר טלפון לא תקין");
                       }
                     }}
                   />
@@ -318,7 +291,8 @@ function ProfilePage() {
 
               <div className={styles.box}>
                 <label>תעודת זהות (קובץ)</label>
-                <input type="file"
+                <input
+                  type="file"
                   onChange={(e) => setIdCardPhoto(e.target.files[0])}
                 />
                 {user?.id_card_photo && (
@@ -334,6 +308,17 @@ function ProfilePage() {
 
           <button type="submit">שמור שינויים</button>
         </form>
+
+        {showChangePassword && (
+          <ChangePassword
+            email={email}
+            onClose={() => setShowChangePassword(false)}
+            onSuccess={() => {
+              alert("הסיסמה שונתה בהצלחה");
+              setShowChangePassword(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );

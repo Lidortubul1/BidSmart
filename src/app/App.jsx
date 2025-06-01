@@ -16,12 +16,14 @@ import MyBidsPage from "../pages/myBids/MyBidsPage";
 import SaleSummaryPage from "../pages/saleSummary/SaleSummaryPage";
 import SearchResultsPage from "../components/search/SearchResultsPage.jsx";
 import InfoPage from "../pages/infoPage/InfoPage.jsx";
-import DeliveryChoice from "../pages/DeliveryChoice/DeliveryChoice.jsx"
+import DeliveryChoice from "../pages/DeliveryChoice/DeliveryChoice.jsx";
 import ShippingForm from "../pages/ShippingForm/ShippingForm.jsx";
 import PickupInfo from "../pages/PickupInfo/PickupInfo.jsx";
 import PaymentSuccess from "../pages/payment-success/payment-success.jsx";
 //להוסיף גם התשלום לא בוצע paymrntCancle
 import "./App.css";
+import ForgotPasswordPage from "../pages/ForgotPassword/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/ResetPassword/ResetPasswordPage";
 
 // קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
@@ -30,7 +32,6 @@ import Footer from "../components/footer/Footer";
 import DashboardRouter from "../components/DashboardRouter/DashboardRouter.jsx";
 // import LiveAuction from "../components/LiveAuction/LiveAuction.jsx";
 import LiveAuctionWrapper from "../components/LiveAuctionWrapper/LiveAuctionWrapper.jsx";
-
 
 // לוחות ניהול
 import BuyerDashboard from "../pages/home/BuyerDashboard";
@@ -63,19 +64,35 @@ function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route
+            path="/reset-password/:token"
+            element={<ResetPasswordPage />}
+          />
           <Route path="/info" element={<InfoPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/admin-dashboard" element={ <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />}/>
-          <Route path="/add-product" element={<ProtectedRoute element={<AddProductPage />} />}/>
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />
+            }
+          />
+          <Route
+            path="/add-product"
+            element={<ProtectedRoute element={<AddProductPage />} />}
+          />
 
-          <Route path="/payment-success/:id" element={<PaymentSuccess />}/>
-          <Route path="/delivery-choice/:productId" element={<DeliveryChoice />} />
+          <Route path="/payment-success/:id" element={<PaymentSuccess />} />
+          <Route
+            path="/delivery-choice/:productId"
+            element={<DeliveryChoice />}
+          />
 
           <Route path="/live-auction/:id" element={<LiveAuctionWrapper />} />
 
           <Route path="/shipping/:id" element={<ShippingForm />} />
-          <Route path="/pickup-info/:id" element={<PickupInfo/>} />
+          <Route path="/pickup-info/:id" element={<PickupInfo />} />
 
           <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />

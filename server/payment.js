@@ -101,10 +101,13 @@ router.post("/confirm", async (req, res) => {
 
     // 1. עדכון הסטטוס של המוצר ל־"sale"
     await conn.query(
-      "UPDATE product SET product_status = 'sale' WHERE product_id = ?",
+      `INSERT INTO sale (product_id, product_name, final_price, end_date, buyer_id_number)
+       SELECT product_id, product_name, current_price, NOW(), winner_id_number
+       FROM product
+       WHERE product_id = ?`,
       [productId]
     );
-
+    
     // 2. בדיקה אם כבר קיים ב־sale
     const [rows] = await conn.query("SELECT * FROM sale WHERE product_id = ?", [
       productId,

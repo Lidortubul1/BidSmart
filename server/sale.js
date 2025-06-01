@@ -2,8 +2,6 @@ const express = require("express");
 const router = express.Router();
 const db = require("./database");
 
-
-
 // עדכון כתובת המשתמש בעת בחירת משלוח
 router.post("/update-address", async (req, res) => {
   const { product_id, city, street, house_number, apartment_number, zip } =
@@ -37,6 +35,16 @@ router.post("/update-address", async (req, res) => {
       [city, street, house_number, apartment_number || null, zip, winnerId]
     );
 
+    // שלב 3: שמירת כתובת גם בטבלת sale
+    const fullAddress = `${street} ${house_number}${
+      apartment_number ? ` דירה ${apartment_number}` : ""
+    }, ${city}, ${zip}`;
+
+    await conn.query(
+      "UPDATE sale SET shipping_address = ? WHERE product_id = ?",
+      [fullAddress, product_id]
+    );
+
     res.json({ success: true, message: "כתובת עודכנה בהצלחה" });
   } catch (err) {
     console.error("❌ שגיאה בעדכון כתובת:", err.message);
@@ -46,9 +54,7 @@ router.post("/update-address", async (req, res) => {
   }
 });
 
-
-//עדכון שמשלוח הגיע בטבלת מכירות לקונה בלבד
-// עדכון is_delivered = 1 לפי product_id
+// עדכון שמשלוח הגיע בטבלת מכירות לקונה בלבד
 router.put("/mark-delivered", async (req, res) => {
   const { product_id } = req.body;
 
@@ -64,7 +70,9 @@ router.put("/mark-delivered", async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: "מוצר לא נמצא בטבלת sale" });
+      return res
+        .status(404)
+        .json({ success: false, message: "מוצר לא נמצא בטבלת sale" });
     }
 
     res.json({ success: true, message: "עודכן כבוצע בהצלחה" });
@@ -73,7 +81,6 @@ router.put("/mark-delivered", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
-
 
 // שליפת כל המכירות
 router.get("/all", async (req, res) => {
@@ -87,10 +94,7 @@ router.get("/all", async (req, res) => {
   }
 });
 
-
-
-
-//  שליפת כל המכירות לפי ת"ז 
+// שליפת כל המכירות לפי ת"ז
 router.get("/user/:id_number", async (req, res) => {
   const buyerId = req.params.id_number;
 
@@ -106,6 +110,5 @@ router.get("/user/:id_number", async (req, res) => {
     res.status(500).json({ error: "שגיאה בשליפת מכירות למשתמש" });
   }
 });
-
 
 module.exports = router;

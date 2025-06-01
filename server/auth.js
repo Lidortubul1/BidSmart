@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 // אחסון קבצים
 const storage = multer.diskStorage({
@@ -110,7 +112,9 @@ router.post("/register", async (req, res) => {
 });
 
 /** עדכון פרופיל כללי */
-router.put( "/update-profile",upload.fields([
+router.put(
+  "/update-profile",
+  upload.fields([
     { name: "id_card_photo", maxCount: 1 },
     { name: "profile_photo", maxCount: 1 },
   ]),
@@ -201,13 +205,14 @@ router.put( "/update-profile",upload.fields([
   }
 );
 
-
 /** התנתקות */
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error("שגיאה במחיקת session:", err);
-      return res.status(500).json({ success: false, message: "שגיאה בהתנתקות" });
+      return res
+        .status(500)
+        .json({ success: false, message: "שגיאה בהתנתקות" });
     }
 
     res.clearCookie("connect.sid"); // מוחק את הקוקי של הסשן
@@ -215,10 +220,10 @@ router.post("/logout", (req, res) => {
   });
 });
 
-
-
 // הפיכה מקונה למוכר
-router.put("/upgrade-role", upload.single("id_card_photo"),
+router.put(
+  "/upgrade-role",
+  upload.single("id_card_photo"),
   async (req, res) => {
     const { id_number, email } = req.body;
     const idCardPath = req.file?.filename;
@@ -253,4 +258,149 @@ router.put("/upgrade-role", upload.single("id_card_photo"),
     }
   }
 );
+
+// שינוי סיסמה
+router.put("/change-password", async (req, res) => {
+  const { email, currentPassword, newPassword } = req.body;
+
+  if (!email || !currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: "חסרים שדות חובה" });
+  }
+
+  try {
+    const conn = await db.getConnection();
+
+    // שליפת המשתמש
+    const [rows] = await conn.execute("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "משתמש לא נמצא" });
+    }
+
+    const user = rows[0];
+
+    // בדיקת סיסמה נוכחית
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: "הסיסמה הנוכחית שגויה" });
+    }
+
+    // בדיקת חוזק בסיסמה החדשה
+    const strong = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(newPassword);
+    if (!strong) {
+      return res
+        .status(400)
+        .json({ success: false, message: "הסיסמה החדשה אינה עומדת בדרישות" });
+    }
+
+    // הצפנה ועדכון
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await conn.execute("UPDATE users SET password = ? WHERE email = ?", [
+      hashed,
+      email,
+    ]);
+
+    res.json({ success: true, message: "הסיסמה עודכנה בהצלחה" });
+  } catch (err) {
+    console.error("שגיאה בשינוי סיסמה:", err.message);
+    res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
+
+// שכחת סיסמה – שליחת מייל עם קישור לשחזור
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: "נא להזין אימייל" });
+  }
+
+  try {
+    console.log("התחלנו forgot-password", email);
+
+    const conn = await db.getConnection();
+    const [users] = await conn.execute("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+
+    if (users.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "אימייל לא נמצא" });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 3600000); // תוקף לשעה
+
+    await conn.execute(
+      "UPDATE users SET reset_token = ?, reset_token_expiration  = ? WHERE email = ?",
+      [token, expires, email]
+    );
+
+    console.log("שולחת מייל לאימייל:", email, "עם הטוקן:", token);
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "bidsmart2025@gmail.com",
+        pass: "zjkkgwzmwjjtcylr", // App password
+      },
+    });
+
+    const resetLink = `http://localhost:3000/reset-password/${token}`;
+
+    const mailOptions = {
+      from: "BidSmart <bidsmart2025@gmail.com>",
+      to: email,
+      subject: "איפוס סיסמה",
+      text: `לחצי על הקישור הבא כדי לאפס את הסיסמה שלך:\n\n${resetLink}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ success: true, message: "נשלח קישור לאיפוס סיסמה לאימייל" });
+  } catch (err) {
+    console.error("שגיאה בשליחת מייל איפוס:", err);
+    res.status(500).json({ success: false, message: "שגיאה בשליחת מייל" });
+  }
+});
+
+//קביעת סיסמה חדשה לפי הטוקן
+router.post("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ success: false, message: "חסרים נתונים" });
+  }
+
+  try {
+    const conn = await db.getConnection();
+    const [users] = await conn.execute(
+      "SELECT * FROM users WHERE reset_token = ? AND reset_token_expiration > NOW()",
+      [token]
+    );
+
+    if (users.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "הקישור לא תקף או פג תוקף" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await conn.execute(
+      "UPDATE users SET password = ?, reset_token = NULL, reset_token_expiration = NULL WHERE email = ?",
+      [hashed, users[0].email]
+    );
+
+    res.json({ success: true, message: "הסיסמה עודכנה בהצלחה" });
+  } catch (err) {
+    console.error("שגיאה באיפוס סיסמה:", err.message);
+    res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
+
 module.exports = router;

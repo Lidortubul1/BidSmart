@@ -1,6 +1,5 @@
 const db = require("./database");
 
-
 const nodemailer = require("nodemailer");
 
 async function notifyUpcomingAuctions() {
@@ -57,8 +56,6 @@ async function sendEmailReminder(email, product) {
   await transporter.sendMail(mailOptions);
 }
 
-
-
 // מעדכן is_live = 1 רק כשהשעה המדויקת מגיעה
 async function checkIsLiveProducts() {
   console.log("🔄 בודק is_live...");
@@ -85,6 +82,4 @@ async function checkIsLiveProducts() {
   }
 }
 
-
-module.exports = { checkIsLiveProducts };
 module.exports = { checkIsLiveProducts, notifyUpcomingAuctions };

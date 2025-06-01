@@ -72,6 +72,13 @@ function LoginPage({ isModal = false }) {
             required
           />
           <button type="submit">התחבר</button>
+
+          {/* קישור לשכחת סיסמה */}
+          <p className={styles.forgotLink}>
+            <span onClick={() => navigate("/forgot-password")}>
+              שכחת את הסיסמה?
+            </span>
+          </p>
         </form>
       </div>
     </div>
