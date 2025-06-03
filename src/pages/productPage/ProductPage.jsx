@@ -6,19 +6,18 @@ import styles from "./ProductPage.module.css";
 import CustomModal from "../../components/CustomModal/CustomModal";
 
 function ProductPage() {
-  const { id } = useParams(); // מזהה מוצר מה-URL
-  const navigate = useNavigate(); // מאפשר ניווט בין דפים
-  const { user, setUser } = useAuth(); // המשתמש המחובר מהקונטקסט
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, setUser } = useAuth();
 
-  const [product, setProduct] = useState(null); // המוצר הנוכחי
-  const [isRegistered, setIsRegistered] = useState(false); // האם המשתמש כבר נרשם
+  const [product, setProduct] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [idNumberInput, setIdNumberInput] = useState("");
   const [idPhotoFile, setIdPhotoFile] = useState(null);
-  const [showIdForm, setShowIdForm] = useState(false); // האם להציג טופס ת"ז
+  const [showIdForm, setShowIdForm] = useState(false);
 
-  const [showModal, setShowModal] = useState(false); // האם להציג מודאל
+  const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({
-    // תצורת מודאל
     title: "",
     message: "",
     confirmText: "",
@@ -57,7 +56,13 @@ function ProductPage() {
     }
 
     checkRegistration();
-  }, [product]);
+  }, [product, user]);
+
+  useEffect(() => {
+    if (user && modalConfig.type === "login") {
+      setShowModal(false);
+    }
+  }, [user, modalConfig.type]);
 
   const openModal = (
     title,
@@ -80,17 +85,34 @@ function ProductPage() {
     setShowModal(true);
   };
 
-  const handleRegisterToSale = () => {
-    if (!user) {
-      openModal(
-        "התחברות נדרשת",
-        "כדי להירשם למכרזים עליך להתחבר או להירשם למערכת.",
-        "מעבר להרשמה",
-        () => navigate("/register"),
-        "ביטול",
-        "התחברות",
-        () => navigate("/login")
-      );
+  const handleRegisterToSale = async () => {
+    if (!user?.id_number || !user?.role) {
+      setModalConfig({
+        title: "התחברות נדרשת",
+        message: "עלייך להתחבר על מנת להירשם למכירת מוצר זה",
+        type: "login",
+        onLogin: async (email, password) => {
+          try {
+            const res = await axios.post(
+              "http://localhost:5000/api/auth/login",
+              { email, password },
+              { withCredentials: true }
+            );
+            if (res.data.success) {
+              setUser(res.data.user);
+              completeRegistration(res.data.user.id_number);
+            } else {
+              alert("שגיאה בהתחברות: " + res.data.message);
+            }
+          } catch {
+            alert("שגיאה בשרת");
+          }
+        },
+        onRegister: () => navigate("/register"),
+        onForgotPassword: () => navigate("/forgot-password"),
+        onClose: () => setShowModal(false),
+      });
+      setShowModal(true);
       return;
     }
 
@@ -266,22 +288,16 @@ function ProductPage() {
         </div>
       </div>
 
-      {showModal && (
+      {showModal && modalConfig.type === "login" && !user && (
         <CustomModal
+          visible={true}
           title={modalConfig.title}
           message={modalConfig.message}
-          confirmText={modalConfig.confirmText}
-          cancelText={modalConfig.cancelText}
-          extraButtonText={modalConfig.extraButtonText}
-          onConfirm={() => {
-            modalConfig.onConfirm?.();
-            setShowModal(false);
-          }}
-          onCancel={() => setShowModal(false)}
-          onExtra={() => {
-            modalConfig.onExtra?.();
-            setShowModal(false);
-          }}
+          type={modalConfig.type}
+          onLogin={modalConfig.onLogin}
+          onRegister={modalConfig.onRegister}
+          onForgotPassword={modalConfig.onForgotPassword}
+          onClose={modalConfig.onClose}
         />
       )}
     </div>
