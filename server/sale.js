@@ -3,46 +3,68 @@ const router = express.Router();
 const db = require("./database");
 
 // עדכון כתובת המשתמש בעת בחירת משלוח
+// עדכון כתובת המשתמש בעת בחירת משלוח
 router.post("/update-address", async (req, res) => {
-  const { product_id, city, street, house_number, apartment_number, zip } =
-    req.body;
+  const {
+    product_id,
+    city,
+    street,
+    house_number,
+    apartment_number,
+    zip,
+  } = req.body;
 
-  // בדיקה שכל השדות החיוניים קיימים
-  if (!product_id || !city || !street || !house_number || !zip) {
-    return res.status(400).json({ success: false, message: "חסרים שדות חובה" });
+  // ✅ בדיקה שכל שדות הכתובת חובה
+  if (
+    !product_id ||
+    !city ||
+    !street ||
+    !house_number ||
+    !apartment_number ||
+    !zip
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "יש למלא את כל שדות הכתובת" });
   }
 
   try {
     const conn = await db.getConnection();
 
-    // שלב 1: שליפת תעודת הזהות של הזוכה מהמוצר
+    // 🔍 שליפת ת"ז של הזוכה
     const [productRows] = await conn.query(
       "SELECT winner_id_number FROM product WHERE product_id = ?",
       [product_id]
     );
 
     if (productRows.length === 0) {
-      return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
+      return res
+        .status(404)
+        .json({ success: false, message: "מוצר לא נמצא" });
     }
 
     const winnerId = productRows[0].winner_id_number;
 
-    // שלב 2: עדכון כתובת המשתמש כולל מספר דירה
+    // 📌 עדכון כתובת בטבלת users
     await conn.query(
       `UPDATE users 
        SET city = ?, street = ?, house_number = ?, apartment_number = ?, zip = ? 
        WHERE id_number = ?`,
-      [city, street, house_number, apartment_number || null, zip, winnerId]
+      [city, street, house_number, apartment_number, zip, winnerId]
     );
 
-    // שלב 3: שמירת כתובת גם בטבלת sale
-    const fullAddress = `${street} ${house_number}${
-      apartment_number ? ` דירה ${apartment_number}` : ""
-    }, ${city}, ${zip}`;
-
+    // 📦 עדכון שדות כתובת בטבלת sale
     await conn.query(
-      "UPDATE sale SET shipping_address = ? WHERE product_id = ?",
-      [fullAddress, product_id]
+      `UPDATE sale 
+       SET 
+         city = ?, 
+         street = ?, 
+         house_number = ?, 
+         apartment_number = ?, 
+         zip = ?, 
+         country = ?
+       WHERE product_id = ?`,
+      [city, street, house_number, apartment_number, zip, "ישראל", product_id]
     );
 
     res.json({ success: true, message: "כתובת עודכנה בהצלחה" });
@@ -53,6 +75,92 @@ router.post("/update-address", async (req, res) => {
       .json({ success: false, message: "שגיאה בשרת בעת עדכון כתובת" });
   }
 });
+
+//שליחת כתובת מגורים קיימת לטבלת sale
+// שליחת כתובת מגורים קיימת לטבלת sale
+router.post("/use-saved-address", async (req, res) => {
+  const { product_id } = req.body;
+  console.log("product_id:", product_id);
+
+  if (!product_id) {
+    return res.status(400).json({ success: false, message: "חסר product_id" });
+  }
+
+  try {
+    const conn = await db.getConnection();
+
+    // שלב 1: שליפת ת"ז של הזוכה
+    const [productRows] = await conn.query(
+      "SELECT * FROM product WHERE product_id = ?",
+      [product_id]
+    );
+
+    if (productRows.length === 0) {
+      return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
+    }
+
+    const product = productRows[0];
+    const winnerId = product.winner_id_number;
+
+    // שלב 2: שליפת כתובת מהמשתמש
+    const [userRows] = await conn.query(
+      "SELECT city, street, house_number, apartment_number, zip FROM users WHERE id_number = ?",
+      [winnerId]
+    );
+
+    const user = userRows[0];
+    if (
+      !user ||
+      !user.city ||
+      !user.street ||
+      !user.house_number ||
+      !user.apartment_number ||
+      !user.zip
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "כתובת לא מלאה בפרופיל שלך" });
+    }
+
+    // שלב 3: בדיקת קיום בטבלת sale
+    const [saleRows] = await conn.query(
+      "SELECT * FROM sale WHERE product_id = ?",
+      [product_id]
+    );
+
+    if (saleRows.length === 0) {
+      // אם אין – יוצרים רשומה בסיסית עם נתוני המוצר
+      await conn.query(
+        `INSERT INTO sale (product_id, product_name, final_price, end_date, buyer_id_number)
+         VALUES (?, ?, ?, NOW(), ?)`,
+        [product.product_id, product.product_name, product.current_price, winnerId]
+      );
+    }
+
+    // שלב 4: עדכון כתובת
+    await conn.query(
+      `UPDATE sale 
+       SET city = ?, street = ?, house_number = ?, apartment_number = ?, zip = ?, country = ?
+       WHERE product_id = ?`,
+      [
+        user.city,
+        user.street,
+        user.house_number,
+        user.apartment_number,
+        user.zip,
+        "ישראל",
+        product_id,
+      ]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ שגיאה בשליחה אוטומטית:", err.message);
+    res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
+
+
 
 // עדכון שמשלוח הגיע בטבלת מכירות לקונה בלבד
 router.put("/mark-delivered", async (req, res) => {

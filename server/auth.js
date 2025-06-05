@@ -112,8 +112,7 @@ router.post("/register", async (req, res) => {
 });
 
 /** עדכון פרופיל כללי */
-router.put(
-  "/update-profile",
+router.put("/update-profile",
   upload.fields([
     { name: "id_card_photo", maxCount: 1 },
     { name: "profile_photo", maxCount: 1 },
@@ -221,8 +220,7 @@ router.post("/logout", (req, res) => {
 });
 
 // הפיכה מקונה למוכר
-router.put(
-  "/upgrade-role",
+router.put( "/upgrade-role",
   upload.single("id_card_photo"),
   async (req, res) => {
     const { id_number, email } = req.body;

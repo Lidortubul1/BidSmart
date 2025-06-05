@@ -14,14 +14,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// קבלת כל המוצרים למכירה בלבד
+// קבלת כל המוצרים למכירה בלבד שהם לא sale
 router.get("/", async (req, res) => {
   try {
 
 
     const connection = await db.getConnection();
 
-    const [products] = await connection.execute("SELECT * FROM product");
+    const [products] = await connection.execute("SELECT * FROM product WHERE product_status = 'for sale'");
 
 
     if (products.length === 0) {

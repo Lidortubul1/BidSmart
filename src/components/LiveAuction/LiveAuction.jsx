@@ -59,19 +59,26 @@ function LiveAuction({ productId, buyerId }) {
       return () => clearInterval(timer);
     }
   }, [timeLeft, auctionEnded]);
-  //פונקציה לעיצוב תאריך
-  const formatDateTime = (dateStr, timeStr) => {
-    if (!dateStr || !timeStr) return "תאריך לא זמין";
 
-    const date = new Date(`${dateStr}T${timeStr}`);
+
+
+  //פונקציה לעיצוב תאריך
+  const formatDateAndTime = (dateStr, timeStr) => {
+    const date = new Date(dateStr);
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
+    if (!dateStr || !timeStr) return "תאריך לא זמין";
+
+    // במקום ליצור new Date – פשוט חותך את החלק של התאריך מהמחרוזת
+    const [hours, minutes] = timeStr.split(":");
 
     return `${day}/${month}/${year} בשעה ${hours}:${minutes}`;
   };
+  
+  
+  
+
   
   // מצב לפני התחלה
   if (product && !isLive) {
@@ -93,7 +100,7 @@ function LiveAuction({ productId, buyerId }) {
             <p className={styles.startText}>
               המכירה תתחיל בתאריך{" "}
               {product.start_date && product.start_time
-                ? formatDateTime(product.start_date, product.start_time)
+                ? formatDateAndTime(product.start_date, product.start_time)
                 : "תאריך לא זמין"}
             </p>
           </div>
@@ -105,6 +112,7 @@ function LiveAuction({ productId, buyerId }) {
   console.log("buyerId:", buyerId, typeof buyerId);
   console.log("winnerId:", winnerId, typeof winnerId);
   console.log("השוואה ===:", buyerId === winnerId);
+
   // תצוגת מכירה חיה
   return (
     <div className={styles.container}>
