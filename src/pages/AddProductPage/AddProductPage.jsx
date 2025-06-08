@@ -21,7 +21,12 @@ function AddProductPage() {
       const payload = new FormData();
 
       for (const key in data) {
-        if (data[key]) {
+        if (key === "images" && data.images instanceof FileList) {
+          // העלאת כל התמונות
+          Array.from(data.images).forEach((file) => {
+            payload.append("images", file);
+          });
+        } else if (data[key]) {
           payload.append(key, data[key]);
         }
       }
@@ -45,6 +50,7 @@ function AddProductPage() {
       alert("שגיאה בעת שליחת המוצר לשרת");
     }
   };
+  
 
 
 

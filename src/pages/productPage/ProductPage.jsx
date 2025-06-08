@@ -1,4 +1,3 @@
-// ProductPage.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
@@ -18,6 +17,8 @@ function ProductPage() {
   const [idPhotoFile, setIdPhotoFile] = useState(null);
   const [showIdForm, setShowIdForm] = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({
@@ -33,11 +34,14 @@ function ProductPage() {
   useEffect(() => {
     async function fetchProduct() {
       try {
-        const res = await axios.get("http://localhost:5000/api/product");
-        const found = res.data.find((p) => p.product_id === parseInt(id));
-        setProduct(found);
+        const res = await axios.get(`http://localhost:5000/api/product/${id}`);
+        setProduct(res.data);
       } catch {
-        openModal("שגיאה", "שגיאה בטעינת פרטי המוצר", "סגור");
+        openModal({
+          title: "שגיאה",
+          message: "שגיאה בטעינת פרטי המוצר",
+          confirmText: "סגור",
+        });
       }
     }
     fetchProduct();
@@ -56,7 +60,11 @@ function ProductPage() {
         );
         setIsRegistered(alreadyRegistered);
       } catch {
-        openModal("שגיאה", "שגיאה בבדיקת הרשמה למכרז", "סגור");
+        openModal({
+          title: "שגיאה",
+          message: "שגיאה בבדיקת הרשמה למכרז",
+          confirmText: "סגור",
+        });
       }
     }
 
@@ -77,15 +85,14 @@ function ProductPage() {
       title,
       message,
       confirmText,
-      onConfirm,
       cancelText,
+      onConfirm,
       onCancel,
       extraButtonText,
       onExtra,
     });
     setShowModal(true);
   };
-  
 
   const handleRegisterToSale = () => {
     if (!user?.id_number || !user?.role) {
@@ -102,7 +109,6 @@ function ProductPage() {
         cancelText: "סגור",
         onCancel: () => setShowModal(false),
       });
-      
       return;
     }
 
@@ -127,31 +133,38 @@ function ProductPage() {
       if (res.data.success) {
         setIsRegistered(true);
         setShowIdForm(false);
-        openModal(
-          "נרשמת!",
-          `המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`,
-          "אישור"
-        );
+        openModal({
+          title: "נרשמת!",
+          message: `המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`,
+          confirmText: "אישור",
+        });
       }
 
       if (!res.data.success && res.data.message === "כבר נרשמת למכירה הזו") {
         setIsRegistered(true);
-        openModal(
-          "כבר נרשמת!",
-          `כבר נרשמת למכירה זו! המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`,
-          "הבנתי"
-        );
+        openModal({
+          title: "כבר נרשמת!",
+          message: `כבר נרשמת למכירה זו! המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`,
+          confirmText: "הבנתי",
+        });
       }
     } catch {
-      openModal("שגיאה", "שגיאה בעת ניסיון הרשמה למכרז", "סגור");
+      openModal({
+        title: "שגיאה",
+        message: "שגיאה בעת ניסיון הרשמה למכרז",
+        confirmText: "סגור",
+      });
     }
   };
 
   const handleIdSubmit = async (e) => {
     e.preventDefault();
-
     if (!idNumberInput || !idPhotoFile) {
-      openModal("שגיאה", "נא להזין תעודת זהות ולצרף קובץ", "סגור");
+      openModal({
+        title: "שגיאה",
+        message: "נא להזין תעודת זהות ולצרף קובץ",
+        confirmText: "סגור",
+      });
       return;
     }
 
@@ -169,12 +182,15 @@ function ProductPage() {
           withCredentials: true,
         }
       );
-
       setUser({ ...user, id_number: idNumberInput, id_card_photo: "uploaded" });
       setShowIdForm(false);
       completeRegistration(idNumberInput);
     } catch {
-      openModal("שגיאה", "שגיאה בשמירת תעודת זהות", "סגור");
+      openModal({
+        title: "שגיאה",
+        message: "שגיאה בשמירת תעודת זהות",
+        confirmText: "סגור",
+      });
     }
   };
 
@@ -184,9 +200,17 @@ function ProductPage() {
         `http://localhost:5000/api/quotation/${product.product_id}/${user.id_number}`
       );
       setIsRegistered(false);
-      openModal("הוסרה ההרשמה", "הוסרת מהמכרז בהצלחה", "סגור");
+      openModal({
+        title: "הוסרה ההרשמה",
+        message: "הוסרת מהמכרז בהצלחה",
+        confirmText: "סגור",
+      });
     } catch {
-      openModal("שגיאה", "שגיאה בהסרת ההשתתפות", "סגור");
+      openModal({
+        title: "שגיאה",
+        message: "שגיאה בהסרת ההשתתפות",
+        confirmText: "סגור",
+      });
     }
   };
 
@@ -199,16 +223,46 @@ function ProductPage() {
   };
 
   if (!product) return <p>טוען מוצר...</p>;
+  const images = product.images || [];
 
   return (
     <div className={styles.page}>
       <div className={styles.content}>
         <div className={styles.imageWrapper}>
-          <img
-            src={product.image}
-            alt={product.product_name}
-            className={styles.image}
-          />
+          {images.length > 0 ? (
+            <div className={styles.gallery}>
+              <img
+                src={`http://localhost:5000${images[currentIndex]}`}
+                alt={`תמונה ${currentIndex + 1}`}
+                onClick={() => setIsModalOpen(true)}
+                className={styles.image}
+                style={{ cursor: "zoom-in" }}
+              />
+              <div className={styles.controls}>
+                <button
+                  onClick={() =>
+                    setCurrentIndex(
+                      (prev) => (prev - 1 + images.length) % images.length
+                    )
+                  }
+                >
+                  ⬅️
+                </button>
+                <span>
+                  {currentIndex + 1} מתוך {images.length}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentIndex((prev) => (prev + 1) % images.length)
+                  }
+                >
+                  ➡️
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p>אין תמונות זמינות</p>
+          )}
         </div>
 
         <div className={styles.details}>
@@ -273,6 +327,19 @@ function ProductPage() {
         </div>
       </div>
 
+      {isModalOpen && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <img
+            src={`http://localhost:5000${images[currentIndex]}`}
+            alt="תמונה מוגדלת"
+            className={styles.modalImage}
+          />
+        </div>
+      )}
+
       {showModal && modalConfig.title && (
         <CustomModal
           title={modalConfig.title}
@@ -290,12 +357,13 @@ function ProductPage() {
           <div className={styles.modalContent}>
             <LoginForm
               onSuccess={() => {
-                console.log("המשתמש התחבר בהצלחה");
                 setShowLoginPopup(false);
                 setShowModal(false);
                 handleRegisterToSale();
               }}
-              onError={(msg) => openModal("שגיאה", msg, "סגור")}
+              onError={(msg) =>
+                openModal({ title: "שגיאה", message: msg, confirmText: "סגור" })
+              }
             />
             <button
               className={styles.cancel}

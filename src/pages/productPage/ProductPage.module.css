@@ -139,3 +139,29 @@
   min-width: 250px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
+.gallery {
+  text-align: center;
+}
+
+.controls {
+  margin-top: 10px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modalImage {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+}

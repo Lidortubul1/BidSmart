@@ -133,10 +133,11 @@ function ProductForm({ onSubmit }) {
       <label>
         כתובת תמונה
         <input
-          type="text"
-          name="image"
-          value={formData.image}
-          onChange={handleChange}
+          type="file"
+          name="images"
+          multiple
+          accept="image/*"
+          onChange={(e) => setFormData({ ...formData, images: e.target.files })}
         />
       </label>
 

@@ -15,73 +15,62 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // קבלת כל המוצרים למכירה בלבד שהם לא sale
+
 router.get("/", async (req, res) => {
   try {
+    const conn = await db.getConnection();
 
+    const [products] = await conn.execute(
+      "SELECT * FROM product WHERE product_status = 'for sale'"
+    );
 
-    const connection = await db.getConnection();
-
-    const [products] = await connection.execute("SELECT * FROM product WHERE product_status = 'for sale'");
-
-
-    if (products.length === 0) {
-      console.log(" אין מוצרים בטבלה product (לפי SELECT)");
+    // 🔁 הוספת תמונות לכל מוצר
+    for (const product of products) {
+      const [images] = await conn.execute(
+        "SELECT image_url FROM product_images WHERE product_id = ?",
+        [product.product_id]
+      );
+      product.images = images.map((img) => img.image_url); // מוסיף product.images
     }
 
     res.json(products);
   } catch (e) {
-    console.error(" שגיאה בקבלת מוצרים:", e);
+    console.error("שגיאה בקבלת מוצרים:", e);
     res.status(500).json({ error: "Failed to fetch product" });
   }
 });
 
+
 // הוספת מוצר חדש
-router.post("/", upload.none(), async (req, res) => {
+router.post("/", upload.array("images", 5), async (req, res) => {
   const {
     product_name,
     start_date,
-    start_time, // ⬅️ חדש
+    start_time,
     end_date,
     price,
-    image,
     description,
     seller_id_number,
     product_status,
     category,
     sub_category,
   } = req.body;
-  
+  const files = req.files;
 
-  if (
-    !product_name ||
-    !start_time ||
-    !start_date ||
-    !end_date ||
-    !price ||
-    !seller_id_number ||
-    !product_status
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "יש למלא את כל שדות החובה",
-    });
-  }
+  const conn = await db.getConnection();
+  await conn.beginTransaction();
 
   try {
-    const connection = await db.getConnection();
-
-    await connection.execute(
-      `INSERT INTO product
-(product_name, start_date, start_time, end_date, price, current_price, image, description, seller_id_number, product_status, category, sub_category)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    const [result] = await conn.execute(
+      `INSERT INTO product (product_name, start_date, start_time, end_date, price, current_price, description, seller_id_number, product_status, category, sub_category)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         product_name,
         start_date,
         start_time,
         end_date,
         price,
-        price, // current_price
-        image || null,
+        price,
         description || null,
         seller_id_number,
         product_status,
@@ -89,14 +78,28 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         sub_category || null,
       ]
     );
-    
 
+    const productId = result.insertId;
+
+    for (const file of files) {
+      const imagePath = "/uploads/" + file.filename;
+      await conn.execute(
+        "INSERT INTO product_images (product_id, image_url) VALUES (?, ?)",
+        [productId, imagePath]
+      );
+    }
+    console.log("📂 קבצים שהתקבלו:", req.files);
+
+    await conn.commit();
     res.json({ success: true });
   } catch (error) {
-    console.error("שגיאה בשמירת מוצר:", error);
-    res.status(500).json({ success: false, message: "שגיאה בשמירת המוצר" });
+    await conn.rollback();
+    console.error("❌ שגיאה בהעלאת מוצר:", error); // ⬅️ הדפסה מלאה
+    res.status(500).json({ success: false, message: "שגיאה בהעלאת מוצר" });
   }
+  
 });
+
 
 //מחזיר מוצר לפי product_id (אם עוד לא קיים)
 // שליפת מוצר בודד לפי product_id
@@ -105,6 +108,8 @@ router.get("/:id", async (req, res) => {
 
   try {
     const conn = await db.getConnection();
+
+    // שליפת פרטי המוצר
     const [rows] = await conn.execute(
       "SELECT * FROM product WHERE product_id = ?",
       [id]
@@ -114,12 +119,23 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "המוצר לא נמצא" });
     }
 
-    res.json(rows[0]);
+    const product = rows[0];
+
+    // 💡 כאן מוסיפים שליפת תמונות
+    const [images] = await conn.execute(
+      "SELECT image_url FROM product_images WHERE product_id = ?",
+      [id]
+    );
+
+    product.images = images.map((img) => img.image_url); // מוסיף שדה images עם מערך כתובות תמונה
+
+    res.json(product);
   } catch (err) {
     console.error("❌ שגיאה בשרת בשליפת מוצר:", err.message);
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
 
 
 module.exports = router;

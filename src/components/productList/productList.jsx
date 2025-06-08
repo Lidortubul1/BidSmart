@@ -47,7 +47,7 @@ export default function ProductList({
         ) : (
           <div className={styles.productsGrid}>
             {filteredProducts.map((product) => (
-              <Product key={product.product_id} product={product} />
+              <Product key={product.product_id} product={product} showDescription={false} />
             ))}
           </div>
         )}
