@@ -67,29 +67,82 @@ function ShippingForm() {
   // שליחת כתובת ידנית
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await fetch("http://localhost:5000/api/sale/update-address", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: id, ...formData }),
-      });
+      // קודם כל שולח את הכתובת לטבלת sale בלבד
+      const res = await fetch(
+        "http://localhost:5000/api/sale/update-sale-address",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product_id: id, ...formData }),
+        }
+      );
+
       const data = await res.json();
 
-      if (data.success) {
-        showModal({
-          title: "כתובת נשלחה",
-          message: "הכתובת שלך נשלחה למוכר בהצלחה!",
-          confirmText: "חזרה לדף הבית",
-          onConfirm: () => navigate("/"),
-        });
-      } else {
-        showModal({
+      if (!data.success) {
+        return showModal({
           title: "שגיאה",
           message: data.message || "אירעה שגיאה בשליחת הכתובת.",
           confirmText: "סגור",
           onConfirm: () => setModalVisible(false),
         });
       }
+
+      // מציג חלון קופץ לשמירת הכתובת בפרופיל
+      showModal({
+        title: "שמירת כתובת",
+        message: "האם ברצונך לשמור כתובת זו גם בפרופיל שלך לשימוש עתידי?",
+        confirmText: "כן, שמור",
+        cancelText: "לא, המשך",
+        onConfirm: async () => {
+          setModalVisible(false);
+
+          // שליחת עדכון לטבלת users
+          try {
+            const userRes = await fetch(
+              "http://localhost:5000/api/sale/update-user-address",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ product_id: id, ...formData }),
+              }
+            );
+            const userData = await userRes.json();
+
+            if (!userData.success) {
+              return showModal({
+                title: "שגיאה",
+                message: userData.message || "הכתובת לא נשמרה בפרופיל.",
+                confirmText: "סגור",
+                onConfirm: () => setModalVisible(false),
+              });
+            }
+
+            showModal({
+              title: "הצלחה",
+              message: "הכתובת נשמרה גם בפרופיל שלך!",
+              confirmText: "חזרה לדף הבית",
+              onConfirm: () => navigate("/"),
+            });
+          } catch (err) {
+            showModal({
+              title: "שגיאה",
+              message: "לא ניתן לשמור את הכתובת בפרופיל.",
+              confirmText: "סגור",
+              onConfirm: () => setModalVisible(false),
+            });
+          }
+        },
+        onCancel: () =>
+          showModal({
+            title: "כתובת נשלחה",
+            message: "הכתובת נשלחה רק לטובת המשלוח.",
+            confirmText: "חזרה לדף הבית",
+            onConfirm: () => navigate("/"),
+          }),
+      });
     } catch (err) {
       showModal({
         title: "שגיאת רשת",
@@ -99,6 +152,7 @@ function ShippingForm() {
       });
     }
   };
+  
 
   // שליחת כתובת מגורים קיימת
   const handleUseSavedAddress = () => {

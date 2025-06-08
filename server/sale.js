@@ -2,19 +2,13 @@ const express = require("express");
 const router = express.Router();
 const db = require("./database");
 
-// עדכון כתובת המשתמש בעת בחירת משלוח
-// עדכון כתובת המשתמש בעת בחירת משלוח
-router.post("/update-address", async (req, res) => {
-  const {
-    product_id,
-    city,
-    street,
-    house_number,
-    apartment_number,
-    zip,
-  } = req.body;
 
-  // ✅ בדיקה שכל שדות הכתובת חובה
+
+//מכניס כתובת רק לטבלת sale
+router.post("/update-sale-address", async (req, res) => {
+  const { product_id, city, street, house_number, apartment_number, zip } =
+    req.body;
+
   if (
     !product_id ||
     !city ||
@@ -31,9 +25,9 @@ router.post("/update-address", async (req, res) => {
   try {
     const conn = await db.getConnection();
 
-    // 🔍 שליפת ת"ז של הזוכה
+    // שליפת שם המוצר מטבלת product
     const [productRows] = await conn.query(
-      "SELECT winner_id_number FROM product WHERE product_id = ?",
+      "SELECT product_name FROM product WHERE product_id = ?",
       [product_id]
     );
 
@@ -43,40 +37,90 @@ router.post("/update-address", async (req, res) => {
         .json({ success: false, message: "מוצר לא נמצא" });
     }
 
+    const productName = productRows[0].product_name;
+
+    const [existingSale] = await conn.query(
+      "SELECT * FROM sale WHERE product_id = ?",
+      [product_id]
+    );
+
+    if (existingSale.length === 0) {
+      await conn.query(
+        `INSERT INTO sale 
+         (product_id, product_name, city, street, house_number, apartment_number, zip, country)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [product_id, productName, city, street, house_number, apartment_number, zip, "ישראל"]
+      );
+    } else {
+      await conn.query(
+        `UPDATE sale 
+         SET city = ?, street = ?, house_number = ?, apartment_number = ?, zip = ?, country = ?
+         WHERE product_id = ?`,
+        [city, street, house_number, apartment_number, zip, "ישראל", product_id]
+      );
+    }
+
+    res.json({ success: true, message: "כתובת עודכנה בטבלת sale" });
+  } catch (err) {
+    console.error("❌ שגיאה בטיפול בכתובת:", err.message);
+    res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
+
+
+//מעדכן את כתובת המשתמש במידה ומשתמש רוצה לשנות כתובת פרופיל
+router.post("/update-user-address", async (req, res) => {
+  const { product_id, city, street, house_number, apartment_number, zip } =
+    req.body;
+
+  if (
+    !product_id ||
+    !city ||
+    !street ||
+    !house_number ||
+    !apartment_number ||
+    !zip
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "יש למלא את כל שדות הכתובת" });
+  }
+
+  try {
+    const conn = await db.getConnection();
+
+    const [productRows] = await conn.query(
+      "SELECT winner_id_number FROM product WHERE product_id = ?",
+      [product_id]
+    );
+
+    if (productRows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "לא נמצא מוצר מתאים" });
+    }
+
     const winnerId = productRows[0].winner_id_number;
 
-    // 📌 עדכון כתובת בטבלת users
     await conn.query(
       `UPDATE users 
-       SET city = ?, street = ?, house_number = ?, apartment_number = ?, zip = ? 
+       SET city = ?, street = ?, house_number = ?, apartment_number = ?, zip = ?
        WHERE id_number = ?`,
       [city, street, house_number, apartment_number, zip, winnerId]
     );
 
-    // 📦 עדכון שדות כתובת בטבלת sale
-    await conn.query(
-      `UPDATE sale 
-       SET 
-         city = ?, 
-         street = ?, 
-         house_number = ?, 
-         apartment_number = ?, 
-         zip = ?, 
-         country = ?
-       WHERE product_id = ?`,
-      [city, street, house_number, apartment_number, zip, "ישראל", product_id]
-    );
-
-    res.json({ success: true, message: "כתובת עודכנה בהצלחה" });
+    res.json({ success: true, message: "כתובת נשמרה בפרופיל המשתמש" });
   } catch (err) {
-    console.error("❌ שגיאה בעדכון כתובת:", err.message);
+    console.error("❌ שגיאה בעדכון כתובת בפרופיל:", err.message);
     res
       .status(500)
-      .json({ success: false, message: "שגיאה בשרת בעת עדכון כתובת" });
+      .json({ success: false, message: "שגיאה בעדכון כתובת בפרופיל" });
   }
 });
 
-//שליחת כתובת מגורים קיימת לטבלת sale
+
+
+
 // שליחת כתובת מגורים קיימת לטבלת sale
 router.post("/use-saved-address", async (req, res) => {
   const { product_id } = req.body;
@@ -161,8 +205,7 @@ router.post("/use-saved-address", async (req, res) => {
 });
 
 
-
-// עדכון שמשלוח הגיע בטבלת מכירות לקונה בלבד
+// משתמש מעדכן שמשלוח הגיע בטבלת מכירות לקונה בלבד
 router.put("/mark-delivered", async (req, res) => {
   const { product_id } = req.body;
 
