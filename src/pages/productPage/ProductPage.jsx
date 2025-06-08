@@ -19,14 +19,15 @@ function ProductPage() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [showModal, setShowModal] = useState(false);
+
   const [modalConfig, setModalConfig] = useState({
     title: "",
     message: "",
     confirmText: "",
     cancelText: "",
     onConfirm: null,
+    onCancel: null,
     extraButtonText: "",
     onExtra: null,
   });
@@ -41,6 +42,7 @@ function ProductPage() {
           title: "שגיאה",
           message: "שגיאה בטעינת פרטי המוצר",
           confirmText: "סגור",
+          onCancel: () => setShowModal(false),
         });
       }
     }
@@ -64,6 +66,7 @@ function ProductPage() {
           title: "שגיאה",
           message: "שגיאה בבדיקת הרשמה למכרז",
           confirmText: "סגור",
+          onCancel: () => setShowModal(false),
         });
       }
     }
@@ -106,8 +109,7 @@ function ProductPage() {
         },
         extraButtonText: "הרשמה",
         onExtra: () => navigate("/register"),
-        cancelText: "סגור",
-        onCancel: () => setShowModal(false),
+    
       });
       return;
     }
@@ -137,6 +139,7 @@ function ProductPage() {
           title: "נרשמת!",
           message: `המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`,
           confirmText: "אישור",
+          onCancel: () => setShowModal(false),
         });
       }
 
@@ -146,6 +149,7 @@ function ProductPage() {
           title: "כבר נרשמת!",
           message: `כבר נרשמת למכירה זו! המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`,
           confirmText: "הבנתי",
+          onCancel: () => setShowModal(false),
         });
       }
     } catch {
@@ -153,6 +157,7 @@ function ProductPage() {
         title: "שגיאה",
         message: "שגיאה בעת ניסיון הרשמה למכרז",
         confirmText: "סגור",
+        onCancel: () => setShowModal(false),
       });
     }
   };
@@ -164,6 +169,7 @@ function ProductPage() {
         title: "שגיאה",
         message: "נא להזין תעודת זהות ולצרף קובץ",
         confirmText: "סגור",
+        onCancel: () => setShowModal(false),
       });
       return;
     }
@@ -190,6 +196,7 @@ function ProductPage() {
         title: "שגיאה",
         message: "שגיאה בשמירת תעודת זהות",
         confirmText: "סגור",
+        onCancel: () => setShowModal(false),
       });
     }
   };
@@ -204,12 +211,14 @@ function ProductPage() {
         title: "הוסרה ההרשמה",
         message: "הוסרת מהמכרז בהצלחה",
         confirmText: "סגור",
+        onCancel: () => setShowModal(false),
       });
     } catch {
       openModal({
         title: "שגיאה",
         message: "שגיאה בהסרת ההשתתפות",
         confirmText: "סגור",
+        onCancel: () => setShowModal(false),
       });
     }
   };
@@ -347,6 +356,7 @@ function ProductPage() {
           confirmText={modalConfig.confirmText}
           cancelText={modalConfig.cancelText}
           onConfirm={modalConfig.onConfirm}
+          onCancel={modalConfig.onCancel || (() => setShowModal(false))}
           extraButtonText={modalConfig.extraButtonText}
           onExtra={modalConfig.onExtra}
         />
@@ -362,7 +372,12 @@ function ProductPage() {
                 handleRegisterToSale();
               }}
               onError={(msg) =>
-                openModal({ title: "שגיאה", message: msg, confirmText: "סגור" })
+                openModal({
+                  title: "שגיאה",
+                  message: msg,
+                  confirmText: "סגור",
+                  onCancel: () => setShowModal(false),
+                })
               }
             />
             <button

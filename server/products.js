@@ -42,6 +42,7 @@ router.get("/", async (req, res) => {
 
 
 // הוספת מוצר חדש
+// הוספת מוצר חדש
 router.post("/", upload.array("images", 5), async (req, res) => {
   const {
     product_name,
@@ -51,26 +52,86 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     price,
     description,
     seller_id_number,
-    product_status,
+    product_status, // יישמר אך לא נבדק
     category,
     sub_category,
   } = req.body;
   const files = req.files;
+
+  // 🟢 אימות שדות חובה לפי הדרישות
+  if (!product_name || product_name.trim() === "") {
+    return res.status(400).json({ success: false, message: "שם המוצר הוא שדה חובה" });
+  }
+
+  if (!start_date) {
+    return res.status(400).json({ success: false, message: "תאריך התחלה הוא שדה חובה" });
+  }
+
+  const now = new Date();
+  const startDateObj = new Date(start_date);
+  if (isNaN(startDateObj.getTime())) {
+    return res.status(400).json({ success: false, message: "תאריך התחלה לא תקין" });
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (startDateObj < today) {
+    return res.status(400).json({
+      success: false,
+      message: "תאריך ההתחלה חייב להיות מתאריך היום ואילך",
+    });
+  }
+
+  if (!start_time) {
+    return res.status(400).json({ success: false, message: "שעת התחלה היא שדה חובה" });
+  }
+
+  if (!end_date) {
+    return res.status(400).json({ success: false, message: "תאריך סיום הוא שדה חובה" });
+  }
+
+  const endDateObj = new Date(end_date);
+  if (isNaN(endDateObj.getTime())) {
+    return res.status(400).json({ success: false, message: "תאריך סיום לא תקין" });
+  }
+  if (endDateObj <= startDateObj) {
+    return res.status(400).json({
+      success: false,
+      message: "תאריך הסיום חייב להיות אחרי תאריך ההתחלה",
+    });
+  }
+
+  if (!price || isNaN(price)) {
+    return res.status(400).json({
+      success: false,
+      message: "מחיר הוא שדה חובה וצריך להיות מספר",
+    });
+  }
 
   const conn = await db.getConnection();
   await conn.beginTransaction();
 
   try {
     const [result] = await conn.execute(
-      `INSERT INTO product (product_name, start_date, start_time, end_date, price, current_price, description, seller_id_number, product_status, category, sub_category)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO product (
+        product_name,
+        start_date,
+        start_time,
+        end_date,
+        price,
+        current_price,
+        description,
+        seller_id_number,
+        product_status,
+        category,
+        sub_category
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         product_name,
         start_date,
         start_time,
         end_date,
         price,
-        price,
+        price, // current_price שווה למחיר בתחילה
         description || null,
         seller_id_number,
         product_status,
@@ -88,17 +149,18 @@ router.post("/", upload.array("images", 5), async (req, res) => {
         [productId, imagePath]
       );
     }
-    console.log("📂 קבצים שהתקבלו:", req.files);
 
+    console.log("📂 קבצים שהתקבלו:", req.files);
     await conn.commit();
     res.json({ success: true });
   } catch (error) {
     await conn.rollback();
-    console.error("❌ שגיאה בהעלאת מוצר:", error); // ⬅️ הדפסה מלאה
+    console.error("❌ שגיאה בהעלאת מוצר:", error);
     res.status(500).json({ success: false, message: "שגיאה בהעלאת מוצר" });
   }
-  
 });
+
+
 
 
 //מחזיר מוצר לפי product_id (אם עוד לא קיים)

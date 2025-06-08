@@ -3,12 +3,38 @@ import { useAuth } from "../../auth/AuthContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import styles from "./AddProductPage.module.css";
-
-
+import { useState } from "react";
+import CustomModal from "../../components/CustomModal/CustomModal";
 
 function AddProductPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    title: "",
+    message: "",
+    confirmText: "",
+    cancelText: "",
+    onConfirm: null,
+    onCancel: null,
+    extraButtonText: "",
+    onExtra: null,
+  });
+
+  const openModal = ({ title, message, confirmText = "סגור", onConfirm }) => {
+    setModalConfig({
+      title,
+      message,
+      confirmText,
+      onConfirm: () => {
+        onConfirm?.();
+        setShowModal(false);
+      },
+      onCancel: () => setShowModal(false),
+    });
+    setShowModal(true);
+  };
 
   const handleProductSubmit = async (formData) => {
     try {
@@ -22,7 +48,6 @@ function AddProductPage() {
 
       for (const key in data) {
         if (key === "images" && data.images instanceof FileList) {
-          // העלאת כל התמונות
           Array.from(data.images).forEach((file) => {
             payload.append("images", file);
           });
@@ -40,24 +65,48 @@ function AddProductPage() {
       );
 
       if (response.data.success) {
-        alert("המוצר נוסף בהצלחה!");
-        navigate("/seller");
+        openModal({
+          title: "הצלחה!",
+          message: "המוצר נוסף בהצלחה!",
+          confirmText: "מעבר לדף הבית",
+          onConfirm: () => navigate("/seller"),
+        });
       } else {
-        alert(response.data.message || "שגיאה בהוספת המוצר");
+        openModal({
+          title: "שגיאה",
+          message: response.data.message || "שגיאה בהוספת המוצר",
+          confirmText: "סגור",
+        });
       }
     } catch (error) {
-      console.error(error);
-      alert("שגיאה בעת שליחת המוצר לשרת");
+      console.error("שגיאה:", error);
+      const message =
+        error.response?.data?.message || "שגיאה בעת שליחת המוצר לשרת";
+
+      openModal({
+        title: "שגיאת שרת",
+        message: message,
+        confirmText: "סגור",
+      });
     }
+    
   };
-  
-
-
-
 
   return (
     <div className={styles.container}>
       <ProductForm onSubmit={handleProductSubmit} />
+      {showModal && (
+        <CustomModal
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmText={modalConfig.confirmText}
+          cancelText={modalConfig.cancelText}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={modalConfig.onCancel}
+          extraButtonText={modalConfig.extraButtonText}
+          onExtra={modalConfig.onExtra}
+        />
+      )}
     </div>
   );
 }

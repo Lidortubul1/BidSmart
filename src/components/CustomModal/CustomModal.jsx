@@ -1,5 +1,5 @@
 import styles from "./CustomModal.module.css";
-
+//קומפוננטה לחלון קופץ כללי
 export default function CustomModal({
   title,
   message,
@@ -10,26 +10,44 @@ export default function CustomModal({
   onCancel,
   onExtra,
 }) {
+  const handleBackgroundClick = (e) => {
+    if (e.target === e.currentTarget && onCancel) {
+      onCancel();
+    }
+  };
+
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <h2 className={styles.title}>{title}</h2>
-        <p className={styles.message}>{message}</p>
-        <div className={styles.actions}>
+    <div className={styles.modalOverlay} onClick={handleBackgroundClick}>
+      <div className={styles.modalBox}>
+        <button className={styles.modalClose} onClick={onCancel}>
+          &times;
+        </button>
+
+        <h2 className={styles.modalTitle}>{title}</h2>
+        <p className={styles.modalMessage}>{message}</p>
+
+        <div className={styles.modalActions}>
           {cancelText && onCancel && (
-            <button className={styles.cancel} onClick={onCancel}>
+            <button
+              className={`${styles.modalButton} ${styles.modalCancel}`}
+              onClick={onCancel}
+            >
               {cancelText}
             </button>
           )}
-
           {extraButtonText && onExtra && (
-            <button className={styles.extra} onClick={onExtra}>
+            <button
+              className={`${styles.modalButton} ${styles.modalExtra}`}
+              onClick={onExtra}
+            >
               {extraButtonText}
             </button>
           )}
-
           {confirmText && onConfirm && (
-            <button className={styles.confirm} onClick={onConfirm}>
+            <button
+              className={`${styles.modalButton} ${styles.modalConfirm}`}
+              onClick={onConfirm}
+            >
               {confirmText}
             </button>
           )}

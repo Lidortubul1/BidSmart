@@ -71,12 +71,11 @@ function Navbar() {
               <Link to="/profile">פרופיל</Link>
             </li>
 
-            {user.role === "buyer" ||
-              (user.role === "seller" && (
-                <li>
-                  <Link to="/my-bids">ההצעות שלי</Link>
-                </li>
-              ))}
+            {(user.role === "buyer" || user.role === "seller") && (
+              <li>
+                <Link to="/my-bids">ההצעות שלי</Link>
+              </li>
+            )}
 
             {user.role === "seller" && (
               <>

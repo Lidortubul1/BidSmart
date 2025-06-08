@@ -86,8 +86,17 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "נא למלא את כל השדות" });
   }
 
+  // ✅ בדיקת חוזק סיסמה:
+  const strongPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+  if (!strongPassword.test(password)) {
+    return res.status(400).json({
+      message: "הסיסמה חייבת לכלול לפחות 6 תווים, אות אחת ומספר אחד",
+    });
+  }
+
   try {
     const conn = await db.getConnection();
+
     const [existing] = await conn.execute(
       "SELECT * FROM users WHERE email = ?",
       [email]
@@ -110,6 +119,7 @@ router.post("/register", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
 
 /** עדכון פרופיל כללי */
 router.put("/update-profile",

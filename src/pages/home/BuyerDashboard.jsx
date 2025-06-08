@@ -34,11 +34,11 @@ function BuyerDashboard() {
         <h1>ברוך הבא לקונה ב-BidSmart!</h1>
         <p>כאן תוכל לצפות בכל המוצרים ולהציע הצעות.</p>
 
-        {user?.role === "buyer" && (
+      
           <button onClick={goToBecomeSeller} className={styles.sellButton}>
             רוצה להתחיל למכור פריטים ולהפוך למוכר? לחץ להרשמה כמוכר
           </button>
-        )}
+       
       </div>
 
       <div className={styles.content}>

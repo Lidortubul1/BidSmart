@@ -3,18 +3,41 @@ import { useAuth } from "../../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./becomeSeller.module.css";
+import CustomModal from "../../components/CustomModal/CustomModal";
 
 function BecomeSellerPage() {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
+
   const [idNumber, setIdNumber] = useState("");
   const [idPhoto, setIdPhoto] = useState(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    title: "",
+    message: "",
+    confirmText: "סגור",
+    onConfirm: () => setShowModal(false),
+  });
+
+  const openModal = ({ title, message }) => {
+    setModalConfig({
+      title,
+      message,
+      confirmText: "סגור",
+      onConfirm: () => setShowModal(false),
+    });
+    setShowModal(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!idNumber || !idPhoto) {
-      alert("נא למלא תעודת זהות ולצרף קובץ");
+      openModal({
+        title: "שגיאה",
+        message: "נא למלא תעודת זהות ולצרף קובץ",
+      });
       return;
     }
 
@@ -24,31 +47,39 @@ function BecomeSellerPage() {
     formData.append("email", user.email);
 
     try {
-      await axios.put(
-        "http://localhost:5000/api/auth/upgrade-role",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      await axios.put("http://localhost:5000/api/auth/upgrade-role", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       const updatedUser = { ...user, role: "seller", id_number: idNumber };
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      alert("הפכת למוכר!");
-      navigate("/add-product");
+      openModal({
+        title: "הצלחה!",
+        message: "הפכת למוכר! תועבר לדף הוספת מוצר",
+      });
+
+      setTimeout(() => {
+        setShowModal(false);
+        navigate("/add-product");
+      }, 2000);
     } catch (err) {
       console.error("שגיאה:", err);
-      alert("שגיאה בעדכון");
+      openModal({
+        title: "שגיאה",
+        message: "שגיאה בעדכון. נסה שוב מאוחר יותר",
+      });
     }
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.formContainer}>
-        <h1>הפוך למוכר</h1>
-        <p>כדי להתחיל למכור פריטים, מלא את פרטיך:</p>
+        <h1 className={styles.title}>הפוך למוכר</h1>
+        <p className={styles.subtitle}>
+          כדי להתחיל למכור פריטים, מלא את פרטיך:
+        </p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <label>
@@ -74,6 +105,15 @@ function BecomeSellerPage() {
           <button type="submit">הפוך למוכר</button>
         </form>
       </div>
+
+      {showModal && (
+        <CustomModal
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmText={modalConfig.confirmText}
+          onConfirm={modalConfig.onConfirm}
+        />
+      )}
     </div>
   );
 }

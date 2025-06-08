@@ -11,7 +11,7 @@
   z-index: 1000;
 }
 
-.modalContent {
+.modalBox {
   position: relative;
   background-color: white;
   padding: 30px;
@@ -22,10 +22,49 @@
   text-align: center;
 }
 
-.closeButton {
+.modalTitle {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.modalMessage {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+.modalActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modalButton {
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+}
+
+.modalConfirm {
+  background-color: #4caf50;
+  color: white;
+}
+
+.modalCancel {
+  background-color: #ccc;
+  color: #000;
+}
+
+.modalExtra {
+  background-color: #007bff;
+  color: white;
+}
+
+.modalClose {
   position: absolute;
   top: 10px;
-  right: 10px; /* או left אם את ב־RTL */
+  right: 10px;
   background: none;
   border: none;
   font-size: 24px;
@@ -39,66 +78,7 @@
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.closeButton:hover {
+.modalClose:hover {
   color: #000;
   transform: scale(1.15);
-}
-
-
-
-.title {
-  font-size: 1.5rem;
-  margin-bottom: 10px;
-}
-
-.message {
-  font-size: 1.1rem;
-  margin-bottom: 20px;
-}
-
-.input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  direction: ltr;
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.loginButton {
-  background-color: #007bff;
-  color: white;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.registerButton {
-  background-color: #f0f0f0;
-  color: black;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.linkButton {
-  background: none;
-  border: none;
-  color: #007bff;
-  text-decoration: underline;
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 8px;
 }
