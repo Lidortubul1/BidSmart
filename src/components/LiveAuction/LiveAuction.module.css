@@ -4,23 +4,59 @@
   padding: 30px;
   background: linear-gradient(to right, #f8f9fa, #e9ecef);
   min-height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
 }
 
-.card {
+.cardWrapper {
+  background-color: #ffffff;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 32px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-items: start;
+}
+
+.leftPanel {
   display: flex;
   flex-direction: column;
-  max-width: 600px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  padding: 24px;
-  text-align: center;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+.centerPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+.chatPanel {
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+  max-height: 500px;
+  overflow-y: auto;
+  font-size: 1.1rem;
 }
 
 .image {
   max-width: 100%;
-  height: 300px;
+  height: 400px;
   object-fit: cover;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -31,23 +67,25 @@
 }
 
 .currentPrice {
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   color: #007bff;
   font-weight: bold;
-  margin: 15px 0;
+  margin: 20px 0;
 }
 
 .timeText {
   font-weight: bold;
-  margin-top: 10px;
+  margin-top: 15px;
+  font-size: 1.2rem;
 }
 
 .timerBar {
   background-color: #ddd;
   border-radius: 10px;
   overflow: hidden;
-  height: 12px;
+  height: 14px;
   margin-top: 10px;
+  width: 100%;
 }
 
 .timerFill {
@@ -60,10 +98,10 @@
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 14px 22px;
-  font-size: 1rem;
-  border-radius: 8px;
-  margin-top: 16px;
+  padding: 16px 24px;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  margin-top: 20px;
   cursor: pointer;
   transition: background 0.3s;
 }
@@ -75,21 +113,21 @@
 .paymentButton {
   background-color: #28a745;
   color: white;
-  padding: 12px 20px;
-  font-size: 1rem;
+  padding: 14px 22px;
+  font-size: 1.1rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
 .winner {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   color: green;
-  margin: 10px 0;
+  margin: 15px 0;
 }
 
 .loser {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: red;
 }
 
@@ -97,10 +135,68 @@
   margin-top: 10px;
   font-weight: 500;
   color: #333;
+  font-size: 1.1rem;
 }
+
 .lastBidInfo {
   font-weight: bold;
-  font-size: 1.2rem;
-  margin-top: 10px;
+  font-size: 1.3rem;
+  margin-top: 15px;
   color: #0057b7;
+}
+
+.imageGallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
+  justify-content: center;
+}
+
+.galleryImage {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.chatBox {
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  padding: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  font-size: 1rem;
+}
+
+.chatBox h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.chatLog p {
+  margin: 6px 0;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.chatBidButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background-color 0.2s ease;
+  font-size: 1rem;
+}
+
+.chatBidButton:hover {
+  background-color: #218838;
 }

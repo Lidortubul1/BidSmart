@@ -97,7 +97,9 @@ function MyBidsPage() {
                     <tr key={i}>
                       <td>
                         <img
-                          src={product.image}
+                          src={`http://localhost:5000${
+                            product.images?.[0] || ""
+                          }`}
                           alt={product.product_name}
                           className={styles.image}
                         />
@@ -138,7 +140,9 @@ function MyBidsPage() {
                     <tr key={i}>
                       <td>
                         <img
-                          src={product.image}
+                          src={`http://localhost:5000${
+                            product.images?.[0] || ""
+                          }`}
                           alt={product.product_name}
                           className={styles.image}
                         />
