@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
-import axios from "axios"; // 👈 חסר
-import { useAuth } from "../auth/AuthContext"; // 👈 חשוב מאוד
+import axios from "axios";
+import { useAuth } from "../auth/AuthContext";
 
 // דפים
 import HomePage from "../pages/home/HomePage";
@@ -20,8 +20,8 @@ import DeliveryChoice from "../pages/DeliveryChoice/DeliveryChoice.jsx";
 import ShippingForm from "../pages/ShippingForm/ShippingForm.jsx";
 import PickupInfo from "../pages/PickupInfo/PickupInfo.jsx";
 import PaymentSuccess from "../pages/payment-success/payment-success.jsx";
-//להוסיף גם התשלום לא בוצע paymrntCancle
-import "./App.css";
+import PaymentCancel from "../pages/payment-cancel/payment-cancel.jsx";
+import OrderSummaryPage from "../pages/OrderSummary/OrderSummaryPage";
 import ForgotPasswordPage from "../pages/ForgotPassword/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPassword/ResetPasswordPage";
 
@@ -30,7 +30,6 @@ import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
 import DashboardRouter from "../components/DashboardRouter/DashboardRouter.jsx";
-// import LiveAuction from "../components/LiveAuction/LiveAuction.jsx";
 import LiveAuctionWrapper from "../components/LiveAuctionWrapper/LiveAuctionWrapper.jsx";
 
 // לוחות ניהול
@@ -38,8 +37,10 @@ import BuyerDashboard from "../pages/home/BuyerDashboard";
 import SellerDashboard from "../pages/home/SellerDashboard.jsx";
 import AdminDashboard from "../pages/home/AdminDashboard";
 
+import "./App.css";
+
 function App() {
-  const { setUser } = useAuth(); // שימוש בקונטקסט של משתמש
+  const { setUser } = useAuth();
 
   useEffect(() => {
     axios
@@ -82,18 +83,19 @@ function App() {
             path="/add-product"
             element={<ProtectedRoute element={<AddProductPage />} />}
           />
-
           <Route path="/payment-success/:id" element={<PaymentSuccess />} />
+          <Route path="/payment-cancel" element={<PaymentCancel />} />
           <Route
             path="/delivery-choice/:productId"
             element={<DeliveryChoice />}
           />
-
-          <Route path="/live-auction/:id" element={<LiveAuctionWrapper />} />
-
           <Route path="/shipping/:id" element={<ShippingForm />} />
           <Route path="/pickup-info/:id" element={<PickupInfo />} />
-
+          <Route path="/live-auction/:id" element={<LiveAuctionWrapper />} />
+          <Route
+            path="/order-summary/:productId"
+            element={<OrderSummaryPage />}
+          />
           <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />
           <Route path="/my-bids" element={<MyBidsPage />} />

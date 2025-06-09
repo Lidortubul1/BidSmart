@@ -1,10 +1,17 @@
 import styles from "./LiveAuction.module.css";
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
 
 const socket = io("http://localhost:5000");
 
-function LiveAuction({ productId, buyerId }) {
+function LiveAuction() {
+  const { id: productId } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const buyerId = user?.id_number;
+
   const [product, setProduct] = useState(null);
   const [currentPrice, setCurrentPrice] = useState(0);
   const [lastBidder, setLastBidder] = useState(null);
@@ -15,22 +22,24 @@ function LiveAuction({ productId, buyerId }) {
   const [chatLog, setChatLog] = useState([]);
   const anonymizedUsers = useRef({});
 
-  async function fetchProduct() {
-    try {
-      const res = await fetch(`http://localhost:5000/api/product/${productId}`);
-      const data = await res.json();
-      setProduct(data);
-      setIsLive(data.is_live === 1);
-      setCurrentPrice(Number(data.current_price) || 0);
-      setLastBidder(data.winner_id_number || null);
-    } catch (err) {
-      console.error("שגיאה בשליפת מוצר:", err);
-    }
-  }
-
   useEffect(() => {
-    fetchProduct();
-    const interval = setInterval(fetchProduct, 10000);
+    fetch(`http://localhost:5000/api/product/${productId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setProduct(data);
+        setIsLive(data.is_live === 1);
+        setCurrentPrice(Number(data.current_price) || 0);
+        setLastBidder(data.winner_id_number || null);
+      });
+
+    const interval = setInterval(() => {
+      fetch(`http://localhost:5000/api/product/${productId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setProduct(data);
+          setCurrentPrice(Number(data.current_price) || 0);
+        });
+    }, 10000);
 
     socket.emit("joinAuction", { productId });
 
@@ -38,18 +47,17 @@ function LiveAuction({ productId, buyerId }) {
       setCurrentPrice(price);
       setLastBidder(buyerId);
       setTimeLeft(10);
-
       const { name, color } = getAnonymizedData(buyerId);
-      const newMessage = {
-        text: `${name} הציע ${price} ₪`,
-        color,
-      };
-      setChatLog((prev) => [...prev, newMessage]);
+      setChatLog((prev) => [
+        ...prev,
+        { text: `${name} הציע ${price} ₪`, color },
+      ]);
     });
 
-    socket.on("auctionEnded", ({ winnerId }) => {
+    socket.on("auctionEnded", ({ winnerId, finalPrice }) => {
       setAuctionEnded(true);
       setWinnerId(winnerId);
+      setCurrentPrice(finalPrice);
     });
 
     return () => {
@@ -68,86 +76,45 @@ function LiveAuction({ productId, buyerId }) {
     }
   }, [timeLeft, auctionEnded]);
 
-  const formatDateAndTime = (dateStr, timeStr) => {
-    const date = new Date(dateStr);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    if (!dateStr || !timeStr) return "תאריך לא זמין";
-    const [hours, minutes] = timeStr.split(":");
-    return `${day}/${month}/${year} בשעה ${hours}:${minutes}`;
-  };
-
-  function generateRandomColor() {
-    const colors = ["#007bff", "#28a745", "#dc3545", "#ffc107", "#6610f2"];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
-
-  function getAnonymizedData(buyerId) {
-    if (!anonymizedUsers.current[buyerId]) {
-      const shortId = String(buyerId).slice(-3);
-      anonymizedUsers.current[buyerId] = {
+  const getAnonymizedData = (id) => {
+    if (!anonymizedUsers.current[id]) {
+      const shortId = String(id).slice(-3);
+      const colors = ["#007bff", "#28a745", "#dc3545", "#ffc107", "#6610f2"];
+      anonymizedUsers.current[id] = {
         name: `משתתף#${shortId}`,
-        color: generateRandomColor(),
+        color: colors[Math.floor(Math.random() * colors.length)],
       };
     }
-    return anonymizedUsers.current[buyerId];
-  }
+    return anonymizedUsers.current[id];
+  };
 
-  if (product && !isLive) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <img
-            src={product.image}
-            alt={product.product_name}
-            className={styles.image}
-          />
-          <div className={styles.info}>
-            <h2>{product.product_name}</h2>
-            <p>{product.description}</p>
-            <p>
-              מחיר פתיחה: <strong>{product.price} ₪</strong>
-            </p>
-            <p className={styles.startText}>
-              המכירה תתחיל בתאריך{" "}
-              {product.start_date && product.start_time
-                ? formatDateAndTime(product.start_date, product.start_time)
-                : "תאריך לא זמין"}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleBid = (amount = 10) => {
+    socket.emit("placeBid", { productId, buyerId, customAmount: amount });
+  };
+
+  if (!product) return <p>טוען מוצר...</p>;
 
   return (
     <div className={styles.container}>
       <div className={styles.cardWrapper}>
         <div className={styles.cardGrid}>
+          {/* Left panel - תמונות ותיאור */}
           <div className={styles.leftPanel}>
-            <h2>{product?.product_name}</h2>
-            <p>{product?.description}</p>
-            {product?.images?.length > 0 ? (
-              <div className={styles.imageGallery}>
-                {product.images.map((url, index) => (
-                  <img
-                    key={index}
-                    src={`http://localhost:5000${url}`}
-                    alt={`product image ${index + 1}`}
-                    className={styles.galleryImage}
-                  />
-                ))}
-              </div>
-            ) : (
-              <img
-                src={product?.image}
-                alt={product?.product_name}
-                className={styles.image}
-              />
-            )}
+            <h2>{product.product_name}</h2>
+            <p>{product.description}</p>
+            <div className={styles.imageGallery}>
+              {product.images?.map((url, i) => (
+                <img
+                  key={i}
+                  src={`http://localhost:5000${url}`}
+                  alt={`תמונה ${i + 1}`}
+                  className={styles.galleryImage}
+                />
+              ))}
+            </div>
           </div>
 
+          {/* Center panel - מחיר, בידים, כפתור, סיום */}
           <div className={styles.centerPanel}>
             <p className={styles.currentPrice}>מחיר נוכחי: {currentPrice} ₪</p>
             <p className={styles.lastBidInfo}>
@@ -155,29 +122,6 @@ function LiveAuction({ productId, buyerId }) {
                 ? "נתת את ההצעה האחרונה!"
                 : "ניתנה הצעה ממשתמש! לחץ הגש הצעה כדי לזכות!"}
             </p>
-
-            <button
-              className={styles.chatBidButton}
-              onClick={() => {
-                const newPrice = currentPrice + 50;
-                setCurrentPrice(newPrice);
-                setLastBidder(buyerId);
-                const { name, color } = getAnonymizedData(buyerId);
-                const newMessage = {
-                  text: `${name} הציע ${newPrice} ₪ (הצעת בוסטר!)`,
-                  color,
-                };
-                setChatLog((prev) => [...prev, newMessage]);
-                socket.emit("placeBid", {
-                  productId,
-                  buyerId,
-                  customAmount: 50,
-                });
-              }}
-            >
-              הגש הצעה של +50 ₪
-            </button>
-
             {!auctionEnded && (
               <>
                 <div className={styles.timerBar}>
@@ -189,46 +133,22 @@ function LiveAuction({ productId, buyerId }) {
                 <p className={styles.timeText}>
                   ⌛ זמן להגשת הצעה: {timeLeft} שניות
                 </p>
-                {buyerId !== lastBidder && (
-                  <button
-                    className={styles.bidButton}
-                    onClick={() =>
-                      socket.emit("placeBid", { productId, buyerId })
-                    }
-                  >
-                    הגש הצעה (+10 ₪)
-                  </button>
-                )}
+                <button
+                  className={styles.bidButton}
+                  onClick={() => handleBid(50)}
+                >
+                  הגש הצעה של +50 ₪
+                </button>
               </>
             )}
-
             {auctionEnded && (
-              <div className={styles.resultBox}>
+              <>
                 {buyerId === winnerId ? (
                   <>
                     <p className={styles.winner}>🎉 זכית במכירה!</p>
                     <button
                       className={styles.paymentButton}
-                      onClick={async () => {
-                        try {
-                          const res = await fetch(
-                            "http://localhost:5000/api/payment/create-order",
-                            {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ product_id: productId }),
-                            }
-                          );
-                          const data = await res.json();
-                          const approveUrl = data?.links?.find(
-                            (link) => link.rel === "approve"
-                          )?.href;
-                          if (approveUrl) window.location.href = approveUrl;
-                          else alert("שגיאה בהמשך לתשלום");
-                        } catch (err) {
-                          alert("שגיאה בתשלום");
-                        }
-                      }}
+                      onClick={() => navigate(`/order-summary/${productId}`)}
                     >
                       עבור לתשלום
                     </button>
@@ -236,15 +156,16 @@ function LiveAuction({ productId, buyerId }) {
                 ) : (
                   <p className={styles.loser}>❌ המכירה הסתיימה. לא זכית.</p>
                 )}
-              </div>
+              </>
             )}
           </div>
 
+          {/* Right panel - צ'אט */}
           <div className={styles.chatPanel}>
             <h4>הצעות בזמן אמת:</h4>
             <div className={styles.chatLog}>
-              {chatLog.map((msg, index) => (
-                <p key={index} style={{ color: msg.color }}>
+              {chatLog.map((msg, i) => (
+                <p key={i} style={{ color: msg.color }}>
                   {msg.text}
                 </p>
               ))}
