@@ -3,8 +3,11 @@ import { useState } from "react";
 import citiesData from "../../assets/data/cities_with_streets.json";
 import CustomModal from "../../components/CustomModal/CustomModal.jsx";
 import styles from "./ShippingForm.module.css";
+import { useAuth } from "../../auth/AuthContext.js"
+
 
 function ShippingForm() {
+  const { user } = useAuth();
   const { id } = useParams(); // מזהה המוצר
   const navigate = useNavigate();
 
@@ -100,59 +103,69 @@ function ShippingForm() {
         });
       }
 
-      // מציג חלון קופץ לשמירת הכתובת בפרופיל
-      showModal({
-        title: "שמירת כתובת",
-        message: "האם ברצונך לשמור כתובת זו גם בפרופיל שלך לשימוש עתידי?",
-        confirmText: "כן, שמור",
-        cancelText: "לא, המשך",
-        onConfirm: async () => {
-          setModalVisible(false);
+      // חלון קופץ עם הודעה מותאמת בהתאם לבחירת משלוח
+      if (deliveryMethod === "delivery") {
+        showModal({
+          title: "שמירת כתובת",
+          message: "האם ברצונך לשמור כתובת זו גם בפרופיל שלך לשימוש עתידי?",
+          confirmText: "כן, שמור",
+          cancelText: "לא, המשך",
+          onConfirm: async () => {
+            setModalVisible(false);
 
-          // שליחת עדכון לטבלת users
-          try {
-            const userRes = await fetch(
-              "http://localhost:5000/api/sale/update-user-address",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ product_id: id, ...formData }),
+            // שליחת עדכון לטבלת users
+            try {
+              const userRes = await fetch(
+                "http://localhost:5000/api/sale/update-user-address",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ product_id: id, ...formData }),
+                }
+              );
+              const userData = await userRes.json();
+
+              if (!userData.success) {
+                return showModal({
+                  title: "שגיאה",
+                  message: userData.message || "הכתובת לא נשמרה בפרופיל.",
+                  confirmText: "סגור",
+                  onConfirm: () => setModalVisible(false),
+                });
               }
-            );
-            const userData = await userRes.json();
 
-            if (!userData.success) {
-              return showModal({
+              showModal({
+                title: "הצלחה",
+                message: "הכתובת נשמרה גם בפרופיל שלך!",
+                confirmText: "חזרה לדף הבית",
+                onConfirm: () => navigate(user.role === "seller" ? "/seller" : "/buyer")
+              });
+            } catch (err) {
+              showModal({
                 title: "שגיאה",
-                message: userData.message || "הכתובת לא נשמרה בפרופיל.",
+                message: "לא ניתן לשמור את הכתובת בפרופיל.",
                 confirmText: "סגור",
                 onConfirm: () => setModalVisible(false),
               });
             }
-
+          },
+          onCancel: () =>
             showModal({
-              title: "הצלחה",
-              message: "הכתובת נשמרה גם בפרופיל שלך!",
+              title: "כתובת נשלחה",
+              message: "הכתובת נשלחה רק לטובת המשלוח.",
               confirmText: "חזרה לדף הבית",
-              onConfirm: () => navigate("/"),
-            });
-          } catch (err) {
-            showModal({
-              title: "שגיאה",
-              message: "לא ניתן לשמור את הכתובת בפרופיל.",
-              confirmText: "סגור",
-              onConfirm: () => setModalVisible(false),
-            });
-          }
-        },
-        onCancel: () =>
-          showModal({
-            title: "כתובת נשלחה",
-            message: "הכתובת נשלחה רק לטובת המשלוח.",
-            confirmText: "חזרה לדף הבית",
-            onConfirm: () => navigate("/"),
-          }),
-      });
+              onConfirm: () => navigate(user.role === "seller" ? "/seller" : "/buyer"),
+            }),
+        });
+      } else {
+        // אם בחר איסוף עצמי – פשוט הפנייה לדף הבית
+        showModal({
+          title: "איסוף עצמי",
+          message: "בחירתך נקלטה בהצלחה. יש ליצור קשר עם המוכר לתיאום.",
+          confirmText: "חזרה לדף הבית",
+          onConfirm: () => navigate(user.role === "seller" ? "/seller" : "/buyer"),
+        });
+      }      
     } catch (err) {
       showModal({
         title: "שגיאת רשת",

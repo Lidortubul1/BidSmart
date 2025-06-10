@@ -16,12 +16,9 @@ import MyBidsPage from "../pages/myBids/MyBidsPage";
 import SaleSummaryPage from "../pages/saleSummary/SaleSummaryPage";
 import SearchResultsPage from "../components/search/SearchResultsPage.jsx";
 import InfoPage from "../pages/infoPage/InfoPage.jsx";
-import DeliveryChoice from "../pages/DeliveryChoice/DeliveryChoice.jsx";
 import ShippingForm from "../pages/ShippingForm/ShippingForm.jsx";
-import PickupInfo from "../pages/PickupInfo/PickupInfo.jsx";
 import PaymentSuccess from "../pages/payment-success/payment-success.jsx";
 import PaymentCancel from "../pages/payment-cancel/payment-cancel.jsx";
-import OrderSummaryPage from "../pages/OrderSummary/OrderSummaryPage";
 import ForgotPasswordPage from "../pages/ForgotPassword/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPassword/ResetPasswordPage";
 
@@ -85,17 +82,10 @@ function App() {
           />
           <Route path="/payment-success/:id" element={<PaymentSuccess />} />
           <Route path="/payment-cancel" element={<PaymentCancel />} />
-          <Route
-            path="/delivery-choice/:productId"
-            element={<DeliveryChoice />}
-          />
+       
           <Route path="/shipping/:id" element={<ShippingForm />} />
-          <Route path="/pickup-info/:id" element={<PickupInfo />} />
           <Route path="/live-auction/:id" element={<LiveAuctionWrapper />} />
-          <Route
-            path="/order-summary/:productId"
-            element={<OrderSummaryPage />}
-          />
+
           <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />
           <Route path="/my-bids" element={<MyBidsPage />} />

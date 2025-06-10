@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
+import CustomModal from "../../components/CustomModal/CustomModal.jsx";
 
 const socket = io("http://localhost:5000");
 
@@ -21,6 +22,27 @@ function LiveAuction() {
   const [isLive, setIsLive] = useState(false);
   const [chatLog, setChatLog] = useState([]);
   const anonymizedUsers = useRef({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState({
+    title: "",
+    message: "",
+    confirmText: "",
+    cancelText: "",
+    onConfirm: null,
+    onCancel: null,
+  });
+
+  const showModal = ({
+    title,
+    message,
+    confirmText,
+    cancelText,
+    onConfirm,
+    onCancel,
+  }) => {
+    setModalContent({ title, message, confirmText, cancelText, onConfirm, onCancel });
+    setModalVisible(true);
+  };
 
   useEffect(() => {
     fetch(`http://localhost:5000/api/product/${productId}`)
@@ -57,7 +79,7 @@ function LiveAuction() {
     socket.on("auctionEnded", ({ winnerId, finalPrice }) => {
       setAuctionEnded(true);
       setWinnerId(winnerId);
-      setCurrentPrice(finalPrice);
+      setCurrentPrice(Number(finalPrice) || 0);
     });
 
     return () => {
@@ -92,38 +114,26 @@ function LiveAuction() {
     socket.emit("placeBid", { productId, buyerId, customAmount: amount });
   };
 
-  
   const formatDateAndTime = (dateStr, timeStr) => {
     if (!dateStr || !timeStr) return "תאריך לא זמין";
-
     const date = new Date(dateStr);
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-
     const [hourStr, minuteStr] = timeStr.split(":");
-
     return `${day}/${month}/${year} בשעה ${hourStr}:${minuteStr}`;
   };
-  
-  
 
   if (!product) return <p>טוען מוצר...</p>;
   if (product && !isLive) {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
-          <img
-            src={`http://localhost:5000${product.images?.[0]}`}
-            alt={product.product_name}
-            className={styles.image}
-          />
+          <img src={`http://localhost:5000${product.images?.[0]}`} alt={product.product_name} className={styles.image} />
           <div className={styles.info}>
             <h2>{product.product_name}</h2>
             <p>{product.description}</p>
-            <p>
-              מחיר פתיחה: <strong>{product.price} ₪</strong>
-            </p>
+            <p>מחיר פתיחה: <strong>{product.price} ₪</strong></p>
             <p className={styles.startText}>
               המכירה תתחיל בתאריך{" "}
               {product.start_date && product.start_time
@@ -135,31 +145,21 @@ function LiveAuction() {
       </div>
     );
   }
-  
-
-
 
   return (
     <div className={styles.container}>
       <div className={styles.cardWrapper}>
         <div className={styles.cardGrid}>
-          {/* Left panel - תמונות ותיאור */}
           <div className={styles.leftPanel}>
             <h2>{product.product_name}</h2>
             <p>{product.description}</p>
             <div className={styles.imageGallery}>
               {product.images?.map((url, i) => (
-                <img
-                  key={i}
-                  src={`http://localhost:5000${url}`}
-                  alt={`תמונה ${i + 1}`}
-                  className={styles.galleryImage}
-                />
+                <img key={i} src={`http://localhost:5000${url}`} alt={`תמונה ${i + 1}`} className={styles.galleryImage} />
               ))}
             </div>
           </div>
 
-          {/* Center panel - מחיר, בידים, כפתור, סיום */}
           <div className={styles.centerPanel}>
             <p className={styles.currentPrice}>מחיר נוכחי: {currentPrice} ₪</p>
             <p className={styles.lastBidInfo}>
@@ -175,17 +175,13 @@ function LiveAuction() {
                     style={{ width: `${(timeLeft / 10) * 100}%` }}
                   ></div>
                 </div>
-                <p className={styles.timeText}>
-                  ⌛ זמן להגשת הצעה: {timeLeft} שניות
-                </p>
-                <button
-                  className={styles.bidButton}
-                  onClick={() => handleBid(50)}
-                >
+                <p className={styles.timeText}>⌛ זמן להגשת הצעה: {timeLeft} שניות</p>
+                <button className={styles.bidButton} onClick={() => handleBid(50)}>
                   הגש הצעה של +50 ₪
                 </button>
               </>
             )}
+
             {auctionEnded && (
               <>
                 {buyerId === winnerId ? (
@@ -193,30 +189,35 @@ function LiveAuction() {
                     <p className={styles.winner}>🎉 זכית במכירה!</p>
                     <button
                       className={styles.paymentButton}
-                      onClick={async () => {
-                        try {
-                          const res = await fetch(
-                            "http://localhost:5000/api/payment/create-order",
-                            {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ product_id: productId }),
+                      onClick={() => {
+                        const base = Number(currentPrice) / 1.17;
+                        const vat = Number(currentPrice) - base;
+                        const total = Number(currentPrice);
+                        
+                        showModal({
+                          title: "🧾 פירוט המחיר",
+                          message: `לפני מע״מ: ₪${base.toFixed(2)} \nמע״מ (17%): ₪${vat.toFixed(2)} \nסך הכול לתשלום: ₪${total.toFixed(2)}`,
+                          confirmText: "עבור לתשלום",
+                          onConfirm: async () => {
+                            try {
+                              const res = await fetch("http://localhost:5000/api/payment/create-order", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ product_id: productId }),
+                              });
+                              const data = await res.json();
+                              const approveUrl = data?.links?.find((link) => link.rel === "approve")?.href;
+                              if (approveUrl) {
+                                window.location.href = approveUrl;
+                              } else {
+                                alert("שגיאה בקבלת קישור לתשלום");
+                              }
+                            } catch (err) {
+                              alert("שגיאה ביצירת בקשת תשלום");
                             }
-                          );
-
-                          const data = await res.json();
-                          const approveUrl = data?.links?.find(
-                            (link) => link.rel === "approve"
-                          )?.href;
-
-                          if (approveUrl) {
-                            window.location.href = approveUrl;
-                          } else {
-                            alert("שגיאה בקבלת קישור לתשלום");
-                          }
-                        } catch (error) {
-                          alert("שגיאה ביצירת בקשת תשלום");
-                        }
+                          },
+                          onCancel: () => setModalVisible(false),
+                        });
                       }}
                     >
                       עבור לתשלום
@@ -229,19 +230,27 @@ function LiveAuction() {
             )}
           </div>
 
-          {/* Right panel - צ'אט */}
           <div className={styles.chatPanel}>
             <h4>הצעות בזמן אמת:</h4>
             <div className={styles.chatLog}>
               {chatLog.map((msg, i) => (
-                <p key={i} style={{ color: msg.color }}>
-                  {msg.text}
-                </p>
+                <p key={i} style={{ color: msg.color }}>{msg.text}</p>
               ))}
             </div>
           </div>
         </div>
       </div>
+
+      {modalVisible && (
+        <CustomModal
+          title={modalContent.title}
+          message={modalContent.message}
+          confirmText={modalContent.confirmText}
+          cancelText={modalContent.cancelText}
+          onConfirm={modalContent.onConfirm}
+          onCancel={modalContent.onCancel}
+        />
+      )}
     </div>
   );
 }

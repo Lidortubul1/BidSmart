@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require("./database");
 const axios = require("axios");
 
-// מכניס כתובת רק לטבלת sale
+// מכניס בחירת משלוח רק לטבלת sale
 router.post("/update-sale-address", async (req, res) => {
   const {
     product_id,
@@ -16,59 +16,75 @@ router.post("/update-sale-address", async (req, res) => {
     delivery_method,
   } = req.body;
 
-  if (
-    !product_id ||
-    delivery_method !== "delivery" || // נוודא שהוא אכן בחר משלוח
-    !city ||
-    !street ||
-    !house_number ||
-    !apartment_number ||
-    !zip
-  ) {
+  if (!product_id || !delivery_method) {
     return res.status(400).json({
       success: false,
-      message: "יש למלא את כל שדות הכתובת ובחירת משלוח",
+      message: "חובה לספק מזהה מוצר וסוג משלוח",
     });
+  }
+
+  // אם זו כתובת למשלוח - ודא שכל השדות מולאו
+  if (delivery_method === "delivery") {
+    if (!city || !street || !house_number || !apartment_number || !zip) {
+      return res.status(400).json({
+        success: false,
+        message: "יש למלא את כל שדות הכתובת למשלוח",
+      });
+    }
   }
 
   try {
     const conn = await db.getConnection();
 
+    // שליפת שם מוצר והזוכה
     const [productRows] = await conn.query(
-      "SELECT product_name FROM product WHERE product_id = ?",
+      "SELECT product_name, winner_id_number FROM product WHERE product_id = ?",
       [product_id]
     );
 
     if (productRows.length === 0) {
-      return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
+      return res.status(404).json({
+        success: false,
+        message: "המוצר לא נמצא",
+      });
     }
 
-    const productName = productRows[0].product_name;
+    const { product_name: productName, winner_id_number: winnerId } =
+      productRows[0];
 
+    // בדיקה אם קיים כבר רשומה בטבלת sale
     const [existingSale] = await conn.query(
       "SELECT * FROM sale WHERE product_id = ?",
       [product_id]
     );
 
+    // הערכים שיוזרקו למסד
+    const values = [
+      product_id,
+      productName,
+      winnerId,
+      delivery_method === "delivery" ? city : null,
+      delivery_method === "delivery" ? street : null,
+      delivery_method === "delivery" ? house_number : null,
+      delivery_method === "delivery" ? apartment_number : null,
+      delivery_method === "delivery" ? zip : null,
+      delivery_method === "delivery" ? "ישראל" : null,
+      delivery_method,
+      notes || null,
+    ];
+
+    console.log("📦 inserting/updating sale with values:", values);
+
     if (existingSale.length === 0) {
+      // INSERT חדש
       await conn.query(
         `INSERT INTO sale 
-        (product_id, product_name, city, street, house_number, apartment_number, zip, country, delivery_method, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          product_id,
-          productName,
-          city,
-          street,
-          house_number,
-          apartment_number,
-          zip,
-          "ישראל",
-          "delivery",
-          notes || null,
-        ]
+         (product_id, product_name, buyer_id_number, city, street, house_number, apartment_number, zip, country, delivery_method, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        values
       );
     } else {
+      // UPDATE רשומה קיימת
       await conn.query(
         `UPDATE sale 
          SET city = ?, 
@@ -78,28 +94,37 @@ router.post("/update-sale-address", async (req, res) => {
              zip = ?, 
              country = ?, 
              delivery_method = ?, 
-             notes = ?
+             notes = ?, 
+             buyer_id_number = ?
          WHERE product_id = ?`,
         [
-          city,
-          street,
-          house_number,
-          apartment_number,
-          zip,
-          "ישראל",
-          "delivery",
+          delivery_method === "delivery" ? city : null,
+          delivery_method === "delivery" ? street : null,
+          delivery_method === "delivery" ? house_number : null,
+          delivery_method === "delivery" ? apartment_number : null,
+          delivery_method === "delivery" ? zip : null,
+          delivery_method === "delivery" ? "ישראל" : null,
+          delivery_method,
           notes || null,
+          winnerId,
           product_id,
         ]
       );
     }
 
-    res.json({ success: true, message: "הכתובת וההערות עודכנו בהצלחה" });
+    res.json({ success: true, message: "הפרטים עודכנו בטבלת sale" });
   } catch (err) {
-    console.error("❌ שגיאה בטיפול בכתובת:", err.message);
-    res.status(500).json({ success: false, message: "שגיאה בשרת" });
+    console.error("❌ שגיאה בטיפול בפרטי המשלוח:", err);
+    res.status(500).json({
+      success: false,
+      message: "שגיאה בשרת",
+      error: err.message,
+    });
   }
 });
+
+
+
 
 
 // מעדכן את כתובת המשתמש בפרופיל
