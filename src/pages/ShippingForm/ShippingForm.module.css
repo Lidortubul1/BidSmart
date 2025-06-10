@@ -61,3 +61,15 @@ button {
 .useSavedBtn:hover {
   background-color: #1565c0;
 }
+.deliveryOptions {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+  direction: rtl;
+  justify-content: center;
+}
+
+.deliveryOptions label {
+  font-weight: bold;
+  cursor: pointer;
+}

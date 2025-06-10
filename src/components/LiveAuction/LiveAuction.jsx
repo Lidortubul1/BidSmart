@@ -92,7 +92,52 @@ function LiveAuction() {
     socket.emit("placeBid", { productId, buyerId, customAmount: amount });
   };
 
+  
+  const formatDateAndTime = (dateStr, timeStr) => {
+    if (!dateStr || !timeStr) return "תאריך לא זמין";
+
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    const [hourStr, minuteStr] = timeStr.split(":");
+
+    return `${day}/${month}/${year} בשעה ${hourStr}:${minuteStr}`;
+  };
+  
+  
+
   if (!product) return <p>טוען מוצר...</p>;
+  if (product && !isLive) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <img
+            src={`http://localhost:5000${product.images?.[0]}`}
+            alt={product.product_name}
+            className={styles.image}
+          />
+          <div className={styles.info}>
+            <h2>{product.product_name}</h2>
+            <p>{product.description}</p>
+            <p>
+              מחיר פתיחה: <strong>{product.price} ₪</strong>
+            </p>
+            <p className={styles.startText}>
+              המכירה תתחיל בתאריך{" "}
+              {product.start_date && product.start_time
+                ? formatDateAndTime(product.start_date, product.start_time)
+                : "תאריך לא זמין"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+
+
 
   return (
     <div className={styles.container}>
@@ -148,7 +193,31 @@ function LiveAuction() {
                     <p className={styles.winner}>🎉 זכית במכירה!</p>
                     <button
                       className={styles.paymentButton}
-                      onClick={() => navigate(`/order-summary/${productId}`)}
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(
+                            "http://localhost:5000/api/payment/create-order",
+                            {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ product_id: productId }),
+                            }
+                          );
+
+                          const data = await res.json();
+                          const approveUrl = data?.links?.find(
+                            (link) => link.rel === "approve"
+                          )?.href;
+
+                          if (approveUrl) {
+                            window.location.href = approveUrl;
+                          } else {
+                            alert("שגיאה בקבלת קישור לתשלום");
+                          }
+                        } catch (error) {
+                          alert("שגיאה ביצירת בקשת תשלום");
+                        }
+                      }}
                     >
                       עבור לתשלום
                     </button>

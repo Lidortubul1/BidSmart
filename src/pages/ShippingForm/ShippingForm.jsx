@@ -10,6 +10,8 @@ function ShippingForm() {
 
   const [selectedCity, setSelectedCity] = useState("");
   const [availableStreets, setAvailableStreets] = useState([]);
+  //שיטת משלוח
+  const [deliveryMethod, setDeliveryMethod] = useState(""); // "delivery" או "pickup"
 
   // טופס
   const [formData, setFormData] = useState({
@@ -18,6 +20,7 @@ function ShippingForm() {
     house_number: "",
     apartment_number: "",
     zip: "",
+    notes: "", // 🆕 הערות למוכר
   });
 
   // מודאל קופץ
@@ -69,13 +72,20 @@ function ShippingForm() {
     e.preventDefault();
 
     try {
+      if (deliveryMethod === "pickup") {
+        delete formData.city;
+        delete formData.street;
+        delete formData.house_number;
+        delete formData.apartment_number;
+        delete formData.zip;
+      }      
       // קודם כל שולח את הכתובת לטבלת sale בלבד
       const res = await fetch(
         "http://localhost:5000/api/sale/update-sale-address",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ product_id: id, ...formData }),
+          body: JSON.stringify({ product_id: id, delivery_method: deliveryMethod, ...formData })
         }
       );
 
@@ -152,120 +162,153 @@ function ShippingForm() {
       });
     }
   };
-  
 
   // שליחת כתובת מגורים קיימת
-  const handleUseSavedAddress = () => {
-    showModal({
-      title: "משלוח לכתובת מגורים",
-      message: "האם לשלוח את המוצר לכתובת המגורים שלך?",
-      confirmText: "כן, שלח",
-      cancelText: "לא",
-      onConfirm: async () => {
-        setModalVisible(false);
-        try {
-          const res = await fetch("http://localhost:5000/api/sale/use-saved-address",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ product_id: id }),
-            }
-          );
-          const data = await res.json();
-          if (data.success) {
-            showModal({
-              title: "בוצע בהצלחה",
-              message: "כתובת המגורים שלך עודכנה במערכת.",
-              confirmText: "מעבר לדף הבית",
-              onConfirm: () => navigate("/"),
-            });
-          } else {
-            showModal({
-              title: "שגיאה",
-              message: data.message || "לא נמצאה כתובת מגורים מלאה.",
-              confirmText: "סגור",
-              onConfirm: () => setModalVisible(false),
-            });
-          }
-        } catch (err) {
-          showModal({
-            title: "שגיאת רשת",
-            message: "לא ניתן לשלוח את הכתובת לשרת.",
-            confirmText: "סגור",
-            onConfirm: () => setModalVisible(false),
-          });
+  const handleUseSavedAddress = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/sale/get-user-address", // ✅ נתיב חדש
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product_id: id }),
         }
-      },
-      onCancel: () => setModalVisible(false),
-    });
+      );
+      const data = await res.json();
+      if (data.success && data.address) {
+        const { city, street, house_number, apartment_number, zip } =
+          data.address;
+        setFormData((prev) => ({
+          ...prev,
+          city,
+          street,
+          house_number,
+          apartment_number,
+          zip,
+        }));
+        setSelectedCity(city);
+        const cityObj = citiesData.find((c) => c.city === city);
+        setAvailableStreets(cityObj ? cityObj.streets : []);
+      } else {
+        showModal({
+          title: "שגיאה",
+          message: data.message || "לא נמצאה כתובת מגורים מלאה.",
+          confirmText: "סגור",
+          onConfirm: () => setModalVisible(false),
+        });
+      }
+    } catch (err) {
+      showModal({
+        title: "שגיאת רשת",
+        message: "לא ניתן לשלוף את כתובת המגורים.",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
+    }
   };
+  
 
   return (
     <div className={styles.container}>
-      <h3>נא למלא כתובת למשלוח</h3>
+      <div className={styles.deliveryOptions}>
+        <label>
+          <input
+            type="radio"
+            name="delivery_method"
+            value="delivery"
+            checked={deliveryMethod === "delivery"}
+            onChange={() => setDeliveryMethod("delivery")}
+            required
+          />
+          משלוח עד הבית
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="delivery_method"
+            value="pickup"
+            checked={deliveryMethod === "pickup"}
+            onChange={() => setDeliveryMethod("pickup")}
+          />
+          איסוף עצמי
+        </label>
+      </div>
 
-      <button
-        className={styles.useSavedBtn}
-        type="button"
-        onClick={handleUseSavedAddress}>
-        השתמש בכתובת המגורים שלי
-      </button>
-
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <select
-          name="city"
-          value={formData.city}
-          onChange={handleCityChange}
-          required>
-            
-          <option value="">בחר עיר</option>
-          {citiesData.map((c, i) => (
-            <option key={i} value={c.city}>
-              {c.city}
-            </option>
-          ))}
-        </select>
-
-        <select
-          name="street"
-          value={formData.street}
-          onChange={handleChange}
-          required
+      {deliveryMethod === "delivery" && <h3>נא למלא כתובת למשלוח</h3>}
+      {deliveryMethod === "delivery" && (
+        <button
+          className={styles.useSavedBtn}
+          type="button"
+          onClick={handleUseSavedAddress}
         >
-          <option value="">בחר רחוב</option>
-          {availableStreets.map((s, i) => (
-            <option key={i} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+          השתמש בכתובת המגורים שלי
+        </button>
+      )}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        {deliveryMethod === "delivery" && (
+          <>
+            <select
+              name="city"
+              value={formData.city}
+              onChange={handleCityChange}
+              required
+            >
+              <option value="">בחר עיר</option>
+              {citiesData.map((c, i) => (
+                <option key={i} value={c.city}>
+                  {c.city}
+                </option>
+              ))}
+            </select>
 
-        <input
-          name="house_number"
-          placeholder="מספר בית"
-          value={formData.house_number}
-          onChange={handleChange}
-          required
-        />
+            <select
+              name="street"
+              value={formData.street}
+              onChange={handleChange}
+              required
+            >
+              <option value="">בחר רחוב</option>
+              {availableStreets.map((s, i) => (
+                <option key={i} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
 
-        <input
-          name="apartment_number"
-          placeholder="מספר דירה"
-          value={formData.apartment_number}
-          onChange={handleChange}
-          required
-        />
+            <input
+              name="house_number"
+              placeholder="מספר בית"
+              value={formData.house_number}
+              onChange={handleChange}
+              required
+            />
 
-        <input
-          name="zip"
-          placeholder="מיקוד"
-          value={formData.zip}
+            <input
+              name="apartment_number"
+              placeholder="מספר דירה"
+              value={formData.apartment_number}
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              name="zip"
+              placeholder="מיקוד"
+              value={formData.zip}
+              onChange={handleChange}
+              required
+            />
+          </>
+        )}
+        <textarea
+          name="notes"
+          placeholder="הערות למוכר (לא חובה)"
+          value={formData.notes}
           onChange={handleChange}
-          required
         />
 
         <button className={styles.submitBtn} type="submit">
-          שלח כתובת
+          שלח למוכר
         </button>
       </form>
 

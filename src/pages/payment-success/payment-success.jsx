@@ -25,7 +25,7 @@ function PaymentSuccess() {
         if (data.success) {
           console.log("✅ התשלום אושר, ממשיכים למסך משלוח");
           // הפניה לדף שבו המשתמש בוחר אם לבצע משלוח או איסוף עצמי
-          navigate(`/delivery-choice/${id}`);
+          navigate(`/shipping/${id}`);
         } else {
           console.error("❌ אישור התשלום נכשל בשרת");
         }
