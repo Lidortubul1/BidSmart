@@ -1,3 +1,4 @@
+// OrderSummaryPage.jsx - כולל שליחת טופס ושיוך ל-PayPal
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./OrderSummaryPage.module.css";
@@ -50,6 +51,15 @@ function OrderSummaryPage() {
     if (validationError) return setError(validationError);
     setError("");
 
+    console.log("📦 שולח לשרת את פרטי ההזמנה:", {
+      product_id: productId,
+      full_name: fullName,
+      phone,
+      shipping_method: shippingMethod,
+      note,
+      ...address,
+    });
+
     try {
       const res = await fetch(
         "http://localhost:5000/api/sale/save-order-summary",
@@ -59,6 +69,7 @@ function OrderSummaryPage() {
           body: JSON.stringify({
             product_id: productId,
             full_name: fullName,
+            phone,
             shipping_method: shippingMethod,
             note,
             ...address,
@@ -67,8 +78,10 @@ function OrderSummaryPage() {
       );
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
+
       window.location.href = data.paypalUrl;
     } catch (err) {
+      console.error("❌ שגיאה בהזמנה:", err);
       setError(err.message || "שגיאה בשליחה לשרת");
     }
   };
