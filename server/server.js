@@ -10,6 +10,7 @@ const quotationRoutes = require("./quotation");
 const categoryRoutes = require("./categories.js");
 const saleRoutes = require("./sale.js");
 const { setupSocket } = require("./socketManager.js");
+const userRoutes = require("./users");
 
 const db = require("./database.js");
 const paymentRoutes = require("./payment");
@@ -66,6 +67,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/quotation", quotationRoutes);
 app.use("/api/sale", saleRoutes);
 app.use("/api/payment", paymentRoutes);//PAYPAL תשלום
+app.use("/api/users", userRoutes);
 
 // בדיקת חיבור למסד הנתונים
 db.getConnection().then((conn) => {

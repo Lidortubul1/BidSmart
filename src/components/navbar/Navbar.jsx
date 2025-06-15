@@ -90,7 +90,7 @@ function Navbar() {
 
             {user.role === "admin" && (
               <li>
-                <Link to="/admin-dashboard">ניהול מערכת</Link>
+                <Link to="/admin">ניהול מערכת</Link>
               </li>
             )}
 
