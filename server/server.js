@@ -1,3 +1,4 @@
+//שמות תכנתים: לידור טבול ולילי וינר
 const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
@@ -21,24 +22,26 @@ const { notifyUpcomingAuctions } = require("./liveChecker");
 
 
 
-const app = express();
-const PORT = 5000;
-const server = http.createServer(app);
-// קונפיגורציית Express
+const app = express(); // יצירת אפליקציית אקספרס חדשה
+const PORT = 5000; // הגדרת פורט להרצת השרת
+const server = http.createServer(app); // יצירת שרת HTTP עם אקספרס
+
+// קונפיגורציית Express – מאפשרת ניתוח JSON בבקשות
 app.use(express.json());
 
-
+// הגדרת socket.io עם הרשאות CORS לקליינט בריאקט
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
+    origin: "http://localhost:3000", // כתובת הפרונט
+    methods: ["GET", "POST"], // שיטות מותרים
+    credentials: true, // מאפשר שליחת עוגיות
   },
 });
 
-// הגדרת socket.io
+// הפעלת המאזין של WebSocket ומעבר ניהול לאובייקט socketManager
 setupSocket(io);
 
+// הגדרת CORS כדי לאפשר תקשורת עם קליינט מהדומיין של ריאקט
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -46,54 +49,55 @@ app.use(
   })
 );
 
+// קונפיגורציה לניהול session באמצעות עוגייה (cookie)
 app.use(
   session({
-    secret: "my_secret_key",
-    resave: false,
-    saveUninitialized: false,
+    secret: "my_secret_key", // מפתח סודי להצפנה
+    resave: false, // לא לשמור session אם אין שינוי
+    saveUninitialized: false, // לא ליצור session ריק
     cookie: {
-      secure: false,
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24,
+      secure: false, // לא מחייב https
+      httpOnly: true, // הגבלת גישה לעוגייה לצד השרת בלבד
+      maxAge: 1000 * 60 * 60 * 24, // תוקף של 24 שעות
     },
   })
 );
-
+//שימוש בstatic
+// חשיפת תיקיית התמונות לצפייה בדפדפן דרך /uploads
 app.use("/uploads", express.static("uploads"));
 
-app.use("/api/product", productRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/quotation", quotationRoutes);
-app.use("/api/sale", saleRoutes);
-app.use("/api/payment", paymentRoutes);//PAYPAL תשלום
-app.use("/api/users", userRoutes);
+// רישום כל הנתיבים (ראוטים) עם prefix מתאים לפי נושא
+app.use("/api/product", productRoutes); // מוצר
+app.use("/api/categories", categoryRoutes); // קטגוריות
+app.use("/api/auth", authRoutes); // התחברות והרשמה
+app.use("/api/quotation", quotationRoutes); // הצעות מחיר
+app.use("/api/sale", saleRoutes); // מכירה וזכיות
+app.use("/api/payment", paymentRoutes); // תשלומים דרך PayPal
+app.use("/api/users", userRoutes); // משתמשים ופרופילים
 
-// בדיקת חיבור למסד הנתונים
+// בדיקת חיבור למסד הנתונים והדפסת שם הדאטהבייס
 db.getConnection().then((conn) => {
   conn.query("SELECT DATABASE() AS db").then(([rows]) => {
     console.log("מחובר למסד:", rows[0].db);
   });
 });
 
+// הפעלת השרת להאזנה על הפורט שנבחר
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-
-
-//משנה את המכירה לפעילה ברגע שהתאריך והשעה מגיעים
+// מריץ את הפונקציה שבודקת אילו מוצרים אמורים להפוך ל"לייב"
 setInterval(() => {
   checkIsLiveProducts();
-}, 10000); // בודק כל 10 שניות
+}, 10000); // כל 10 שניות
 
-//מדפיס אם משתמש לא שילם כל 12 שעות
+// כל 12 שעות בודק אם יש זוכים שלא שילמו בזמן – שולח מיילים או הודעות
 setInterval(() => {
   checkUnpaidWinners();
 }, 12 * 60 * 60 * 1000); // כל 12 שעות
 
-
-// בדיקה כל דקה על מכירות שמתחילות בעוד 10 דקות (ושולחות התראה למשתתפים)
+// כל דקה בודק אם יש מכירה שמתחילה עוד 10 דקות – שולח התראה למשתתפים שנרשמו
 setInterval(() => {
-  notifyUpcomingAuctions(); // מייבא מ־liveChecker
+  notifyUpcomingAuctions(); 
 }, 60000); // כל דקה

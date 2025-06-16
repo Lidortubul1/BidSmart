@@ -1,8 +1,9 @@
+// src/components/LoginForm/LoginForm.jsx
 import { useState } from "react";
 import styles from "./LoginForm.module.css";
-import axios from "axios";
 import { useAuth } from "../../auth/AuthContext";
 import CustomModal from "../CustomModal/CustomModal";
+import { loginUser } from "../../services/authApi.js"
 
 export default function LoginForm({ onSuccess }) {
   const [email, setEmail] = useState("");
@@ -28,14 +29,10 @@ export default function LoginForm({ onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { email, password },
-        { withCredentials: true }
-      );
+      const response = await loginUser(email, password); // ✅ שימוש בפונקציה החדשה
 
-      if (response.data.success) {
-        const user = response.data.user;
+      if (response.success) {
+        const user = response.user;
         login(user);
         localStorage.setItem("user", JSON.stringify(user));
         onSuccess?.(user);

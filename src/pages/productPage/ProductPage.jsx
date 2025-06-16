@@ -1,10 +1,17 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
+import { getProductById } from "../../services/productApi";
 import axios from "axios";
 import styles from "./ProductPage.module.css";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import LoginForm from "../../components/LoginForm/LoginForm";
+import {
+  getQuotationsByProductId,
+  registerToQuotation,
+  cancelQuotationRegistration,
+  uploadIdCard,
+} from "../../services/quotationApi";
 
 function ProductPage() {
   const { id } = useParams();
@@ -35,8 +42,8 @@ function ProductPage() {
   useEffect(() => {
     async function fetchProduct() {
       try {
-        const res = await axios.get(`http://localhost:5000/api/product/${id}`);
-        setProduct(res.data);
+        const data = await getProductById(id);
+        setProduct(data);
       } catch {
         openModal({
           title: "שגיאה",
@@ -54,12 +61,10 @@ function ProductPage() {
 
     async function checkRegistration() {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/quotation/${id}`
-        );
-        const alreadyRegistered = res.data.some(
+        const data = await getQuotationsByProductId(id);
+        const alreadyRegistered = data.some(
           (q) => q.buyer_id_number === user.id_number && q.price === 0
-        );
+        );        
         setIsRegistered(alreadyRegistered);
       } catch {
         openModal({
@@ -120,19 +125,16 @@ function ProductPage() {
       completeRegistration(user.id_number);
     }
   };
-
+//הרשמה למוצר
   const completeRegistration = async (idNum) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/quotation", {
-        product_id: product.product_id,
-        buyer_id_number: String(idNum),
-        price: 0,
-      });
+      const res = await registerToQuotation(product.product_id, idNum);
+      console.log("Response:", res);
 
       const dateStr = formatDate(product.start_date);
       const timeStr = product.start_time;
 
-      if (res.data.success) {
+      if (res.success) {
         setIsRegistered(true);
         setShowIdForm(false);
         openModal({
@@ -141,9 +143,7 @@ function ProductPage() {
           confirmText: "אישור",
           onCancel: () => setShowModal(false),
         });
-      }
-
-      if (!res.data.success && res.data.message === "כבר נרשמת למכירה הזו") {
+      } else if (res.message === "כבר נרשמת למכירה הזו") {
         setIsRegistered(true);
         openModal({
           title: "כבר נרשמת!",
@@ -151,16 +151,21 @@ function ProductPage() {
           confirmText: "הבנתי",
           onCancel: () => setShowModal(false),
         });
+      } else {
+        throw new Error(res.message || "שגיאה לא ידועה");
       }
-    } catch {
+    } catch (error) {
+      console.error("שגיאה בהרשמה למכרז:", error);
       openModal({
         title: "שגיאה",
-        message: "שגיאה בעת ניסיון הרשמה למכרז",
+        message: "שגיאה בעת ניסיון ההרשמה למכרז",
         confirmText: "סגור",
         onCancel: () => setShowModal(false),
       });
     }
   };
+  
+  
 
   const handleIdSubmit = async (e) => {
     e.preventDefault();
@@ -180,14 +185,12 @@ function ProductPage() {
     formData.append("email", user.email);
 
     try {
-      await axios.put(
-        "http://localhost:5000/api/auth/registerToQuotaion",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
-      );
+      await uploadIdCard({
+        idNumber: idNumberInput,
+        idPhotoFile: idPhotoFile,
+        email: user.email,
+      });
+      
       setUser({ ...user, id_number: idNumberInput, id_card_photo: "uploaded" });
       setShowIdForm(false);
       completeRegistration(idNumberInput);
@@ -203,9 +206,8 @@ function ProductPage() {
 
   const handleCancelRegistration = async () => {
     try {
-      await axios.delete(
-        `http://localhost:5000/api/quotation/${product.product_id}/${user.id_number}`
-      );
+      await cancelQuotationRegistration(product.product_id, user.id_number);
+
       setIsRegistered(false);
       openModal({
         title: "הוסרה ההרשמה",
@@ -287,11 +289,11 @@ function ProductPage() {
               {product.start_time}
             </p>
           ) : (
-            <button className={styles.bidButton} onClick={handleRegisterToSale}>
-              התחבר/י והירשם/י למכירה
-            </button>
+      <button className={styles.bidButton} onClick={handleRegisterToSale}>
+        התחבר/י והירשם/י למכירה
+      </button>
           )}
-
+  
           {showIdForm && (
             <form onSubmit={handleIdSubmit} className={styles.idForm}>
               <h3>נא להזין תעודת זהות וצרף תמונה</h3>

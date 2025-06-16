@@ -15,7 +15,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // קבלת כל המוצרים למכירה בלבד שהם לא sale
-
 router.get("/", async (req, res) => {
   try {
     const conn = await db.getConnection();
@@ -41,7 +40,6 @@ router.get("/", async (req, res) => {
 });
 
 
-// הוספת מוצר חדש
 // הוספת מוצר חדש
 router.post("/", upload.array("images", 5), async (req, res) => {
   const {

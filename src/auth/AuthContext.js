@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
     // בדיקה מול השרת אם יש session קיים
     axios
       .get("http://localhost:5000/api/auth/session", { withCredentials: true })
-      .then((res) => {
+      .then((res) => {  
         if (res.data.loggedIn) {
           setUser(res.data.user);
         }

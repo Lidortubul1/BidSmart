@@ -4,7 +4,7 @@ import ProductList from "../../components/productList/productList";
 import styles from "./BuyerDashboard.module.css";
 import CategoryBar from "../../components/CategoryBar/CategoryBar";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { fetchCategories } from "../../services/categoriesApi";
 
 function BuyerDashboard() {
   const { user } = useAuth();
@@ -16,17 +16,11 @@ function BuyerDashboard() {
 //קטגוריות
   const [categories, setCategories] = useState({});
 
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await axios.get("http://localhost:5000/api/categories");
-        setCategories(res.data);
-      } catch (err) {
-        console.error("שגיאה בטעינת קטגוריות:", err);
-      }
-    }
-    fetchCategories();
-  }, []);
+   useEffect(() => {
+      fetchCategories().then((data) => setCategories(data))
+       .catch((err) => console.error("שגיאה בטעינת קטגוריות:", err));
+     }, []);
+     
   return (
     <div className={styles.container}>
       <CategoryBar categories={categories} />

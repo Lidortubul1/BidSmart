@@ -219,9 +219,7 @@ router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error("שגיאה במחיקת session:", err);
-      return res
-        .status(500)
-        .json({ success: false, message: "שגיאה בהתנתקות" });
+      return res.status(500).json({ success: false, message: "שגיאה בהתנתקות" });
     }
 
     res.clearCookie("connect.sid"); // מוחק את הקוקי של הסשן

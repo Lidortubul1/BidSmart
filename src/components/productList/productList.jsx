@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Product from "../productCard/product";
 import styles from "./productList.module.css";
-import axios from "axios";
+import { fetchAllProducts } from "../../services/productApi";
 
 export default function ProductList({
   searchQuery = "",
@@ -10,18 +10,13 @@ export default function ProductList({
 }) {
   const [products, setProducts] = useState([]);
 
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const response = await axios.get("http://localhost:5000/api/product");
-        setProducts(response.data);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      }
-    }
-
-    fetchProducts();
-  }, []);
+   useEffect(() => {
+       fetchAllProducts()
+         .then(setProducts)
+         .catch((error) =>
+           console.error("Failed to fetch products:", error)
+         );
+     }, []);
 
   const filteredProducts = products.filter((product) => {
     const name = product.product_name?.toLowerCase() || "";

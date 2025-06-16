@@ -1,6 +1,6 @@
 import ProductForm from "../../components/ProductForm/ProductForm";
 import { useAuth } from "../../auth/AuthContext";
-import axios from "axios";
+import { addProduct } from "../../services/productApi";
 import { useNavigate } from "react-router-dom";
 import styles from "./AddProductPage.module.css";
 import { useState } from "react";
@@ -55,14 +55,8 @@ function AddProductPage() {
           payload.append(key, data[key]);
         }
       }
-
-      const response = await axios.post(
-        "http://localhost:5000/api/product",
-        payload,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      //שליחה לproductApi
+      const response = await addProduct(data)
 
       if (response.data.success) {
         openModal({

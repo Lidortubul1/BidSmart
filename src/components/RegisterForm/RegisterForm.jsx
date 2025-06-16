@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../../services/api";
+import { registerUser } from "../../services/authApi.js";
 import CustomModal from "../CustomModal/CustomModal";
 import styles from "./RegisterForm.module.css"; 
 
