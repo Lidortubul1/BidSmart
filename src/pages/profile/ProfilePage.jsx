@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
-import axios from "axios";
 import styles from "./ProfilePage.module.css";
 import citiesData from "../../assets/data/cities_with_streets.json";
 import ChangePassword from "../../components/ChangePassword/ChangePassword";
+import { updateUserProfile } from "../../services/authApi";
+import CustomModal from "../../components/CustomModal/CustomModal";
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -17,8 +18,6 @@ function ProfilePage() {
   const [phonePrefix, setPhonePrefix] = useState("+972");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [zip, setZip] = useState("");
-  const [city, setCity] = useState("");
-  const [street, setStreet] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
   const [apartmentNumber, setApartmentNumber] = useState("");
   const [phoneError, setPhoneError] = useState(false);
@@ -29,6 +28,35 @@ function ProfilePage() {
   const [country, setCountry] = useState("ישראל");
   const [showChangePassword, setShowChangePassword] = useState(false);
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState({
+    title: "",
+    message: "",
+    confirmText: "",
+    cancelText: "",
+    onConfirm: null,
+    onCancel: null,
+  });
+
+  const showModal = ({
+    title,
+    message,
+    confirmText,
+    cancelText,
+    onConfirm,
+    onCancel,
+  }) => {
+    setModalContent({
+      title,
+      message,
+      confirmText,
+      cancelText,
+      onConfirm,
+      onCancel,
+    });
+    setModalVisible(true);
+  };
+
   useEffect(() => {
     if (user) {
       setEmail(user.email || "");
@@ -37,8 +65,6 @@ function ProfilePage() {
       setIdNumber(user.id_number || "");
       setPhoneNumber(user.phone?.slice(phonePrefix.length) || "");
       setZip(user.zip || "");
-      setCity(user.city || "");
-      setStreet(user.street || "");
       setHouseNumber(user.house_number || "");
       setApartmentNumber(user.apartment_number || "");
       setSelectedCity(user.city || "");
@@ -66,22 +92,59 @@ function ProfilePage() {
     const idRegex = /^\d{9}$/;
     const houseRegex = /^\d+$/;
 
-    if (!emailRegex.test(email)) return alert("כתובת אימייל לא תקינה");
-    if (firstName.trim() === "" || lastName.trim() === "")
-      return alert("שם פרטי ושם משפחה חייב להכיל אותיות");
+    if (!emailRegex.test(email)) {
+      return showModal({
+        title: "שגיאה",
+        message: "כתובת אימייל לא תקינה",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
+    }
+    if (firstName.trim() === "" || lastName.trim() === "") {
+      return showModal({
+        title: "שגיאה",
+        message: "שם פרטי ושם משפחה חייבים להכיל אותיות",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
+    }
     if (phoneNumber.length !== 7) {
       setPhoneError(true);
-      return alert("מספר הטלפון לא תקין");
+      return showModal({
+        title: "שגיאה",
+        message: "מספר הטלפון לא תקין",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
     }
-    if (zip && !zipRegex.test(zip)) return alert("מיקוד לא תקין");
-    if (houseNumber && !houseRegex.test(houseNumber))
-      return alert("שדה מספר בית לא תקין");
-    if (idNumber && !idRegex.test(idNumber))
-      return alert("תעודת זהות חייבת להכיל 9 ספרות כולל ספרת ביקורת");
+    if (zip && !zipRegex.test(zip)) {
+      return showModal({
+        title: "שגיאה",
+        message: "מיקוד לא תקין",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
+    }
+    if (houseNumber && !houseRegex.test(houseNumber)) {
+      return showModal({
+        title: "שגיאה",
+        message: "שדה מספר בית לא תקין",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
+    }
+    if (idNumber && !idRegex.test(idNumber)) {
+      return showModal({
+        title: "שגיאה",
+        message: "תעודת זהות חייבת להכיל 9 ספרות כולל ספרת ביקורת",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
+    }
 
     const formData = new FormData();
-    formData.append("email", user.email); // אימייל נוכחי
-    formData.append("new_email", email); // אימייל חדש
+    formData.append("email", user.email);
+    formData.append("new_email", email);
     formData.append("first_name", firstName);
     formData.append("last_name", lastName);
     formData.append("id_number", idNumber);
@@ -96,24 +159,31 @@ function ProfilePage() {
     if (profilePhoto) formData.append("profile_photo", profilePhoto);
 
     try {
-      const res = await axios.put(
-        "http://localhost:5000/api/auth/update-profile",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
-      );
+      const res = await updateUserProfile(formData);
 
-      if (res.data.success) {
-        alert("הפרופיל עודכן בהצלחה");
-        setUser(res.data.updatedUser);
+      if (res.success) {
+        setUser(res.updatedUser);
+        showModal({
+          title: "הצלחה",
+          message: "הפרופיל עודכן בהצלחה!",
+          confirmText: "סגור",
+          onConfirm: () => setModalVisible(false),
+        });
       } else {
-        alert("שגיאה בעדכון");
+        showModal({
+          title: "שגיאה",
+          message: "שגיאה בעדכון הפרופיל",
+          confirmText: "סגור",
+          onConfirm: () => setModalVisible(false),
+        });
       }
     } catch (err) {
-      console.error("שגיאה:", err);
-      alert("שגיאה בשרת");
+      showModal({
+        title: "שגיאת רשת",
+        message: "שגיאה בחיבור לשרת",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
     }
   };
 
@@ -198,7 +268,12 @@ function ProfilePage() {
                     onBlur={() => {
                       if (phoneNumber.length !== 7) {
                         setPhoneError(true);
-                        alert("מספר טלפון לא תקין");
+                        showModal({
+                          title: "שגיאה",
+                          message: "מספר טלפון לא תקין",
+                          confirmText: "סגור",
+                          onConfirm: () => setModalVisible(false),
+                        });
                       }
                     }}
                   />
@@ -239,9 +314,15 @@ function ProfilePage() {
                   onChange={(e) => {
                     if (!selectedCity) {
                       setCityTouched(true);
-                      alert("יש לבחור קודם יישוב");
+                      showModal({
+                        title: "שגיאה",
+                        message: "יש לבחור קודם יישוב",
+                        confirmText: "סגור",
+                        onConfirm: () => setModalVisible(false),
+                      });
                       return;
                     }
+
                     setSelectedStreet(e.target.value);
                   }}
                 >
@@ -314,12 +395,29 @@ function ProfilePage() {
             email={email}
             onClose={() => setShowChangePassword(false)}
             onSuccess={() => {
-              alert("הסיסמה שונתה בהצלחה");
-              setShowChangePassword(false);
+              showModal({
+                title: "הצלחה",
+                message: "הסיסמה שונתה בהצלחה",
+                confirmText: "סגור",
+                onConfirm: () => {
+                  setModalVisible(false);
+                  setShowChangePassword(false);
+                },
+              });
             }}
           />
         )}
       </div>
+      {modalVisible && (
+        <CustomModal
+          title={modalContent.title}
+          message={modalContent.message}
+          confirmText={modalContent.confirmText}
+          cancelText={modalContent.cancelText}
+          onConfirm={modalContent.onConfirm}
+          onCancel={modalContent.onCancel || (() => setModalVisible(false))}
+        />
+      )}
     </div>
   );
 }

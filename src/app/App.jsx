@@ -13,7 +13,6 @@ import BecomeSeller from "../pages/becomeSeller/becomeSeller.jsx";
 import AddProductPage from "../pages/AddProductPage/AddProductPage";
 import ManageProductsPage from "../pages/manageProducts/ManageProductsPage";
 import MyBidsPage from "../pages/myBids/MyBidsPage";
-import SaleSummaryPage from "../pages/saleSummary/SaleSummaryPage";
 import SearchResultsPage from "../components/search/SearchResultsPage.jsx";
 import InfoPage from "../pages/infoPage/InfoPage.jsx";
 import ShippingForm from "../pages/ShippingForm/ShippingForm.jsx";
@@ -89,7 +88,6 @@ function App() {
           <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />
           <Route path="/my-bids" element={<MyBidsPage />} />
-          <Route path="/sale-summary" element={<SaleSummaryPage />} />
           <Route path="/search-results" element={<SearchResultsPage />} />
         </Routes>
       </div>

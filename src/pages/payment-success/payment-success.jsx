@@ -1,50 +1,90 @@
-// PaymentSuccess.jsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { confirmPayment } from "../../services/paymentApi";
+import CustomModal from "../../components/CustomModal/CustomModal";
 
 function PaymentSuccess() {
-  const { id } = useParams(); // שליפת מזהה המוצר מה-URL (לדוגמה: /payment-success/12)
-
+  const { id } = useParams();
   const navigate = useNavigate();
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState({
+    title: "",
+    message: "",
+    confirmText: "",
+    cancelText: "",
+    onConfirm: null,
+    onCancel: null,
+  });
+
+  const showModal = ({
+    title,
+    message,
+    confirmText,
+    cancelText,
+    onConfirm,
+    onCancel,
+  }) => {
+    setModalContent({
+      title,
+      message,
+      confirmText,
+      cancelText,
+      onConfirm,
+      onCancel,
+    });
+    setModalVisible(true);
+  };
+
   useEffect(() => {
-    // ברגע שהרכיב עולה, אנו מאשרים את התשלום לשרת וממשיכים
     async function finalizeSale() {
-      try {
-        // שליחת product_id לשרת לצורך אישור וסיום העסקה
-        const res = await fetch("http://localhost:5000/api/payment/confirm", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      const data = await confirmPayment(id);
+
+      if (data.success) {
+        navigate(`/shipping/${id}`);
+      } else {
+        showModal({
+          title: "שגיאה",
+          message: "אישור התשלום נכשל. נסה שוב מאוחר יותר.",
+          confirmText: "חזור לדף הבית",
+          onConfirm: () => {
+            setModalVisible(false);
+            navigate("/");
           },
-          body: JSON.stringify({ product_id: id }), // שימו לב: id נשלח מה-URL
         });
-
-        const data = await res.json();
-
-        if (data.success) {
-          console.log("✅ התשלום אושר, ממשיכים למסך משלוח");
-          // הפניה לדף שבו המשתמש בוחר אם לבצע משלוח או איסוף עצמי
-          navigate(`/shipping/${id}`);
-        } else {
-          console.error("❌ אישור התשלום נכשל בשרת");
-        }
-      } catch (err) {
-        console.error("❌ שגיאה באישור תשלום:", err);
       }
     }
 
     if (id) {
       finalizeSale();
     } else {
-      console.error("❌ לא נמצא product_id בכתובת ה-URL");
+      showModal({
+        title: "שגיאה",
+        message: "לא נמצא מזהה מוצר בכתובת ה-URL",
+        confirmText: "חזרה לאתר",
+        onConfirm: () => {
+          setModalVisible(false);
+          navigate("/");
+        },
+      });
     }
-  }, [id]);
+  }, [id, navigate]);
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h2>✔️ תודה על התשלום!</h2>
       <p>מעבד את ההזמנה שלך...</p>
+
+      {modalVisible && (
+        <CustomModal
+          title={modalContent.title}
+          message={modalContent.message}
+          confirmText={modalContent.confirmText}
+          cancelText={modalContent.cancelText}
+          onConfirm={modalContent.onConfirm}
+          onCancel={modalContent.onCancel || (() => setModalVisible(false))}
+        />
+      )}
     </div>
   );
 }

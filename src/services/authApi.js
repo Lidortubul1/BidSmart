@@ -3,6 +3,7 @@ import axios from "axios";
 axios.defaults.baseURL = "http://localhost:5000";
 axios.defaults.withCredentials = true;
 
+const BASE_URL = "http://localhost:5000/api/auth";
 
 // פונקציית התחברות
 export async function loginUser(email, password) {
@@ -19,18 +20,34 @@ export async function loginUser(email, password) {
 //פונקציית הרשמה שמחברת בין הפרונט לבאק 
 export async function registerUser(firstName, lastName, email, password) {
   try {
-    const response = await axios.post(
-      "http://localhost:5000/api/auth/register",
-      {
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        password,
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/register`, {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      password,
+    });
     return response.data;
   } catch (error) {
     console.error("Error registering:", error);
     throw error;
   }
+}
+
+
+//שולח בקשת איפוס סיסמה לשרת עם טוקן וסיסמה חדשה
+export async function resetPassword(token, newPassword) {
+  const response = await axios.post(`${BASE_URL}/reset-password`, {
+    token,
+    newPassword,
+  });
+  return response.data;
+}
+
+// שולח טופס עדכון פרופיל משתמש לשרת, כולל קבצים (תמונה, תעודת זהות)
+export async function updateUserProfile(formData) {
+  const response = await axios.put(`${BASE_URL}/update-profile`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    withCredentials: true,
+  });
+  return response.data;
 }

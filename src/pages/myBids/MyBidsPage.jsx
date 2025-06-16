@@ -1,46 +1,85 @@
 import { useEffect, useState } from "react";
 import styles from "./MyBidsPage.module.css";
-import axios from "axios";
+import { getUserBids } from "../../services/quotationApi";
+import { getAllProducts } from "../../services/productApi";
+import { getAllSales, markProductDelivered } from "../../services/saleApi";
 import { useAuth } from "../../auth/AuthContext";
+import CustomModal from "../../components/CustomModal/CustomModal";
 
 function MyBidsPage() {
   const { user } = useAuth();
   const [bids, setBids] = useState([]);
-  const [products, setProducts] = useState([]);
   const [sales, setSales] = useState([]);
-  const [view, setView] = useState("registered"); // registered | won
+  const [view, setView] = useState("registered");
 
+  // מודאל כללי
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState({
+    title: "",
+    message: "",
+    confirmText: "",
+    cancelText: "",
+    onConfirm: null,
+    onCancel: null,
+  });
+
+  const showModal = ({
+    title,
+    message,
+    confirmText,
+    cancelText,
+    onConfirm,
+    onCancel,
+  }) => {
+    setModalContent({
+      title,
+      message,
+      confirmText,
+      cancelText,
+      onConfirm,
+      onCancel,
+    });
+    setModalVisible(true);
+  };
+
+  // טעינת הצעות, מוצרים ומכירות
   useEffect(() => {
     if (!user?.id_number) return;
 
     async function fetchData() {
       try {
-        const [bidsRes, productsRes, salesRes] = await Promise.all([
-          axios.get(
-            `http://localhost:5000/api/quotation/user/${user.id_number}`
-          ),
-          axios.get("http://localhost:5000/api/product"),
-          axios.get("http://localhost:5000/api/sale/all"),
+
+        const [bidsRes, salesRes] = await Promise.all([
+          getUserBids(user.id_number),
+          getAllSales(),
         ]);
+
         setBids(bidsRes.data);
-        setProducts(productsRes.data);
+        setSales(salesRes.data);
+        
+        
+        setBids(bidsRes.data);
+        console.log("✅ כל ההצעות:", bidsRes.data);
+        console.log("✅ כמות הצעות:", bidsRes.data.length);
+
         setSales(salesRes.data);
       } catch (err) {
-        console.error("שגיאה בטעינת נתונים:", err);
+        showModal({
+          title: "שגיאה",
+          message: "שגיאה בטעינת הנתונים",
+          confirmText: "סגור",
+          onConfirm: () => setModalVisible(false),
+        });
       }
     }
 
     fetchData();
   }, [user?.id_number]);
 
-  const getProductById = (id) => products.find((p) => p.product_id === id);
 
-  // סינון מוצרים שנרשמת אליהם
-  const registeredBids = bids.filter(
-    (b) => !sales.some((s) => s.product_id === b.product_id && s.buyer_id_number === user.id_number)
-  );
-  
-  // סינון מוצרים שזכית בהם
+  const registeredBids = bids;
+
+
   const wonSales = sales.filter((s) => s.buyer_id_number === user?.id_number);
 
   const formatDate = (dateStr) => {
@@ -50,18 +89,23 @@ function MyBidsPage() {
       .padStart(2, "0")}/${d.getFullYear()}`;
   };
 
+  // סימון מוצר כ"נמסר"
   const handleMarkDelivered = async (product_id) => {
     try {
-      await axios.put("http://localhost:5000/api/sale/mark-delivered", {
-        product_id,
-      });
+      await markProductDelivered(product_id);
+
       setSales((prev) =>
         prev.map((s) =>
           s.product_id === product_id ? { ...s, is_delivered: 1 } : s
         )
       );
     } catch (err) {
-      console.error("שגיאה בעדכון סטטוס משלוח:", err);
+      showModal({
+        title: "שגיאה",
+        message: "שגיאה בעת סימון כבוצע",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
     }
   };
 
@@ -91,22 +135,18 @@ function MyBidsPage() {
               </thead>
               <tbody>
                 {registeredBids.map((bid, i) => {
-                  const product = getProductById(bid.product_id);
-                  if (!product) return null;
                   return (
                     <tr key={i}>
                       <td>
                         <img
-                          src={`http://localhost:5000${
-                            product.images?.[0] || ""
-                          }`}
-                          alt={product.product_name}
+                          src={`http://localhost:5000${bid.images?.[0] || ""}`}
+                          alt={bid.product_name}
                           className={styles.image}
                         />
                       </td>
-                      <td>{product.product_name}</td>
-                      <td>{formatDate(product.start_date)}</td>
-                      <td>{product.start_time}</td>
+                      <td>{bid.product_name}</td>
+                      <td>{formatDate(bid.start_date)}</td>
+                      <td>{bid.start_time}</td>
                     </tr>
                   );
                 })}
@@ -134,20 +174,25 @@ function MyBidsPage() {
               </thead>
               <tbody>
                 {wonSales.map((sale, i) => {
-                  const product = getProductById(sale.product_id);
-                  if (!product) return null;
+                  // חיפוש המידע על המוצר מתוך bids
+                  const bidInfo = bids.find(
+                    (b) => b.product_id === sale.product_id
+                  );
+
+                  if (!bidInfo) return null;
+
                   return (
                     <tr key={i}>
                       <td>
                         <img
                           src={`http://localhost:5000${
-                            product.images?.[0] || ""
+                            bidInfo.images?.[0] || ""
                           }`}
-                          alt={product.product_name}
+                          alt={bidInfo.product_name}
                           className={styles.image}
                         />
                       </td>
-                      <td>{product.product_name}</td>
+                      <td>{bidInfo.product_name}</td>
                       <td>{sale.final_price} ₪</td>
                       <td>
                         {sale.is_delivered === 1
@@ -170,6 +215,17 @@ function MyBidsPage() {
             </table>
           )}
         </>
+      )}
+
+      {modalVisible && (
+        <CustomModal
+          title={modalContent.title}
+          message={modalContent.message}
+          confirmText={modalContent.confirmText}
+          cancelText={modalContent.cancelText}
+          onConfirm={modalContent.onConfirm}
+          onCancel={modalContent.onCancel || (() => setModalVisible(false))}
+        />
       )}
     </div>
   );

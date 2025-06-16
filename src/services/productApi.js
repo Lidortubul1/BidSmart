@@ -39,3 +39,9 @@ export async function getProductById(id) {
   const res = await axios.get(`http://localhost:5000/api/product/${id}`);
   return res.data;
 }
+
+//קבלת כל המוצרים של המשתמש
+export async function getAllProducts() {
+  return await axios.get("http://localhost:5000/api/product");
+}
+

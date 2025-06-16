@@ -1,5 +1,3 @@
-// src/pages/register/RegisterPage.jsx
-
 import styles from "./RegisterPage.module.css";
 import RegisterForm from "../../components/RegisterForm/RegisterForm";
 

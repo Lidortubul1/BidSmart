@@ -31,6 +31,7 @@ export async function cancelQuotationRegistration(productId, buyerIdNumber) {
   await axios.delete(`${BASE_URL}/${productId}/${buyerIdNumber}`);
 }
 
+//להעביר לauthApi את uploadIdCard
 //עדכון פרטי המשתמש עם תעודת הזהות
 export async function uploadIdCard({ idNumber, idPhotoFile, email }) {
   const formData = new FormData();
@@ -47,4 +48,10 @@ export async function uploadIdCard({ idNumber, idPhotoFile, email }) {
     }
   );
   return response.data;
+}
+
+
+// //הצגת כל ההצעות של המשתמש שנרשם אליהן
+export async function getUserBids(idNumber) {
+  return await axios.get(`http://localhost:5000/api/quotation/user/${idNumber}`);
 }

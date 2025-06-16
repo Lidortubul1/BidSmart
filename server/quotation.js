@@ -157,10 +157,23 @@ router.get("/user/:id_number", async (req, res) => {
   try {
     const conn = await db.getConnection();
 
-    const [results] = await conn.execute(
-      "SELECT * FROM quotation WHERE buyer_id_number = ?",
+    // שליפת כל ההצעות של המשתמש כולל המידע על המוצר והתמונות
+    const [results] = await conn.query(
+      `SELECT q.*, p.*, 
+              GROUP_CONCAT(pi.image_url) AS image_urls
+       FROM quotation q
+       JOIN product p ON q.product_id = p.product_id
+       LEFT JOIN product_images pi ON p.product_id = pi.product_id
+       WHERE q.buyer_id_number = ?
+       GROUP BY p.product_id, q.quotation_id`,
       [idNumber]
     );
+
+    // המרת מחרוזת התמונות למערך
+    results.forEach((row) => {
+      row.images = row.image_urls ? row.image_urls.split(",") : [];
+      delete row.image_urls;
+    });
 
     res.json(results);
   } catch (err) {
@@ -168,6 +181,7 @@ router.get("/user/:id_number", async (req, res) => {
     res.status(500).json({ error: "שגיאה בשליפת הצעות למשתמש" });
   }
 });
+
 
 
 // שליפת הצעות לפי product_id

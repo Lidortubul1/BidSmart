@@ -4,6 +4,11 @@ import citiesData from "../../assets/data/cities_with_streets.json";
 import CustomModal from "../../components/CustomModal/CustomModal.jsx";
 import styles from "./ShippingForm.module.css";
 import { useAuth } from "../../auth/AuthContext.js"
+import {
+  updateSaleAddress,
+  updateUserAddress,
+  getUserSavedAddress,
+} from "../../services/saleApi";
 
 
 function ShippingForm() {
@@ -83,16 +88,7 @@ function ShippingForm() {
         delete formData.zip;
       }      
       // קודם כל שולח את הכתובת לטבלת sale בלבד
-      const res = await fetch(
-        "http://localhost:5000/api/sale/update-sale-address",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ product_id: id, delivery_method: deliveryMethod, ...formData })
-        }
-      );
-
-      const data = await res.json();
+      const data = await updateSaleAddress(id, deliveryMethod, formData);
 
       if (!data.success) {
         return showModal({
@@ -115,15 +111,8 @@ function ShippingForm() {
 
             // שליחת עדכון לטבלת users
             try {
-              const userRes = await fetch(
-                "http://localhost:5000/api/sale/update-user-address",
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ product_id: id, ...formData }),
-                }
-              );
-              const userData = await userRes.json();
+              const userData = await updateUserAddress(id, formData);
+
 
               if (!userData.success) {
                 return showModal({
@@ -179,15 +168,8 @@ function ShippingForm() {
   // שליחת כתובת מגורים קיימת
   const handleUseSavedAddress = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/sale/get-user-address", // ✅ נתיב חדש
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ product_id: id }),
-        }
-      );
-      const data = await res.json();
+      const data = await getUserSavedAddress(id);
+
       if (data.success && data.address) {
         const { city, street, house_number, apartment_number, zip } =
           data.address;
