@@ -21,22 +21,10 @@ async function connectDatabase() {
   return connection; // החזרת החיבור למסד הנתונים
 }
 
-// פונקציה לרישום משתמש חדש
-async function register(email, password) {
-  console.log("Registering user..."); // הדפסת הודעה בזמן הרישום
-  const db = await connectDatabase(); // התחברות למסד הנתונים
 
-  // ביצוע שאילתת הוספה לטבלת users
-  await db.execute(`INSERT INTO users (email, password) VALUES (?, ?)`, [
-    email,
-    password,
-  ]);
 
-  return true; // החזרת true לאחר רישום מוצלח
-}
 
 // ייצוא הפונקציות לשימוש בקבצים אחרים
 module.exports = {
-  register: register, // ייצוא פונקציית register
   getConnection: connectDatabase, // ייצוא פונקציית התחברות למסד הנתונים
 };

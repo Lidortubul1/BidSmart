@@ -51,7 +51,9 @@ function App() {
 
   return (
     <div className="App">
-      <Navbar />
+      <header>
+        <Navbar />
+      </header>
       <div className="App-content">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -81,7 +83,7 @@ function App() {
           />
           <Route path="/payment-success/:id" element={<PaymentSuccess />} />
           <Route path="/payment-cancel" element={<PaymentCancel />} />
-       
+
           <Route path="/shipping/:id" element={<ShippingForm />} />
           <Route path="/live-auction/:id" element={<LiveAuctionWrapper />} />
 

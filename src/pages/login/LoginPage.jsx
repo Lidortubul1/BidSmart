@@ -70,6 +70,12 @@ function LoginPage({ isModal = false }) {
             שכחת את הסיסמה?
           </span>
         </p>
+
+        <p className={styles.registerLink}>
+          <span onClick={() => navigate("/register")}>
+            אין לך חשבון? לחץ כאן להרשמה
+          </span>
+        </p>
       </div>
 
       {showModal && (

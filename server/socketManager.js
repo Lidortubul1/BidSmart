@@ -1,6 +1,9 @@
 const db = require("./database");
 const auctionTimers = {};
 
+//אחראי על ניהול התקשורת בזמן אמת במערכת המכירה הפומבית החיה של  באמצעות Socket.IO.
+//הוא מטפל בהצטרפות למכירה, קבלת הצעות מחיר (bids), עדכון המחיר בזמן אמת, וסיום מכירה.
+
 function setupSocket(io) {
   io.on("connection", (socket) => {
     console.log("🔌 חיבור חדש ל-Socket.IO");

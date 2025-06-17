@@ -4,6 +4,7 @@ const db = require("./database");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const multer = require("multer");
 
 // אחסון קבצים
 const storage = require("./storage");

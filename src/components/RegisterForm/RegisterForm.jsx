@@ -21,17 +21,23 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
     message: "",
     confirmText: "סגור",
     onConfirm: () => setModal({ ...modal, show: false }),
+    extraButtonText: "",
+    onExtra: null,
   });
+  
 
-  const showModal = (title, message, onConfirm = null) => {
+  const showModal = (title, message, onConfirm = null, extraButtonText = "", onExtra = null) => {
     setModal({
       show: true,
       title,
       message,
-      confirmText: "סגור",
+      confirmText: onConfirm ? "הירשם כמשתמש חדש" : "סגור",
       onConfirm: onConfirm || (() => setModal({ ...modal, show: false })),
+      extraButtonText,
+      onExtra,
     });
   };
+  
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,10 +58,21 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
         navigate(redirectAfterRegister);
       });
     } catch (err) {
-      showModal(
-        "שגיאה בהרשמה",
-        err.response?.data?.message || err.message || "שגיאה לא ידועה"
-      );
+      if (err.response?.data?.message === "האימייל כבר קיים") {
+        showModal(
+          "שגיאה בהרשמה",
+          "האימייל הזה כבר קיים במערכת.",
+          () => setModal({ ...modal, show: false }), // הירשם כמשתמש חדש – פשוט סוגר
+          "מעבר להתחברות",
+          () => navigate("/login")
+        );
+      } else {
+        showModal(
+          "שגיאה בהרשמה",
+          err.response?.data?.message || err.message || "שגיאה לא ידועה"
+        );
+      }
+      
     }
   };
 
@@ -71,7 +88,7 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
           onChange={handleChange}
           required
         />
-        
+
         <input
           type="text"
           name="last_name"
@@ -105,6 +122,8 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
           message={modal.message}
           confirmText={modal.confirmText}
           onConfirm={modal.onConfirm}
+          extraButtonText={modal.extraButtonText}
+          onExtra={modal.onExtra}
         />
       )}
     </>

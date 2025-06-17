@@ -76,3 +76,13 @@ html {
 .forgotLink:hover {
   color: #0056b3;
 }
+
+.registerLink {
+  text-align: center;
+  margin-top: 10px;
+  color: #007bff;
+  cursor: pointer;
+}
+.registerLink:hover {
+  text-decoration: underline;
+}

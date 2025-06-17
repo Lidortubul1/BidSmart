@@ -11,7 +11,6 @@ const categoryRoutes = require("./categories.js");
 const saleRoutes = require("./sale.js");
 const { setupSocket } = require("./socketManager.js");
 const userRoutes = require("./users");
-
 const db = require("./database.js");
 const paymentRoutes = require("./payment");
 const { checkIsLiveProducts } = require("./liveChecker.js");
@@ -40,7 +39,7 @@ const io = new Server(server, {
 // הפעלת המאזין של WebSocket ומעבר ניהול לאובייקט socketManager
 setupSocket(io);
 
-// הגדרת CORS כדי לאפשר תקשורת עם קליינט מהדומיין של ריאקט
+// מאפשר להוסט 3000 לשלוח בקשות לשרת cors-
 app.use(
   cors({
     origin: "http://localhost:3000",

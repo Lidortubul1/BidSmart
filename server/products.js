@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
+const multer = require("multer");
+
 //אחסון תמונות
 const storage = require("./storage");
 const upload = multer({ storage });
