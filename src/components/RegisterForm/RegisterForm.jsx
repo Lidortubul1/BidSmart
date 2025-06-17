@@ -61,6 +61,7 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
 
   return (
     <>
+      <h1 className={styles.title}>הרשמה</h1>
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"
@@ -70,6 +71,7 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
           onChange={handleChange}
           required
         />
+        
         <input
           type="text"
           name="last_name"

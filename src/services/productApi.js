@@ -34,18 +34,12 @@ export async function fetchAllProducts() {
 }
 
 
-//הצגת מוצר לפי קוד מוצר
-// export async function getProductById(id) {
-//   const res = await axios.get(`http://localhost:5000/api/product/${id}`);
-//   return res.data;
-// }
-
 //קבלת כל המוצרים של המשתמש
 export async function getAllProducts() {
   return await axios.get("http://localhost:5000/api/product");
 }
 
-// שליפת מוצר לפי מזהה
+// הצגה ושליפת מוצר לפי מזהה
 export async function getProductById(productId) {
   const res = await axios.get(`/api/product/${productId}`);
   return res.data;

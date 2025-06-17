@@ -44,17 +44,7 @@ function AddProductPage() {
         seller_id_number: user.id_number,
       };
 
-      const payload = new FormData();
-
-      for (const key in data) {
-        if (key === "images" && data.images instanceof FileList) {
-          Array.from(data.images).forEach((file) => {
-            payload.append("images", file);
-          });
-        } else if (data[key]) {
-          payload.append(key, data[key]);
-        }
-      }
+      
       //שליחה לproductApi
       const response = await addProduct(data)
 

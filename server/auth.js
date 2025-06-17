@@ -72,7 +72,7 @@ router.post("/register", async (req, res) => {
   }
 
   
-  // ✅ בדיקת חוזק סיסמה:
+  // בדיקת חוזק סיסמה:
   const strongPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
   if (!strongPassword.test(password)) {
     return res.status(400).json({
@@ -108,8 +108,7 @@ router.post("/register", async (req, res) => {
 
 
 //עדכון פרופיל כללי
-router.put("/update-profile",
-  upload.fields([
+router.put("/update-profile", upload.fields([
     { name: "id_card_photo", maxCount: 1 },
     { name: "profile_photo", maxCount: 1 },
   ]),
@@ -395,5 +394,5 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
-export default storage;
+
 module.exports = router;

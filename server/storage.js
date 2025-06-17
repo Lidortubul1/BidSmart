@@ -16,6 +16,7 @@ const storage = multer.diskStorage({
   },
 
   filename: function (req, file, cb) {
+    //data.now() - מספר המילישניות שחלפו מ1970
     const uniqueName = Date.now() + "_" + file.originalname;
     cb(null, uniqueName);
   },

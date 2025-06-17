@@ -74,7 +74,6 @@ router.post("/", async (req, res) => {
             pass: "zjkkgwzmwjjtcylr",
           },
         });
-        const link = `http://localhost:3000/live-auction/${product.product_id}`;
 
         const mailOptions = {
           from: "BidSmart <bidsmart2025@gmail.com>",
