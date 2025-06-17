@@ -1,17 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
-const multer = require("multer");
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "_" + file.originalname);
-  },
-});
-
+//אחסון תמונות
+const storage = require("./storage");
 const upload = multer({ storage });
 
 // קבלת כל המוצרים למכירה בלבד שהם לא sale

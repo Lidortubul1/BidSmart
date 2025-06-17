@@ -74,12 +74,13 @@ router.post("/", async (req, res) => {
             pass: "zjkkgwzmwjjtcylr",
           },
         });
+        const link = `http://localhost:3000/live-auction/${product.product_id}`;
 
         const mailOptions = {
           from: "BidSmart <bidsmart2025@gmail.com>",
           to: buyerEmail,
           subject: "נרשמת למכירה בהצלחה",
-          text: `${product.product_name}: נרשמת בהצלחה למכירה על המוצר`,
+          text: `נרשמת בהצלחה למכירה על המוצר: ${product.product_name}\n ישלח קישור במייל 10 דקות לפני שמתחיל המכרז!`,
         };
 
         transporter.sendMail(mailOptions, (err, info) => {

@@ -12,7 +12,9 @@ async function notifyUpcomingAuctions() {
       SELECT * FROM product 
       WHERE is_live = 0 
         AND start_date = CURDATE()
-        AND TIME(start_time) = TIME(DATE_ADD(NOW(), INTERVAL 10 MINUTE))
+        AND TIMESTAMP(start_date, start_time) BETWEEN 
+        DATE_ADD(NOW(), INTERVAL 9 MINUTE) AND 
+        DATE_ADD(NOW(), INTERVAL 10 MINUTE)
     `);
 
     for (const product of products) {
@@ -44,7 +46,7 @@ async function sendEmailReminder(email, product) {
     },
   });
 
-  const link = `http://localhost:3000/live/${product.product_id}`;
+  const link = `http://localhost:3000/live-auction/${product.product_id}`;
 
   const mailOptions = {
     from: "BidSmart <bidsmart2025@gmail.com>",
@@ -56,7 +58,7 @@ async function sendEmailReminder(email, product) {
   await transporter.sendMail(mailOptions);
 }
 
-// מעדכן is_live = 1 רק כשהשעה המדויקת מגיעה
+// כשמגיע התאריך והשעה שהמוצר מוכן למכירה is live=1 עדכון השדה 
 async function checkIsLiveProducts() {
   console.log("🔄 בודק is_live...");
 
@@ -69,7 +71,7 @@ async function checkIsLiveProducts() {
         AND CONCAT(start_date, ' ', start_time) <= NOW()
     `);
 
-    console.log("🧪 נמצאו מוצרים שהגיע זמן ההתחלה שלהם:", products.length);
+    // console.log("🧪 נמצאו מוצרים שהגיע זמן ההתחלה שלהם:", products.length);
 
     for (const product of products) {
       await conn.query("UPDATE product SET is_live = 1 WHERE product_id = ?", [

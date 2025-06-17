@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { upgradeUserRole } from "../../services/authApi";
 import styles from "./becomeSeller.module.css";
 import CustomModal from "../../components/CustomModal/CustomModal";
 
@@ -47,9 +47,8 @@ function BecomeSellerPage() {
     formData.append("email", user.email);
 
     try {
-      await axios.put("http://localhost:5000/api/auth/upgrade-role", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await upgradeUserRole(formData);
+
 
       const updatedUser = { ...user, role: "seller", id_number: idNumber };
       setUser(updatedUser);

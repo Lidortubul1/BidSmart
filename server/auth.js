@@ -2,29 +2,14 @@ const express = require("express");
 const router = express.Router();
 const db = require("./database");
 const bcrypt = require("bcrypt");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
 // אחסון קבצים
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, "../uploads");
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
-    }
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + "_" + file.originalname;
-    cb(null, uniqueName);
-  },
-});
+const storage = require("./storage");
 const upload = multer({ storage });
 
-/** התחברות */
+//התחברות למערכת
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -69,7 +54,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-/** בדיקת session */
+//session בדיקת
 router.get("/session", (req, res) => {
   if (req.session.user) {
     res.json({ loggedIn: true, user: req.session.user });
@@ -78,7 +63,7 @@ router.get("/session", (req, res) => {
   }
 });
 
-/** הרשמה */
+//הרשמה למערכת
 router.post("/register", async (req, res) => {
   const { first_name, last_name, email, password } = req.body;
 
@@ -86,6 +71,7 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "נא למלא את כל השדות" });
   }
 
+  
   // ✅ בדיקת חוזק סיסמה:
   const strongPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
   if (!strongPassword.test(password)) {
@@ -121,7 +107,7 @@ router.post("/register", async (req, res) => {
 });
 
 
-/** עדכון פרופיל כללי */
+//עדכון פרופיל כללי
 router.put("/update-profile",
   upload.fields([
     { name: "id_card_photo", maxCount: 1 },
@@ -214,7 +200,7 @@ router.put("/update-profile",
   }
 );
 
-/** התנתקות */
+//התנתקות מהמערכת
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -409,4 +395,5 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+export default storage;
 module.exports = router;

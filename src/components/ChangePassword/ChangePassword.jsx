@@ -1,6 +1,6 @@
 import { useState } from "react";
 import styles from "./ChangePassword.module.css";
-import axios from "axios";
+import { changePassword } from "../../services/authApi";
 
 export default function ChangePassword({ email, onClose, onSuccess }) {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -26,21 +26,14 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
     }
 
     try {
-      const res = await axios.put(
-        "http://localhost:5000/api/auth/change-password",
-        {
-          email,
-          currentPassword,
-          newPassword,
-        },
-        { withCredentials: true }
-      );
+      const data = await changePassword(email, currentPassword, newPassword);
 
-      if (res.data.success) {
+      if (data.success) {
         onSuccess();
       } else {
-        setError(res.data.message || "שגיאה בשינוי הסיסמה");
+        setError(data.message || "שגיאה בשינוי הסיסמה");
       }
+      
     } catch (err) {
       console.error(err);
       setError("שגיאה בשרת");

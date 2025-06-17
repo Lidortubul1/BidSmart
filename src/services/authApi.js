@@ -51,3 +51,34 @@ export async function updateUserProfile(formData) {
   });
   return response.data;
 }
+
+
+// שליחת בקשה לאיפוס סיסמה
+export async function sendResetPasswordEmail(email) {
+  return axios.post(`${BASE_URL}/forgot-password`, {
+    email,
+  });
+}
+
+// שליחת בקשת שדרוג לתפקיד מוכר
+export function upgradeUserRole(formData) {
+  return axios.put(`${BASE_URL}/upgrade-role`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
+
+
+// שינוי סיסמה לחשבון מחובר
+export async function changePassword(email, currentPassword, newPassword) {
+  try {
+    const response = await axios.put(`${BASE_URL}/change-password`, {
+      email,
+      currentPassword,
+      newPassword,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error changing password:", error);
+    return { success: false, message: "שגיאה בשרת" };
+  }
+}

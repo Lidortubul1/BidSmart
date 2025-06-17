@@ -4,7 +4,6 @@ const session = require("express-session");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-
 const productRoutes = require("./products.js");
 const authRoutes = require("./auth");
 const quotationRoutes = require("./quotation");

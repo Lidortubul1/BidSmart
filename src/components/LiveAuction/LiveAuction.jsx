@@ -4,6 +4,8 @@ import { io } from "socket.io-client";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import CustomModal from "../../components/CustomModal/CustomModal.jsx";
+import { getProductById } from "../../services/productApi.js";
+import { createOrder } from "../../services/paymentApi.js";
 
 const socket = io("http://localhost:5000");
 
@@ -40,28 +42,31 @@ function LiveAuction() {
     onConfirm,
     onCancel,
   }) => {
-    setModalContent({ title, message, confirmText, cancelText, onConfirm, onCancel });
+    setModalContent({
+      title,
+      message,
+      confirmText,
+      cancelText,
+      onConfirm,
+      onCancel,
+    });
     setModalVisible(true);
   };
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/product/${productId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setProduct(data);
-        setIsLive(data.is_live === 1);
-        setCurrentPrice(Number(data.current_price) || 0);
-        setLastBidder(data.winner_id_number || null);
-      });
+    getProductById(productId).then((data) => {
+      setProduct(data);
+      setIsLive(data.is_live === 1);
+      setCurrentPrice(Number(data.current_price) || 0);
+      setLastBidder(data.winner_id_number || null);
+    });
 
     const interval = setInterval(() => {
-      fetch(`http://localhost:5000/api/product/${productId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setProduct(data);
-          setCurrentPrice(Number(data.current_price) || 0);
-        });
-    }, 10000);
+      getProductById(productId).then((data) => {
+        setProduct(data);
+        setCurrentPrice(Number(data.current_price) || 0);
+      });
+    }, 10000); //10 שניות
 
     socket.emit("joinAuction", { productId });
 
@@ -129,11 +134,17 @@ function LiveAuction() {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
-          <img src={`http://localhost:5000${product.images?.[0]}`} alt={product.product_name} className={styles.image} />
+          <img
+            src={`http://localhost:5000${product.images?.[0]}`}
+            alt={product.product_name}
+            className={styles.image}
+          />
           <div className={styles.info}>
             <h2>{product.product_name}</h2>
             <p>{product.description}</p>
-            <p>מחיר פתיחה: <strong>{product.price} ₪</strong></p>
+            <p>
+              מחיר פתיחה: <strong>{product.price} ₪</strong>
+            </p>
             <p className={styles.startText}>
               המכירה תתחיל בתאריך{" "}
               {product.start_date && product.start_time
@@ -155,7 +166,12 @@ function LiveAuction() {
             <p>{product.description}</p>
             <div className={styles.imageGallery}>
               {product.images?.map((url, i) => (
-                <img key={i} src={`http://localhost:5000${url}`} alt={`תמונה ${i + 1}`} className={styles.galleryImage} />
+                <img
+                  key={i}
+                  src={`http://localhost:5000${url}`}
+                  alt={`תמונה ${i + 1}`}
+                  className={styles.galleryImage}
+                />
               ))}
             </div>
           </div>
@@ -175,8 +191,13 @@ function LiveAuction() {
                     style={{ width: `${(timeLeft / 10) * 100}%` }}
                   ></div>
                 </div>
-                <p className={styles.timeText}>⌛ זמן להגשת הצעה: {timeLeft} שניות</p>
-                <button className={styles.bidButton} onClick={() => handleBid(50)}>
+                <p className={styles.timeText}>
+                  ⌛ זמן להגשת הצעה: {timeLeft} שניות
+                </p>
+                <button
+                  className={styles.bidButton}
+                  onClick={() => handleBid(50)}
+                >
                   הגש הצעה של +50 ₪
                 </button>
               </>
@@ -193,20 +214,21 @@ function LiveAuction() {
                         const base = Number(currentPrice) / 1.17;
                         const vat = Number(currentPrice) - base;
                         const total = Number(currentPrice);
-                        
+
                         showModal({
                           title: "🧾 פירוט המחיר",
-                          message: `לפני מע״מ: ₪${base.toFixed(2)} \nמע״מ (17%): ₪${vat.toFixed(2)} \nסך הכול לתשלום: ₪${total.toFixed(2)}`,
+                          message: `לפני מע״מ: ₪${base.toFixed(
+                            2
+                          )} \nמע״מ (17%): ₪${vat.toFixed(
+                            2
+                          )} \nסך הכול לתשלום: ₪${total.toFixed(2)}`,
                           confirmText: "עבור לתשלום",
                           onConfirm: async () => {
                             try {
-                              const res = await fetch("http://localhost:5000/api/payment/create-order", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ product_id: productId }),
-                              });
-                              const data = await res.json();
-                              const approveUrl = data?.links?.find((link) => link.rel === "approve")?.href;
+                              const data = await createOrder(productId);
+                              const approveUrl = data?.links?.find(
+                                (link) => link.rel === "approve"
+                              )?.href;
                               if (approveUrl) {
                                 window.location.href = approveUrl;
                               } else {
@@ -234,7 +256,9 @@ function LiveAuction() {
             <h4>הצעות בזמן אמת:</h4>
             <div className={styles.chatLog}>
               {chatLog.map((msg, i) => (
-                <p key={i} style={{ color: msg.color }}>{msg.text}</p>
+                <p key={i} style={{ color: msg.color }}>
+                  {msg.text}
+                </p>
               ))}
             </div>
           </div>

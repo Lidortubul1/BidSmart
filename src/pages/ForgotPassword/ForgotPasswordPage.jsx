@@ -1,6 +1,6 @@
 import { useState } from "react";
 import styles from "./ForgotPasswordPage.module.css";
-import axios from "axios";
+import { sendResetPasswordEmail } from "../../services/authApi";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -13,10 +13,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/forgot-password",
-        { email }
-      );
+      const res = await sendResetPasswordEmail(email);
 
       if (res.data.success) {
         setMessage("קישור לאיפוס סיסמה נשלח למייל");
@@ -27,6 +24,7 @@ export default function ForgotPasswordPage() {
       setError("שגיאה בשליחת מייל");
     }
   };
+  
 
   return (
     <div className={styles.container}>
