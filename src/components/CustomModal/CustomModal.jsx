@@ -1,5 +1,6 @@
+import { createPortal } from "react-dom";
 import styles from "./CustomModal.module.css";
-//קומפוננטה לחלון קופץ כללי
+
 export default function CustomModal({
   title,
   message,
@@ -16,7 +17,7 @@ export default function CustomModal({
     }
   };
 
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={handleBackgroundClick}>
       <div className={styles.modalBox}>
         <button className={styles.modalClose} onClick={onCancel}>
@@ -60,6 +61,7 @@ export default function CustomModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById("modal-root")
   );
 }

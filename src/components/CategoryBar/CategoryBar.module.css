@@ -1,143 +1,70 @@
+.wrapper {
+  width: 100%;
+  background-color: transparent;
+  direction: rtl;
+  margin-bottom: 8px;
+}
+
 .categoryBar {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   gap: 12px;
-  padding: 0;
-  background-color: black;
-  border-bottom: 2px solid #333;
-  direction: rtl;
-  width: 99vw;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 40;
-  height: 48px;
-  margin: 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding-right: 24px;
-}
-
-.categoryItem {
-  position: relative;
-  flex-shrink: 0;
+  padding: 12px 24px;
+  background-color: transparent;
+  overflow-x: auto;
+  border-bottom: 1px solid #ccc;
 }
 
 .categoryButton {
-  background-color: rgba(147, 147, 147, 0.1);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  font-size: 0.95rem;
+  color: black;
   font-weight: 500;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  backdrop-filter: blur(5px);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  height: 36px;
-  display: flex;
-  align-items: center;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  position: relative;
+  transition: color 0.3s ease;
 }
 
 .categoryButton:hover {
-  background-color: rgba(232, 232, 232, 0.37);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #007bff;
 }
 
-.subcategoryDropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: rgba(241, 241, 241, 0.98);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  min-width: 200px;
-  padding: 8px 0;
-  margin-top: 8px;
-  z-index: 9999;
-  animation: dropdownFade 0.2s ease;
-  backdrop-filter: blur(10px);
+.categoryButton::after {
+  content: "";
+  display: block;
+  margin-top: 4px;
+  height: 2px;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
 }
 
-@keyframes dropdownFade {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.categoryButton:hover::after,
+.categoryButton.active::after {
+  background-color: black;
 }
 
-.subcategoryItem {
-  padding: 10px 16px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: black;
-  text-align: right;
-  transition: background-color 0.2s ease;
+.subCategoryRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 24px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #ddd;
 }
 
-.subcategoryItem:hover {
-  background-color: #f2f2f2;
-}
-
-/* רספונסיביות */
-@media (max-width: 768px) {
-  .categoryBar {
-    padding: 12px;
-    gap: 8px;
-    overflow-x: auto;
-    justify-content: flex-start;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .categoryBar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .categoryButton {
-    font-size: 0.9rem;
-    padding: 8px 16px;
-  }
-
-  .subcategoryDropdown {
-    min-width: 180px;
-    font-size: 0.9rem;
-    right: 50%;
-    transform: translateX(50%);
-  }
-
-  .subcategoryItem {
-    padding: 10px 16px;
-  }
-}
-
-.subcategoryItem {
-  padding: 12px 20px;
-  cursor: pointer;
+.subCategoryButton {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 6px 14px;
   font-size: 0.95rem;
-  color: #333;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  position: relative;
-  overflow: hidden;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.subcategoryItem:hover {
-  background-color: rgba(200, 200, 200, 0.1);
-  color: #333;
-  padding-right: 25px;
-}
-
-.subcategoryItem:hover::before {
-  content: '→';
-  position: absolute;
-  right: 10px;
-  opacity: 0.6;
+.subCategoryButton:hover {
+  background-color: #eee;
 }

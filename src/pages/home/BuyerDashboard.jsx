@@ -13,31 +13,35 @@ function BuyerDashboard() {
   const goToBecomeSeller = () => {
     navigate("/become-seller");
   };
-//קטגוריות
+
   const [categories, setCategories] = useState({});
 
-   useEffect(() => {
-      fetchCategories().then((data) => setCategories(data))
-       .catch((err) => console.error("שגיאה בטעינת קטגוריות:", err));
-     }, []);
-     
+  useEffect(() => {
+    fetchCategories()
+      .then((data) => setCategories(data))
+      .catch((err) => console.error("שגיאה בטעינת קטגוריות:", err));
+  }, []);
+
   return (
-    <div className={styles.container}>
+    <div className={styles.page}>
       <CategoryBar categories={categories} />
-      <div className={styles.welcomeSection}>
-        <h1>ברוך הבא לקונה ב-BidSmart!</h1>
-        <p>כאן תוכל לצפות בכל המוצרים ולהציע הצעות.</p>
 
-      
+      <section className={styles.hero}>
+        <div className={styles.heroText}>
+          <h1>!ברוך הבא</h1>
+          <p className={styles.subText}>
+            צפה בכל המוצרים והשתתף במכרזים בזמן אמת.
+          </p>
           <button onClick={goToBecomeSeller} className={styles.sellButton}>
-            רוצה להתחיל למכור פריטים ולהפוך למוכר? לחץ להרשמה כמוכר
+            רוצה להתחיל למכור פריטים? לחץ כאן כדי להפוך למוכר
           </button>
-       
-      </div>
+        </div>
+      </section>
 
-      <div className={styles.content}>
+      <section className={styles.productsSection}>
+        <h2>כל המוצרים</h2>
         <ProductList />
-      </div>
+      </section>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import styles from "./CategoryBar.module.css";
 
 function CategoryBar({ categories }) {
   const navigate = useNavigate();
-  const [hovered, setHovered] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const handleNavigate = (cat, sub = "") => {
     const query = sub
@@ -16,30 +16,36 @@ function CategoryBar({ categories }) {
   };
 
   return (
-    <div className={styles.categoryBar}>
-      {Object.keys(categories).map((cat) => (
-        <div
-          key={cat}
-          className={styles.categoryItem}
-          onMouseEnter={() => setHovered(cat)}
-          onMouseLeave={() => setHovered(null)}>
-          <div className={styles.categoryButton}
-               onClick={() => handleNavigate(cat)} >
+    <div className={styles.wrapper}>
+      <div className={styles.categoryBar}>
+        {Object.keys(categories).map((cat) => (
+          <div
+            key={cat}
+            className={`${styles.categoryButton} ${
+              selectedCategory === cat ? styles.active : ""
+            }`}
+            onClick={() =>
+              setSelectedCategory(cat === selectedCategory ? null : cat)
+            }
+          >
             {cat}
           </div>
+        ))}
+      </div>
 
-          {hovered === cat && (
-            <div className={styles.subcategoryDropdown}>
-              {categories[cat].map((sub) => (
-                <div key={sub} className={styles.subcategoryItem}
-                     onClick={() => handleNavigate(cat, sub)} >
-                  {sub}
-                </div>
-              ))}
+      {selectedCategory && (
+        <div className={styles.subCategoryRow}>
+          {categories[selectedCategory].map((sub) => (
+            <div
+              key={sub}
+              className={styles.subCategoryButton}
+              onClick={() => handleNavigate(selectedCategory, sub)}
+            >
+              {sub}
             </div>
-          )}
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }

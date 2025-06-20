@@ -1,28 +1,72 @@
-.container {
-  padding: 0;
-  margin: 0;
-  background-color: white;
+.page {
+  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
+  font-family: "Heebo", sans-serif;
+  color: #222;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
 }
 
-.welcomeSection {
+.hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  margin: 40px auto;
-  padding: 0 20px;
-  max-width: 1200px;
-  width: 100%;
+  padding: 100px 5% 60px;
+  background: linear-gradient(145deg, #f0f0f0, #ffffff);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
-.welcomeSection h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+/* קישוטים ברקע */
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.3;
+  z-index: 0;
 }
 
-.welcomeSection p {
-  font-size: 1.2rem;
+.hero::before {
+  width: 300px;
+  height: 300px;
+  background: #ffb347;
+  top: -100px;
+  right: -100px;
+}
+
+.hero::after {
+  width: 400px;
+  height: 400px;
+  background: #a2cddd;
+  bottom: -150px;
+  left: -150px;
+}
+
+.heroText {
+  max-width: 600px;
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+
+.subText {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 30px;
+}
+
+.startText {
+  font-size: 1.3rem;
+  font-weight: bold;
   margin-bottom: 20px;
 }
 
@@ -32,39 +76,51 @@
   gap: 20px;
 }
 
-.loginLink, .registerLink {
-  background-color: black;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-size: 1rem;
-}
-
+.loginLink,
 .registerLink {
-  background-color: white;
-  color: black;
-  border: 1px solid black;
+  background-color: #000;
+  color: white;
+  padding: 12px 22px;
+  border-radius: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
 }
 
-.loginLink:hover, .registerLink:hover {
-  opacity: 0.8;
+.loginLink:hover,
+.registerLink:hover {
+  background-color: #333;
 }
 
-.productsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
-  padding: 20px;
+.productsSection {
+  padding: 40px 5%;
 }
 
-.productCard {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  height: 250px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
+.productsSection h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+
+
+@media (max-width: 768px) {
+  .heroText h1 {
+    font-size: 2.2rem;
+  }
+
+  .subText,
+  .startText {
+    font-size: 1rem;
+  }
+
+  .authLinks {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .loginLink,
+  .registerLink {
+    width: 100%;
+    text-align: center;
+  }
 }

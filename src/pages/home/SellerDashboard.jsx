@@ -1,9 +1,9 @@
 import ProductList from "../../components/productList/productList";
-import styles from "./SellerDashboard.module.css";
-import { Link } from "react-router-dom";
 import CategoryBar from "../../components/CategoryBar/CategoryBar";
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { fetchCategories } from "../../services/categoriesApi";
+import styles from "./SellerDashboard.module.css";
 
 function SellerDashboard() {
   const [categories, setCategories] = useState({});
@@ -15,26 +15,31 @@ function SellerDashboard() {
   }, []);
 
   return (
-    <div className={styles.container}>
-      <div>
-        <CategoryBar categories={categories} />
-      </div>
+    <div className={styles.page}>
+      <CategoryBar categories={categories} />
 
-      <div className={styles.welcomeSection}>
-        <h1>BidSmart ברוך הבא לאתר</h1>
-        <p>נהל את המוצרים שלך, הוסף מוצרים חדשים וצפה בדוחות.</p>
+      <section className={styles.hero}>
+        <div className={styles.heroText}>
+          <h1>!ברוך הבא</h1>
+          <p className={styles.subText}>
+            נהל מכירות בצורה חכמה, הוסף מוצרים וצפה בדוחות בלחיצת כפתור
+          </p>
 
-        <div className={styles.actions}>
-          <Link to="/add-product" className={styles.actionButton}>
-            + הוסף מוצר
-          </Link>
-          <Link to="/sales-report" className={styles.actionButton}>
-            📊 דוחות מכירה
-          </Link>
+          <div className={styles.actions}>
+            <Link to="/add-product" className={styles.actionButton}>
+              + הוסף מוצר
+            </Link>
+            <Link to="/sales-report" className={styles.actionButton}>
+              📊 דוחות מכירה
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <ProductList />
+      <section className={styles.productsSection}>
+        <h2>המוצרים שלך</h2>
+        <ProductList />
+      </section>
     </div>
   );
 }

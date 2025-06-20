@@ -35,16 +35,16 @@ function Navbar() {
 
       <div className={styles.centerSearch}>
         <form onSubmit={handleSearch} className={styles.searchForm}>
-          <input
-            type="text"
-            placeholder="חפש מוצר..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className={styles.searchInput}
-          />
-          <button type="submit" className={styles.searchButton}>
-            חיפוש
-          </button>
+          <div className={styles.searchWrapper}>
+            <input
+              type="text"
+              placeholder="חפש מוצר..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+
+          </div>
         </form>
       </div>
 

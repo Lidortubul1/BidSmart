@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import styles from "./LoginPage.module.css";
-import backgroundImage from "../../assets/images/background.jpg";
 import { useAuth } from "../../auth/AuthContext";
 import LoginForm from "../../components/LoginForm/LoginForm";
 import CustomModal from "../../components/CustomModal/CustomModal"; // הוספנו את המודאל
@@ -52,7 +51,6 @@ function LoginPage({ isModal = false }) {
   return (
     <div
       className={isModal ? styles.modalContainer : styles.container}
-      style={{ backgroundImage: `url(${backgroundImage})` }}
     >
       <div className={styles.formContainer}>
         <LoginForm

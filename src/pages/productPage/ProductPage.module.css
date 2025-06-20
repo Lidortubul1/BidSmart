@@ -1,30 +1,51 @@
 .page {
-  padding: 40px;
+  background: linear-gradient(to bottom, #f7f9fc, #ffffff);
+  min-height: 100vh;
+  padding: 60px 20px;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  font-family: "Heebo", sans-serif;
 }
 
 .content {
   display: flex;
   flex-direction: row-reverse;
   gap: 40px;
+  background-color: #fff;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   max-width: 1000px;
   width: 100%;
-  align-items: center;
 }
 
 .imageWrapper {
   flex: 1;
   max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
+
 
 .image {
   width: 100%;
-  height: auto;
+  height: 300px; /* גובה קבוע */
   object-fit: contain;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
   cursor: zoom-in;
+  background-color: #fff; /* רקע לבן לאזור התמונה */
+}
+
+
+.gallery {
+  text-align: center;
+}
+
+.controls {
+  margin-top: 10px;
 }
 
 .details {
@@ -33,40 +54,49 @@
 }
 
 .details h1 {
+  font-size: 1.8rem;
   margin-bottom: 10px;
+  color: #222;
 }
 
 .description {
+  font-size: 1rem;
   margin-bottom: 10px;
-  font-size: 1.1rem;
+  color: #444;
 }
 
 .price,
 .status {
-  margin-bottom: 10px;
   font-weight: bold;
+  color: #000;
+  margin-bottom: 10px;
 }
 
-.bidButton {
-  padding: 10px 20px;
-  background-color: #f57c00;
-  border: none;
-  border-radius: 5px;
+.bidButton,
+.cancelButton {
+  background-color: #000;
   color: white;
-  cursor: pointer;
+  padding: 12px 20px;
+  border-radius: 30px;
   font-size: 1rem;
-  transition: background-color 0.3s;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  margin-top: 15px;
+  width: 100%;
+  max-width: 250px;
 }
 
-.bidButton:hover {
-  background-color: #ef6c00;
+.bidButton:hover,
+.cancelButton:hover {
+  background-color: #333;
 }
 
 .success {
   background-color: #d4edda;
   color: #155724;
   padding: 15px;
-  border-radius: 6px;
+  border-radius: 12px;
   border: 1px solid #c3e6cb;
   margin-bottom: 15px;
   font-weight: bold;
@@ -75,21 +105,22 @@
 
 .idForm {
   margin-top: 30px;
-  background-color: #f1f1f1;
-  padding: 20px;
-  border-radius: 10px;
+  background-color: #f9f9f9;
   border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 .idForm h3 {
   margin-bottom: 15px;
   font-size: 1.2rem;
-  color: #333;
+  color: #222;
 }
 
 .idForm label {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-weight: bold;
   color: #333;
 }
@@ -97,34 +128,28 @@
 .idForm input[type="text"],
 .idForm input[type="file"] {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 5px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 10px;
+  font-size: 1rem;
 }
 
 .idForm button {
-  background-color: #388e3c;
+  background-color: #2196f3;
   color: white;
-  padding: 10px 20px;
+  padding: 12px;
   font-size: 1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 30px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
+  width: 100%;
 }
 
 .idForm button:hover {
-  background-color: #3d5c69;
-}
-
-.gallery {
-  text-align: center;
-}
-
-.controls {
-  margin-top: 10px;
+  background-color: #1976d2;
 }
 
 .modalOverlay {
@@ -148,24 +173,21 @@
   cursor: zoom-out;
 }
 
-/* עיצוב למודאל של התחברות */
 .modalContent {
   background-color: white;
   padding: 30px;
-  border-radius: 10px;
-  max-width: 400px;
+  border-radius: 16px;
+  max-width: 420px;
   width: 90%;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   text-align: center;
   position: relative;
 }
 
-
-/* כפתור סגירה בצד ימין עליון */
 .cancel {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 14px;
   background-color: transparent;
   border: none;
   color: #444;
@@ -176,4 +198,34 @@
 
 .cancel:hover {
   color: #000;
+}
+.imageControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.imageButton {
+  background-color: #e0e0e0;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.imageButton:hover {
+  background-color: #ccc;
+  transform: scale(1.1);
+}
+
+.imageIndex {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
 }

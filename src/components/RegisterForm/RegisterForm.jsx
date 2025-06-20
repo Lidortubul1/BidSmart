@@ -1,16 +1,14 @@
-// src/components/RegisterForm/RegisterForm.jsx
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/authApi.js";
 import CustomModal from "../CustomModal/CustomModal";
-import styles from "./RegisterForm.module.css"; 
+import styles from "./RegisterForm.module.css";
 import { useAuth } from "../../auth/AuthContext";
 
 function RegisterForm({ redirectAfterRegister = "/buyer" }) {
   const { setUser } = useAuth();
-
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -27,7 +25,6 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
     extraButtonText: "",
     onExtra: null,
   });
-  
 
   const showModal = (
     title,
@@ -35,8 +32,8 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
     onConfirm = null,
     extraButtonText = "",
     onExtra = null,
-    cancelText = "סגור", // ← ברירת מחדל
-    onCancel = () => setModal({ ...modal, show: false }) // ← פעולה
+    cancelText = "סגור",
+    onCancel = () => setModal({ ...modal, show: false })
   ) => {
     setModal({
       show: true,
@@ -50,8 +47,6 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
       onCancel,
     });
   };
-  
-  
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -68,36 +63,32 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
       );
 
       if (res.user) {
-        setUser(res.user); // מתחבר למשתמש מיידית
+        setUser(res.user);
       }
 
       showModal(
         "הרשמה בוצעה",
         "נרשמת בהצלחה!",
-        null, // ← אין צורך ב-confirm רגיל
-        "מעבר לדף הבית", // ← זה הטקסט של הכפתור
+        null,
+        "מעבר לדף הבית",
         () => {
           setModal({ ...modal, show: false });
           navigate(redirectAfterRegister);
         },
-        "", // cancelText ריק = לא יוצג
+        "",
         null
       );
-      
-      
     } catch (err) {
       if (err.response?.data?.message === "האימייל כבר קיים") {
         showModal(
           "שגיאה בהרשמה",
           "האימייל הזה כבר קיים במערכת.",
-          () => setModal({ ...modal, show: false }), // כפתור סגור
-          "מעבר להתחברות", // כפתור מעבר
-          () => navigate("/login"), // פעולה של מעבר
-          "סגור", // טקסט כפתור סגירה
-          () => setModal({ ...modal, show: false }) // פעולה של סגירה
+          () => setModal({ ...modal, show: false }),
+          "מעבר להתחברות",
+          () => navigate("/login"),
+          "סגור",
+          () => setModal({ ...modal, show: false })
         );
-        
-        
       } else {
         showModal(
           "שגיאה בהרשמה",
@@ -106,27 +97,28 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
       }
     }
   };
-  
 
   return (
     <>
-      <h1 className={styles.title}>הרשמה</h1>
+
       <form onSubmit={handleSubmit} className={styles.form}>
+        <h2 className={styles.title}>הרשמה</h2>
         <input
           type="text"
           name="first_name"
           placeholder="שם פרטי"
           value={formData.first_name}
           onChange={handleChange}
+          className={styles.input}
           required
         />
-
         <input
           type="text"
           name="last_name"
           placeholder="שם משפחה"
           value={formData.last_name}
           onChange={handleChange}
+          className={styles.input}
           required
         />
         <input
@@ -135,6 +127,7 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
           placeholder="אימייל"
           value={formData.email}
           onChange={handleChange}
+          className={styles.input}
           required
         />
         <input
@@ -143,9 +136,12 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
           placeholder="סיסמה"
           value={formData.password}
           onChange={handleChange}
+          className={styles.input}
           required
         />
-        <button type="submit">הירשם</button>
+        <button type="submit" className={styles.button}>
+          הרשם
+        </button>
       </form>
 
       {modal.show && (

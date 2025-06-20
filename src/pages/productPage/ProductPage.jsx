@@ -2,7 +2,6 @@
   import { useEffect, useState } from "react";
   import { useAuth } from "../../auth/AuthContext";
   import { getProductById } from "../../services/productApi";
-  import axios from "axios";
   import styles from "./ProductPage.module.css";
   import CustomModal from "../../components/CustomModal/CustomModal";
   import LoginForm from "../../components/LoginForm/LoginForm";
@@ -262,25 +261,31 @@
                   className={styles.image}
                   style={{ cursor: "zoom-in" }}
                 />
-                <div className={styles.controls}>
+                <div className={styles.imageControls}>
                   <button
+                    className={styles.imageButton}
                     onClick={() =>
                       setCurrentIndex(
                         (prev) => (prev - 1 + images.length) % images.length
                       )
                     }
+                    aria-label="תמונה קודמת"
                   >
-                    ⬅️
+                    ‹
                   </button>
-                  <span>
-                    {currentIndex + 1} מתוך {images.length}
+
+                  <span className={styles.imageIndex}>
+                    {currentIndex + 1} / {images.length}
                   </span>
+
                   <button
+                    className={styles.imageButton}
                     onClick={() =>
                       setCurrentIndex((prev) => (prev + 1) % images.length)
                     }
+                    aria-label="תמונה הבאה"
                   >
-                    ➡️
+                    ›
                   </button>
                 </div>
               </div>
