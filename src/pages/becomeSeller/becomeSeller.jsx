@@ -11,7 +11,6 @@ function BecomeSellerPage() {
 
   const [idNumber, setIdNumber] = useState("");
   const [idPhoto, setIdPhoto] = useState(null);
-
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({
     title: "",
@@ -49,7 +48,6 @@ function BecomeSellerPage() {
     try {
       await upgradeUserRole(formData);
 
-
       const updatedUser = { ...user, role: "seller", id_number: idNumber };
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -73,35 +71,39 @@ function BecomeSellerPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.formContainer}>
+    <div className={styles.page}>
+      <div className={styles.formBox}>
         <h1 className={styles.title}>הפוך למוכר</h1>
         <p className={styles.subtitle}>
           כדי להתחיל למכור פריטים, מלא את פרטיך:
         </p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <label>
-            תעודת זהות:
+          <div className={styles.inputGroup}>
+            <label>תעודת זהות:</label>
             <input
               type="text"
               value={idNumber}
               onChange={(e) => setIdNumber(e.target.value)}
               required
+              className={styles.input}
             />
-          </label>
+          </div>
 
-          <label>
-            צילום תעודת זהות:
+          <div className={styles.inputGroup}>
+            <label>צילום תעודת זהות:</label>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setIdPhoto(e.target.files[0])}
               required
+              className={styles.input}
             />
-          </label>
+          </div>
 
-          <button type="submit">הפוך למוכר</button>
+          <button type="submit" className={styles.button}>
+            הפוך למוכר
+          </button>
         </form>
       </div>
 

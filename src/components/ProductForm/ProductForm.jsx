@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchCategories } from "../../services/categoriesApi";
+import CustomModal from "../CustomModal/CustomModal";
 import styles from "./ProductForm.module.css";
-import CustomModal from "../CustomModal/CustomModal"; // ייבוא הקומפוננטה
 
 function ProductForm({ onSubmit }) {
   const [formData, setFormData] = useState({
@@ -50,7 +50,6 @@ function ProductForm({ onSubmit }) {
 
     loadCategories();
   }, []);
-  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -100,127 +99,130 @@ function ProductForm({ onSubmit }) {
 
   return (
     <>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h2 className={styles.title}> הוספת מוצר חדש</h2>
+      <div className={styles.page}>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <h2 className={styles.title}>הוספת מוצר חדש</h2>
 
-        <label>
-          שם המוצר *
-          <input
-            type="text"
-            name="product_name"
-            value={formData.product_name}
-            onChange={handleChange}
-            required
-          />
-        </label>
-
-        <label>
-          תאריך התחלה *
-          <input
-            type="date"
-            name="start_date"
-            value={formData.start_date}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <label>
-          שעת התחלה *
-          <input
-            type="time"
-            name="start_time"
-            value={formData.start_time}
-            onChange={handleChange}
-            required
-          />
-        </label>
-
-        <label>
-          תאריך סיום *
-          <input
-            type="date"
-            name="end_date"
-            value={formData.end_date}
-            onChange={handleChange}
-            required
-          />
-        </label>
-
-        <label>
-          מחיר פתיחה *
-          <input
-            type="number"
-            step="0.01"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            required
-          />
-        </label>
-
-        <label>
-          כתובת תמונה
-          <input
-            type="file"
-            name="images"
-            multiple
-            accept="image/*"
-            onChange={(e) =>
-              setFormData({ ...formData, images: e.target.files })
-            }
-          />
-        </label>
-
-        <label>
-          תיאור
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-          />
-        </label>
-
-        <label>
-          קטגוריה *
-          <select
-            value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value);
-              setSelectedSubCategory("");
-            }}
-            required
-          >
-            <option value="">בחר קטגוריה</option>
-            {Object.keys(categories).map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {selectedCategory && (
           <label>
-            תת קטגוריה *
+            שם המוצר *
+            <input
+              type="text"
+              name="product_name"
+              value={formData.product_name}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <label>
+            תאריך התחלה *
+            <input
+              type="date"
+              name="start_date"
+              value={formData.start_date}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <label>
+            שעת התחלה *
+            <input
+              type="time"
+              name="start_time"
+              value={formData.start_time}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <label>
+            תאריך סיום *
+            <input
+              type="date"
+              name="end_date"
+              value={formData.end_date}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <label>
+            מחיר פתיחה *
+            <input
+              type="number"
+              step="0.01"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <label>
+            תמונות מוצר
+            <input
+              type="file"
+              name="images"
+              multiple
+              accept="image/*"
+              onChange={(e) =>
+                setFormData({ ...formData, images: e.target.files })
+              }
+            />
+          </label>
+
+          <label>
+            תיאור
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </label>
+
+          <label>
+            קטגוריה *
             <select
-              value={selectedSubCategory}
-              onChange={(e) => setSelectedSubCategory(e.target.value)}
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setSelectedSubCategory("");
+              }}
               required
             >
-              <option value="">בחר תת קטגוריה</option>
-              {categories[selectedCategory].map((sub) => (
-                <option key={sub} value={sub}>
-                  {sub}
+              <option value="">בחר קטגוריה</option>
+              {Object.keys(categories).map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
                 </option>
               ))}
             </select>
           </label>
-        )}
 
-        <button type="submit" className={styles.submitButton}>
-          שמור מוצר
-        </button>
-      </form>
+          {selectedCategory && (
+            <label>
+              תת קטגוריה *
+              <select
+                value={selectedSubCategory}
+                onChange={(e) => setSelectedSubCategory(e.target.value)}
+                required
+              >
+                <option value="">בחר תת קטגוריה</option>
+                {categories[selectedCategory].map((sub) => (
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <button type="submit" className={styles.submitButton}>
+            שמור מוצר
+          </button>
+        </form>
+      </div>
 
       {showModal && (
         <CustomModal

@@ -1,25 +1,60 @@
-.form {
-  max-width: 600px;
-  margin: auto;
+.page {
+  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
+  font-family: "Heebo", sans-serif;
+  color: #222;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  padding: 20px;
-  background-color: #f8f8f8;
-  border-radius: 10px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 100px 5% 60px;
+  z-index: 1;
 }
 
-input,
-textarea {
-  padding: 10px;
-  font-size: 1rem;
+.page::before,
+.page::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.3;
+  z-index: 0;
 }
 
-button {
-  padding: 10px;
+.page::before {
+  width: 300px;
+  height: 300px;
+  background: #ffb347;
+  top: -100px;
+  right: -100px;
+}
+
+.page::after {
+  width: 400px;
+  height: 400px;
+  background: #a2cddd;
+  bottom: -150px;
+  left: -150px;
+}
+
+
+.formBox {
+  background-color: #fff;
+  width: 800px;
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  text-align: right;
+  position: relative;
+  z-index: 2;
+}
+
+
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #222;
   font-weight: bold;
-  background-color: black;
-  color: white;
-  border: none;
-  cursor: pointer;
 }

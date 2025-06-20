@@ -1,10 +1,10 @@
-import ProductForm from "../../components/ProductForm/ProductForm";
-import { useAuth } from "../../auth/AuthContext";
-import { addProduct } from "../../services/productApi";
-import { useNavigate } from "react-router-dom";
-import styles from "./AddProductPage.module.css";
 import { useState } from "react";
+import { useAuth } from "../../auth/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { addProduct } from "../../services/productApi";
+import ProductForm from "../../components/ProductForm/ProductForm";
 import CustomModal from "../../components/CustomModal/CustomModal";
+import styles from "./AddProductPage.module.css";
 
 function AddProductPage() {
   const { user } = useAuth();
@@ -44,9 +44,7 @@ function AddProductPage() {
         seller_id_number: user.id_number,
       };
 
-      
-      //שליחה לproductApi
-      const response = await addProduct(data)
+      const response = await addProduct(data);
 
       if (response && response.success) {
         openModal({
@@ -73,12 +71,14 @@ function AddProductPage() {
         confirmText: "סגור",
       });
     }
-    
   };
 
   return (
-    <div className={styles.container}>
-      <ProductForm onSubmit={handleProductSubmit} />
+    <div className={styles.page}>
+      <div className={styles.formBox}>
+        <ProductForm onSubmit={handleProductSubmit} />
+      </div>
+
       {showModal && (
         <CustomModal
           title={modalConfig.title}
