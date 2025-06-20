@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./MyBidsPage.module.css";
 import { getUserBids } from "../../services/quotationApi";
-import { getAllProducts } from "../../services/productApi";
 import { getAllSales, markProductDelivered } from "../../services/saleApi";
 import { useAuth } from "../../auth/AuthContext";
 import CustomModal from "../../components/CustomModal/CustomModal";
@@ -10,9 +9,9 @@ function MyBidsPage() {
   const { user } = useAuth();
   const [bids, setBids] = useState([]);
   const [sales, setSales] = useState([]);
+  const [products, setProducts] = useState([]);
   const [view, setView] = useState("registered");
 
-  // מודאל כללי
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState({
     title: "",
@@ -42,28 +41,20 @@ function MyBidsPage() {
     setModalVisible(true);
   };
 
-  // טעינת הצעות, מוצרים ומכירות
   useEffect(() => {
     if (!user?.id_number) return;
 
     async function fetchData() {
       try {
-
         const [bidsRes, salesRes] = await Promise.all([
           getUserBids(user.id_number),
           getAllSales(),
         ]);
 
-        setBids(bidsRes.data);
-        setSales(salesRes.data);
-        
-        
-        setBids(bidsRes.data);
-        console.log("✅ כל ההצעות:", bidsRes.data);
-        console.log("✅ כמות הצעות:", bidsRes.data.length);
-
-        setSales(salesRes.data);
+        setBids(Array.isArray(bidsRes) ? bidsRes : []);
+        setSales(Array.isArray(salesRes) ? salesRes : []);
       } catch (err) {
+        console.error("שגיאת טעינה:", err);
         showModal({
           title: "שגיאה",
           message: "שגיאה בטעינת הנתונים",
@@ -76,11 +67,35 @@ function MyBidsPage() {
     fetchData();
   }, [user?.id_number]);
 
+  useEffect(() => {
+    async function fetchProducts() {
+      const productsRes = await getAllSales();
+      setProducts(productsRes.data || []);
+    }
+    fetchProducts();
+  }, []);
 
-  const registeredBids = bids;
+  const registeredBids = bids.map((bid) => {
+    const product = products.find((p) => p.product_id === bid.product_id);
+    return {
+      ...bid,
+      ...product,
+    };
+  });
 
+  const wonSales = Array.isArray(sales)
+    ? sales.filter((s) => String(s.buyer_id_number) === String(user?.id_number))
+    : [];
 
-  const wonSales = sales.filter((s) => s.buyer_id_number === user?.id_number);
+    const wonSalesWithProduct = wonSales.map((sale) => {
+      const product = products.find((p) => p.product_id === sale.product_id);
+      console.log("📷 בדיקת מוצר לזכייה:", product);
+      return {
+        ...sale,
+        ...product,
+      };
+    });
+    
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
@@ -89,11 +104,9 @@ function MyBidsPage() {
       .padStart(2, "0")}/${d.getFullYear()}`;
   };
 
-  // סימון מוצר כ"נמסר"
   const handleMarkDelivered = async (product_id) => {
     try {
       await markProductDelivered(product_id);
-
       setSales((prev) =>
         prev.map((s) =>
           s.product_id === product_id ? { ...s, is_delivered: 1 } : s
@@ -108,7 +121,14 @@ function MyBidsPage() {
       });
     }
   };
+  useEffect(() => {
+    console.log("🔥 בדיקת sales:", sales);
+    console.log("🔥 בדיקת user id_number:", user?.id_number);
 
+    const found = sales.filter((s) => s.buyer_id_number == user?.id_number);
+    console.log("✅ נמצאו זכיות:", found);
+  }, [sales, user]);
+  
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>ההצעות שלי</h1>
@@ -134,22 +154,20 @@ function MyBidsPage() {
                 </tr>
               </thead>
               <tbody>
-                {registeredBids.map((bid, i) => {
-                  return (
-                    <tr key={i}>
-                      <td>
-                        <img
-                          src={`http://localhost:5000${bid.images?.[0] || ""}`}
-                          alt={bid.product_name}
-                          className={styles.image}
-                        />
-                      </td>
-                      <td>{bid.product_name}</td>
-                      <td>{formatDate(bid.start_date)}</td>
-                      <td>{bid.start_time}</td>
-                    </tr>
-                  );
-                })}
+                {registeredBids.map((bid, i) => (
+                  <tr key={i}>
+                    <td>
+                      <img
+                        src={`http://localhost:5000${bid.images?.[0] || ""}`}
+                        alt={bid.product_name}
+                        className={styles.image}
+                      />
+                    </td>
+                    <td>{bid.product_name}</td>
+                    <td>{formatDate(bid.start_date)}</td>
+                    <td>{bid.start_time}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}
@@ -159,7 +177,7 @@ function MyBidsPage() {
       {view === "won" && (
         <>
           <h2 className={styles.subtitle}>מוצרים שזכית בהם</h2>
-          {wonSales.length === 0 ? (
+          {wonSalesWithProduct.length === 0 ? (
             <p className={styles.empty}>לא נמצאו זכיות</p>
           ) : (
             <table className={styles.table}>
@@ -173,26 +191,19 @@ function MyBidsPage() {
                 </tr>
               </thead>
               <tbody>
-                {wonSales.map((sale, i) => {
-                  // חיפוש המידע על המוצר מתוך bids
-                  const bidInfo = bids.find(
-                    (b) => b.product_id === sale.product_id
-                  );
-
-                  if (!bidInfo) return null;
+                {wonSalesWithProduct.map((sale, i) => {
+                  if (!sale.product_name) return null;
 
                   return (
                     <tr key={i}>
                       <td>
                         <img
-                          src={`http://localhost:5000${
-                            bidInfo.images?.[0] || ""
-                          }`}
-                          alt={bidInfo.product_name}
+                          src={`http://localhost:5000${sale.images?.[0] || ""}`}
+                          alt={sale.product_name}
                           className={styles.image}
                         />
                       </td>
-                      <td>{bidInfo.product_name}</td>
+                      <td>{sale.product_name}</td>
                       <td>{sale.final_price} ₪</td>
                       <td>
                         {sale.is_delivered === 1
