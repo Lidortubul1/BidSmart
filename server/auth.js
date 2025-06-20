@@ -72,9 +72,7 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "נא למלא את כל השדות" });
   }
 
-  
-  // בדיקת חוזק סיסמה:
-  const strongPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+  const strongPassword = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
   if (!strongPassword.test(password)) {
     return res.status(400).json({
       message: "הסיסמה חייבת לכלול לפחות 6 תווים, אות אחת ומספר אחד",
@@ -100,20 +98,74 @@ router.post("/register", async (req, res) => {
       [first_name, last_name, email, hashedPassword]
     );
 
-    res.status(201).json({ message: "נרשמת בהצלחה!" });
+    // שליפה של המשתמש החדש
+    const [userRows] = await conn.execute(
+      "SELECT first_name, last_name, email, role FROM users WHERE email = ?",
+      [email]
+    );
+    
+    const newUser = userRows[0];
+
+    // שמירת המשתמש ב-session
+    req.session.user = newUser;
+
+    res.status(201).json({
+      success: true,
+      message: "נרשמת בהצלחה!",
+      user: newUser,
+    });
   } catch (err) {
     console.error("שגיאה בהרשמה:", err);
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
 
+// הוספה לבסיס נתונים צילום ת"ז ות"ז של המשתמש אם לא קיים והוא רוצה להרשם להצעה
+router.put("/save-id-info",upload.single("id_card_photo"),async (req, res) => {
+    const { id_number, email } = req.body;
+    const idCardPath = req.file?.filename;
+
+    if (!id_number || !email || !idCardPath) {
+      return res
+        .status(400)
+        .json({ message: "נא למלא את כל השדות כולל קובץ" });
+    }
+
+    try {
+      const conn = await db.getConnection();
+
+      const [users] = await conn.execute(
+        "SELECT * FROM users WHERE email = ?",
+        [email]
+      );
+
+      if (users.length === 0) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+
+      await conn.execute(
+        "UPDATE users SET id_number = ?, id_card_photo = ? WHERE email = ?",
+        [id_number, idCardPath, email]
+      );
+
+      // עדכון session
+      const [updated] = await conn.execute(
+        "SELECT * FROM users WHERE email = ?",
+        [email]
+      );
+      req.session.user = updated[0];
+
+      res.json({ success: true, message: "עודכן בהצלחה", user: updated[0] });
+    } catch (err) {
+      console.error("שגיאה בהעלאת תז", err);
+      res.status(500).json({ message: "שגיאה בשרת" });
+    }
+  }
+);
+
 
 //עדכון פרופיל כללי
-router.put("/update-profile", upload.fields([
-    { name: "id_card_photo", maxCount: 1 },
-    { name: "profile_photo", maxCount: 1 },
-  ]),
-  async (req, res) => {
+router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount: 1 },{ name: "profile_photo", maxCount: 1 },]),async (req, res) => {
     const {
       email: currentEmail,
       new_email,
@@ -139,6 +191,8 @@ router.put("/update-profile", upload.fields([
     try {
       const id_card_photo = req.files?.id_card_photo?.[0]?.filename;
       const profile_photo = req.files?.profile_photo?.[0]?.filename;
+      const removeProfilePhoto = req.body.remove_profile_photo === "1";
+
       const conn = await db.getConnection();
 
       let query = `
@@ -168,7 +222,10 @@ router.put("/update-profile", upload.fields([
         query += ", profile_photo = ?";
         values.push(profile_photo);
       }
-
+      if (removeProfilePhoto) {
+        query += ", profile_photo = NULL";
+      }
+      
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
         query += ", password = ?";
@@ -214,9 +271,7 @@ router.post("/logout", (req, res) => {
 });
 
 // הפיכה מקונה למוכר
-router.put( "/upgrade-role",
-  upload.single("id_card_photo"),
-  async (req, res) => {
+router.put( "/upgrade-role",upload.single("id_card_photo"),async (req, res) => {
     const { id_number, email } = req.body;
     const idCardPath = req.file?.filename;
 
@@ -273,8 +328,10 @@ router.put("/change-password", async (req, res) => {
     const user = rows[0];
 
     // בדיקת סיסמה נוכחית
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
+    const passwordFromDb = String(user.password); // ← המרה בטוחה ל-string
+
+    const isMatch = await bcrypt.compare(currentPassword, passwordFromDb);
+        if (!isMatch) {
       return res
         .status(401)
         .json({ success: false, message: "הסיסמה הנוכחית שגויה" });
@@ -295,8 +352,15 @@ router.put("/change-password", async (req, res) => {
       email,
     ]);
 
-    res.json({ success: true, message: "הסיסמה עודכנה בהצלחה" });
-  } catch (err) {
+    const [updated] = await conn.execute(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+
+    req.session.user = updated[0]; // ← רענון ה-session עם המשתמש החדש
+
+    res.status(200).json({ success: true, message: "הסיסמה עודכנה בהצלחה" });
+      } catch (err) {
     console.error("שגיאה בשינוי סיסמה:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }

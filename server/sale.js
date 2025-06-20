@@ -124,9 +124,6 @@ router.post("/update-sale-address", async (req, res) => {
 });
 
 
-
-
-
 // מעדכן את כתובת המשתמש בפרופיל
 router.post("/update-user-address", async (req, res) => {
   const { product_id, city, street, house_number, apartment_number, zip } =

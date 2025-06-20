@@ -9,10 +9,8 @@ import LoginForm from "../../components/LoginForm/LoginForm";
 import {
   getQuotationsByProductId,
   registerToQuotation,
-  cancelQuotationRegistration,
-  uploadIdCard,
-} from "../../services/quotationApi";
-
+  cancelQuotationRegistration,} from "../../services/quotationApi";
+import {uploadIdCard} from "../../services/authApi"
 function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -103,7 +101,8 @@ function ProductPage() {
   };
 
   const handleRegisterToSale = () => {
-    if (!user?.id_number || !user?.role) {
+    // משתמש לא מחובר כלל (אין user או אין email)
+    if (!user || !user.email) {
       openModal({
         title: "התחברות נדרשת",
         message: "כדי להירשם למוצר זה, עליך להתחבר או להירשם לאתר",
@@ -114,17 +113,20 @@ function ProductPage() {
         },
         extraButtonText: "הרשמה",
         onExtra: () => navigate("/register"),
-    
       });
       return;
     }
 
+    // המשתמש מחובר אבל חסרים לו ת"ז או צילום
     if (!user.id_number || !user.id_card_photo) {
       setShowIdForm(true);
-    } else {
-      completeRegistration(user.id_number);
+      return;
     }
+
+    // המשתמש מחובר ויש לו ת"ז + צילום
+    completeRegistration(user.id_number);
   };
+  
 //הרשמה למוצר
   const completeRegistration = async (idNum) => {
     try {
@@ -169,6 +171,7 @@ function ProductPage() {
 
   const handleIdSubmit = async (e) => {
     e.preventDefault();
+
     if (!idNumberInput || !idPhotoFile) {
       openModal({
         title: "שגיאה",
@@ -179,20 +182,21 @@ function ProductPage() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("id_number", idNumberInput);
-    formData.append("id_card_photo", idPhotoFile);
-    formData.append("email", user.email);
-
     try {
+      // שליחה לשרת
       await uploadIdCard({
         idNumber: idNumberInput,
         idPhotoFile: idPhotoFile,
         email: user.email,
       });
-      
+
+      // עדכון ה־AuthContext עם המידע החדש
       setUser({ ...user, id_number: idNumberInput, id_card_photo: "uploaded" });
+
+      // סגירת הטופס
       setShowIdForm(false);
+
+      // 👇 מיד לאחר מכן — הרשמה להצעה
       completeRegistration(idNumberInput);
     } catch {
       openModal({
@@ -203,6 +207,7 @@ function ProductPage() {
       });
     }
   };
+  
 
   const handleCancelRegistration = async () => {
     try {

@@ -48,7 +48,7 @@ function AddProductPage() {
       //שליחה לproductApi
       const response = await addProduct(data)
 
-      if (response.data.success) {
+      if (response && response.success) {
         openModal({
           title: "הצלחה!",
           message: "המוצר נוסף בהצלחה!",

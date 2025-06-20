@@ -100,43 +100,65 @@ function ProfilePage() {
         onConfirm: () => setModalVisible(false),
       });
     }
+
     if (firstName.trim() === "" || lastName.trim() === "") {
       return showModal({
         title: "שגיאה",
-        message: "שם פרטי ושם משפחה חייבים להכיל אותיות",
+        message: "שם פרטי ושם משפחה הם שדות חובה",
         confirmText: "סגור",
         onConfirm: () => setModalVisible(false),
       });
     }
-    if (phoneNumber.length !== 7) {
-      setPhoneError(true);
+
+    if (phoneNumber !== "") {
+      if (phoneNumber.length !== 7) {
+        return showModal({
+          title: "שגיאה",
+          message: "מספר הטלפון חייב להכיל בדיוק 7 ספרות (ללא הקידומת)",
+          confirmText: "סגור",
+          onConfirm: () => setModalVisible(false),
+        });
+      }
+    } else if (user.phone && user.phone !== "") {
       return showModal({
         title: "שגיאה",
-        message: "מספר הטלפון לא תקין",
+        message: "לא ניתן למחוק את מספר הטלפון לאחר שמולא",
         confirmText: "סגור",
         onConfirm: () => setModalVisible(false),
       });
     }
+
+    if (idNumber !== "") {
+      if (!idRegex.test(idNumber)) {
+        return showModal({
+          title: "שגיאה",
+          message: "תעודת זהות חייבת להכיל 9 ספרות",
+          confirmText: "סגור",
+          onConfirm: () => setModalVisible(false),
+        });
+      }
+    } else if (user.id_number && user.id_number !== "") {
+      return showModal({
+        title: "שגיאה",
+        message: "לא ניתן למחוק את תעודת הזהות לאחר שהוזנה",
+        confirmText: "סגור",
+        onConfirm: () => setModalVisible(false),
+      });
+    }
+
     if (zip && !zipRegex.test(zip)) {
       return showModal({
         title: "שגיאה",
-        message: "מיקוד לא תקין",
+        message: "מיקוד לא תקין (5–7 ספרות)",
         confirmText: "סגור",
         onConfirm: () => setModalVisible(false),
       });
     }
+
     if (houseNumber && !houseRegex.test(houseNumber)) {
       return showModal({
         title: "שגיאה",
         message: "שדה מספר בית לא תקין",
-        confirmText: "סגור",
-        onConfirm: () => setModalVisible(false),
-      });
-    }
-    if (idNumber && !idRegex.test(idNumber)) {
-      return showModal({
-        title: "שגיאה",
-        message: "תעודת זהות חייבת להכיל 9 ספרות כולל ספרת ביקורת",
         confirmText: "סגור",
         onConfirm: () => setModalVisible(false),
       });
@@ -155,12 +177,19 @@ function ProfilePage() {
     formData.append("street", selectedStreet);
     formData.append("house_number", houseNumber);
     formData.append("apartment_number", apartmentNumber);
+
     if (idCardPhoto) formData.append("id_card_photo", idCardPhoto);
-    if (profilePhoto) formData.append("profile_photo", profilePhoto);
+    if (profilePhoto !== null) {
+      // גם null נשלח (למחיקה), וגם קובץ אם נבחר
+      if (profilePhoto === "REMOVE") {
+        formData.append("remove_profile_photo", "1");
+      } else {
+        formData.append("profile_photo", profilePhoto);
+      }
+    }
 
     try {
       const res = await updateUserProfile(formData);
-
       if (res.success) {
         setUser(res.updatedUser);
         showModal({
@@ -172,7 +201,7 @@ function ProfilePage() {
       } else {
         showModal({
           title: "שגיאה",
-          message: "שגיאה בעדכון הפרופיל",
+          message: res.message || "שגיאה בעדכון הפרופיל",
           confirmText: "סגור",
           onConfirm: () => setModalVisible(false),
         });
@@ -186,10 +215,59 @@ function ProfilePage() {
       });
     }
   };
+  
 
   return (
     <div className={styles.page}>
-      <div className={styles.container}>
+      <div className={styles.card}>
+        <div className={styles.media}>
+          <div className={styles.box}>
+            <label>תמונת פרופיל</label>
+            <input
+              type="file"
+              onChange={(e) => setProfilePhoto(e.target.files[0])}
+            />
+            {profilePhoto === "REMOVE" ? (
+              <div>התמונה תוסר לאחר שמירה</div>
+            ) : profilePhoto ? (
+              <img
+                src={URL.createObjectURL(profilePhoto)}
+                className={styles.profileImagePreview}
+                alt="תצוגה מקדימה"
+              />
+            ) : user?.profile_photo ? (
+              <>
+                <img
+                  src={`http://localhost:5000/uploads/${user.profile_photo}`}
+                  className={styles.profileImagePreview}
+                  alt="תמונת פרופיל"
+                />
+                <button type="button" onClick={() => setProfilePhoto("REMOVE")}>
+                  הסר תמונה
+                </button>
+              </>
+            ) : (
+              <div style={{ marginTop: "10px" }}>אין תמונה</div>
+            )}
+          </div>
+
+          <div className={styles.box}>
+            <label>תעודת זהות (קובץ)</label>
+            <input
+              type="file"
+              onChange={(e) => setIdCardPhoto(e.target.files[0])}
+            />
+            {user?.id_card_photo && (
+              <img
+                src={`http://localhost:5000/uploads/${user.id_card_photo}`}
+                alt="תז"
+                width="150"
+                style={{ borderRadius: "6px", marginTop: "10px" }}
+              />
+            )}
+          </div>
+        </div>
+
         <form className={styles.form} onSubmit={handleSave}>
           <h2>הפרופיל שלי</h2>
 
@@ -354,60 +432,34 @@ function ProfilePage() {
               />
             </div>
 
-            <div className={styles.uploadsColumn}>
-              <div className={styles.box}>
-                <label>תמונת פרופיל (אופציונלי)</label>
-                <input
-                  type="file"
-                  onChange={(e) => setProfilePhoto(e.target.files[0])}
-                />
-                {user?.profile_photo && (
-                  <img
-                    src={`http://localhost:5000/uploads/${user.profile_photo}`}
-                    alt="תמונת פרופיל"
-                    width="150"
-                  />
-                )}
-              </div>
-
-              <div className={styles.box}>
-                <label>תעודת זהות (קובץ)</label>
-                <input
-                  type="file"
-                  onChange={(e) => setIdCardPhoto(e.target.files[0])}
-                />
-                {user?.id_card_photo && (
-                  <img
-                    src={`http://localhost:5000/uploads/${user.id_card_photo}`}
-                    alt="תז"
-                    width="150"
-                  />
-                )}
-              </div>
-            </div>
+            <div className={styles.uploadsColumn}></div>
           </div>
 
           <button type="submit">שמור שינויים</button>
         </form>
+      </div>
 
-        {showChangePassword && (
-          <ChangePassword
-            email={email}
-            onClose={() => setShowChangePassword(false)}
-            onSuccess={() => {
+      {showChangePassword && (
+        <ChangePassword
+          email={email}
+          onClose={() => setShowChangePassword(false)}
+          onSuccess={() => {
+            // קודם נסגור את ChangePassword
+            setShowChangePassword(false);
+
+            // ואז נציג את המודאל אחרי השהייה קצרה כדי לא ליצור overlap
+            setTimeout(() => {
               showModal({
                 title: "הצלחה",
                 message: "הסיסמה שונתה בהצלחה",
                 confirmText: "סגור",
-                onConfirm: () => {
-                  setModalVisible(false);
-                  setShowChangePassword(false);
-                },
+                onConfirm: () => setModalVisible(false),
               });
-            }}
-          />
-        )}
-      </div>
+            }, 100); // 100ms זה מספיק
+          }}
+        />
+      )}
+
       {modalVisible && (
         <CustomModal
           title={modalContent.title}

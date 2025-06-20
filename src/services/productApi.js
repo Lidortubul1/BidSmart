@@ -1,12 +1,11 @@
 // src/services/productApi.js
 import axios from "axios";
 
-// הגדרות כלליות 
-axios.defaults.baseURL = "http://localhost:5000";
+// הגדרות כלליות
+axios.defaults.baseURL = "http://localhost:5000"; // שנה בפרודקשן
 axios.defaults.withCredentials = true;
 
-
-//הוספת מוצר 
+// הוספת מוצר
 export async function addProduct(productData) {
   const formData = new FormData();
 
@@ -20,27 +19,35 @@ export async function addProduct(productData) {
     }
   }
 
-  const response = await axios.post("/api/product", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  try {
+    const response = await axios.post("/api/product", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
-  return response.data;
+    return response.data;
+  } catch (error) {
+    console.error("❌ שגיאה בשרת:", error.response?.data || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || "שגיאת שרת",
+    };
+  }
 }
 
-//פונקציה שמראה את כל המוצרים למכירה
+// שליפת כל המוצרים
 export async function fetchAllProducts() {
   const response = await axios.get("/api/product");
   return response.data;
 }
 
-
-//קבלת כל המוצרים של המשתמש
+// שליפת כל המוצרים של המשתמש (הוספתי await במקום return raw)
 export async function getAllProducts() {
-  return await axios.get("http://localhost:5000/api/product");
+  const response = await axios.get("/api/product");
+  return response.data;
 }
 
-// הצגה ושליפת מוצר לפי מזהה
+// שליפת מוצר לפי מזהה
 export async function getProductById(productId) {
-  const res = await axios.get(`/api/product/${productId}`);
-  return res.data;
+  const response = await axios.get(`/api/product/${productId}`);
+  return response.data;
 }

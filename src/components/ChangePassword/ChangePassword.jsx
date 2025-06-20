@@ -7,6 +7,7 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // 🔒 נעילה
 
   const validatePassword = (password) => {
     const hasLetters = /[A-Za-z]/.test(password);
@@ -16,27 +17,40 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // ⛔ מניעת שליחה כפולה
+    setError("");
+    setLoading(true); // 🔒 נועלים עם תחילת פעולה
 
+    // בדיקות לקוח
     if (!validatePassword(newPassword)) {
-      return setError("הסיסמה החדשה חייבת להכיל לפחות 6 תווים, אותיות ומספרים");
+      setError("הסיסמה החדשה חייבת להכיל לפחות 6 תווים, אותיות ומספרים");
+      setLoading(false);
+      return;
     }
 
     if (newPassword !== confirmPassword) {
-      return setError("אימות הסיסמה החדשה נכשל");
+      setError("אימות הסיסמה החדשה נכשל");
+      setLoading(false);
+      return;
     }
 
     try {
       const data = await changePassword(email, currentPassword, newPassword);
+      console.log("🟢 change-password response:", data);
 
-      if (data.success) {
-        onSuccess();
-      } else {
+      if (!data.success) {
         setError(data.message || "שגיאה בשינוי הסיסמה");
+        setLoading(false);
+        return;
       }
-      
+
+      // ✅ הצלחה אמיתית
+      onSuccess();
     } catch (err) {
-      console.error(err);
-      setError("שגיאה בשרת");
+      console.error("🔴 שינוי סיסמה נכשל:", err);
+      setError("שגיאה כללית בשרת");
+    } finally {
+      setLoading(false); // שחרור נעילה תמיד
     }
   };
 
@@ -51,6 +65,7 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
+            disabled={loading}
           />
           <input
             type="password"
@@ -58,6 +73,7 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
+            disabled={loading}
           />
           <input
             type="password"
@@ -65,11 +81,15 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
+            disabled={loading}
           />
           {error && <p className={styles.error}>{error}</p>}
+
           <div className={styles.actions}>
-            <button type="submit">שנה סיסמה</button>
-            <button type="button" onClick={onClose}>
+            <button type="submit" disabled={loading}>
+              {loading ? "שומר..." : "שנה סיסמה"}
+            </button>
+            <button type="button" onClick={onClose} disabled={loading}>
               ביטול
             </button>
           </div>

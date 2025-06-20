@@ -1,14 +1,16 @@
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:5000";
+// הגדרת ברירת מחדל לבסיס ה־URL
+axios.defaults.baseURL = "http://localhost:5000"; // שנה זאת לפרודקשן בעתיד
 axios.defaults.withCredentials = true;
 
-const BASE_URL = "http://localhost:5000/api/auth";
+// בסיס עבור כל פעולות ההרשאה
+const BASE_URL = "/api/auth";
 
 // פונקציית התחברות
 export async function loginUser(email, password) {
   try {
-    const response = await axios.post("/api/auth/login", { email, password });
+    const response = await axios.post(`${BASE_URL}/login`, { email, password });
     return response.data;
   } catch (error) {
     console.error("Error logging in:", error);
@@ -16,8 +18,7 @@ export async function loginUser(email, password) {
   }
 }
 
-
-//פונקציית הרשמה שמחברת בין הפרונט לבאק 
+// פונקציית הרשמה
 export async function registerUser(firstName, lastName, email, password) {
   try {
     const response = await axios.post(`${BASE_URL}/register`, {
@@ -33,8 +34,20 @@ export async function registerUser(firstName, lastName, email, password) {
   }
 }
 
+// עדכון תעודת זהות + צילום תעודה
+export async function uploadIdCard({ idNumber, idPhotoFile, email }) {
+  const formData = new FormData();
+  formData.append("id_number", idNumber);
+  formData.append("id_card_photo", idPhotoFile);
+  formData.append("email", email);
 
-//שולח בקשת איפוס סיסמה לשרת עם טוקן וסיסמה חדשה
+  const response = await axios.put(`${BASE_URL}/save-id-info`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+}
+
+// איפוס סיסמה עם טוקן
 export async function resetPassword(token, newPassword) {
   const response = await axios.post(`${BASE_URL}/reset-password`, {
     token,
@@ -43,30 +56,25 @@ export async function resetPassword(token, newPassword) {
   return response.data;
 }
 
-// שולח טופס עדכון פרופיל משתמש לשרת, כולל קבצים (תמונה, תעודת זהות)
+// עדכון פרופיל (כולל קבצים)
 export async function updateUserProfile(formData) {
   const response = await axios.put(`${BASE_URL}/update-profile`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
-    withCredentials: true,
   });
   return response.data;
 }
 
-
-// שליחת בקשה לאיפוס סיסמה
+// שליחת בקשת איפוס סיסמה במייל
 export async function sendResetPasswordEmail(email) {
-  return axios.post(`${BASE_URL}/forgot-password`, {
-    email,
-  });
+  return axios.post(`${BASE_URL}/forgot-password`, { email });
 }
 
-// שליחת בקשת שדרוג לתפקיד מוכר
+// שדרוג לתפקיד מוכר
 export function upgradeUserRole(formData) {
   return axios.put(`${BASE_URL}/upgrade-role`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 }
-
 
 // שינוי סיסמה לחשבון מחובר
 export async function changePassword(email, currentPassword, newPassword) {
@@ -76,9 +84,14 @@ export async function changePassword(email, currentPassword, newPassword) {
       currentPassword,
       newPassword,
     });
+
+    console.log("🔥 success response:", response);
     return response.data;
   } catch (error) {
-    console.error("Error changing password:", error);
+    console.error("🔥 error response:", error);
+    if (error.response?.data) {
+      return error.response.data;
+    }
     return { success: false, message: "שגיאה בשרת" };
   }
 }

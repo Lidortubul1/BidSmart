@@ -80,15 +80,19 @@ function ShippingForm() {
     e.preventDefault();
 
     try {
+      // הגדרת אובייקט חדש שלא מוחק ישירות את formData (כדי לא לשבש את ה־state)
+      const addressToSend = { ...formData };
+
+      // אם זה איסוף עצמי – ננקה את שדות הכתובת (אבל נשאיר notes)
       if (deliveryMethod === "pickup") {
-        delete formData.city;
-        delete formData.street;
-        delete formData.house_number;
-        delete formData.apartment_number;
-        delete formData.zip;
-      }      
-      // קודם כל שולח את הכתובת לטבלת sale בלבד
-      const data = await updateSaleAddress(id, deliveryMethod, formData);
+        addressToSend.city = null;
+        addressToSend.street = null;
+        addressToSend.house_number = null;
+        addressToSend.apartment_number = null;
+        addressToSend.zip = null;
+      }
+
+      const data = await updateSaleAddress(id, deliveryMethod, addressToSend);
 
       if (!data.success) {
         return showModal({
@@ -113,7 +117,6 @@ function ShippingForm() {
             try {
               const userData = await updateUserAddress(id, formData);
 
-
               if (!userData.success) {
                 return showModal({
                   title: "שגיאה",
@@ -127,7 +130,8 @@ function ShippingForm() {
                 title: "הצלחה",
                 message: "הכתובת נשמרה גם בפרופיל שלך!",
                 confirmText: "חזרה לדף הבית",
-                onConfirm: () => navigate(user.role === "seller" ? "/seller" : "/buyer")
+                onConfirm: () =>
+                  navigate(user.role === "seller" ? "/seller" : "/buyer"),
               });
             } catch (err) {
               showModal({
@@ -143,7 +147,8 @@ function ShippingForm() {
               title: "כתובת נשלחה",
               message: "הכתובת נשלחה רק לטובת המשלוח.",
               confirmText: "חזרה לדף הבית",
-              onConfirm: () => navigate(user.role === "seller" ? "/seller" : "/buyer"),
+              onConfirm: () =>
+                navigate(user.role === "seller" ? "/seller" : "/buyer"),
             }),
         });
       } else {
@@ -152,9 +157,10 @@ function ShippingForm() {
           title: "איסוף עצמי",
           message: "בחירתך נקלטה בהצלחה. יש ליצור קשר עם המוכר לתיאום.",
           confirmText: "חזרה לדף הבית",
-          onConfirm: () => navigate(user.role === "seller" ? "/seller" : "/buyer"),
+          onConfirm: () =>
+            navigate(user.role === "seller" ? "/seller" : "/buyer"),
         });
-      }      
+      }
     } catch (err) {
       showModal({
         title: "שגיאת רשת",

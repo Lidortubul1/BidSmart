@@ -5,8 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/authApi.js";
 import CustomModal from "../CustomModal/CustomModal";
 import styles from "./RegisterForm.module.css"; 
+import { useAuth } from "../../auth/AuthContext";
 
 function RegisterForm({ redirectAfterRegister = "/buyer" }) {
+  const { setUser } = useAuth();
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     first_name: "",
@@ -26,17 +29,28 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
   });
   
 
-  const showModal = (title, message, onConfirm = null, extraButtonText = "", onExtra = null) => {
+  const showModal = (
+    title,
+    message,
+    onConfirm = null,
+    extraButtonText = "",
+    onExtra = null,
+    cancelText = "סגור", // ← ברירת מחדל
+    onCancel = () => setModal({ ...modal, show: false }) // ← פעולה
+  ) => {
     setModal({
       show: true,
       title,
       message,
-      confirmText: onConfirm ? "הירשם כמשתמש חדש" : "סגור",
-      onConfirm: onConfirm || (() => setModal({ ...modal, show: false })),
+      confirmText: cancelText,
+      onConfirm,
       extraButtonText,
       onExtra,
+      cancelText,
+      onCancel,
     });
   };
+  
   
 
   const handleChange = (e) => {
@@ -46,35 +60,53 @@ function RegisterForm({ redirectAfterRegister = "/buyer" }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await registerUser(
+      const res = await registerUser(
         formData.first_name,
         formData.last_name,
         formData.email,
         formData.password
       );
 
-      showModal("הרשמה בוצעה", "נרשמת בהצלחה!", () => {
-        setModal({ ...modal, show: false });
-        navigate(redirectAfterRegister);
-      });
+      if (res.user) {
+        setUser(res.user); // מתחבר למשתמש מיידית
+      }
+
+      showModal(
+        "הרשמה בוצעה",
+        "נרשמת בהצלחה!",
+        null, // ← אין צורך ב-confirm רגיל
+        "מעבר לדף הבית", // ← זה הטקסט של הכפתור
+        () => {
+          setModal({ ...modal, show: false });
+          navigate(redirectAfterRegister);
+        },
+        "", // cancelText ריק = לא יוצג
+        null
+      );
+      
+      
     } catch (err) {
       if (err.response?.data?.message === "האימייל כבר קיים") {
         showModal(
           "שגיאה בהרשמה",
           "האימייל הזה כבר קיים במערכת.",
-          () => setModal({ ...modal, show: false }), // הירשם כמשתמש חדש – פשוט סוגר
-          "מעבר להתחברות",
-          () => navigate("/login")
+          () => setModal({ ...modal, show: false }), // כפתור סגור
+          "מעבר להתחברות", // כפתור מעבר
+          () => navigate("/login"), // פעולה של מעבר
+          "סגור", // טקסט כפתור סגירה
+          () => setModal({ ...modal, show: false }) // פעולה של סגירה
         );
+        
+        
       } else {
         showModal(
           "שגיאה בהרשמה",
           err.response?.data?.message || err.message || "שגיאה לא ידועה"
         );
       }
-      
     }
   };
+  
 
   return (
     <>

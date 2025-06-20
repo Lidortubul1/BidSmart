@@ -1,31 +1,25 @@
 /* ProfilePage.module.css */
 
 .page {
-  background-color: white;
-  background-size: cover;
+  background-color: #f3f6fb;
   min-height: 100vh;
   padding: 40px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  direction: rtl;
 }
 
-body {
-  background-color: white !important;
-}
-
-.container {
-  background-color: white;
-  padding: 40px;
-  border-radius: 12px;
-  max-width: 1000px;
-  width: 100%;
+.card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: row-reverse;
+  padding: 40px;
   gap: 40px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  direction: rtl;
-  align-items: flex-start;
+  max-width: 1000px;
+  width: 100%;
 }
 
 .form {
@@ -38,71 +32,32 @@ body {
   margin-bottom: 30px;
   text-align: right;
   font-size: 24px;
+  color: #333;
 }
 
-.form label {
-  margin-top: 12px;
-  margin-bottom: 4px;
+.inputGroup {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.inputGroup label {
   font-weight: bold;
-  text-align: right;
+  margin-bottom: 6px;
 }
 
-.form input,
-.form select {
+.inputGroup input,
+.inputGroup select {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 16px;
-  width: 100%;
 }
 
-.row {
-  display: flex;
-  gap: 10px;
-  flex-direction: column;
-}
 
-.button {
-  margin-top: 30px;
-  padding: 12px;
-  background-color: #2196f3;
-  color: white;
-  font-weight: bold;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  width: 100%;
-}
 
-.media {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  justify-content: flex-start;
-  margin-top: 45px;
-}
-
-.box {
-  border: 2px dashed #ccc;
-  border-radius: 6px;
-  padding: 16px;
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.box img {
-  margin-top: 10px;
-  max-width: 100%;
-  border-radius: 6px;
-}
-
-.checkboxWrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+button[type="submit"]:hover {
+  background-color: #1976d2;
 }
 
 .phoneRow {
@@ -119,6 +74,7 @@ body {
 .phoneRow input {
   flex: 1;
 }
+
 .phoneNumberInput {
   padding: 10px;
   border: 1px solid #ccc;
@@ -126,6 +82,66 @@ body {
   font-size: 16px;
   width: 100%;
 }
+
 .error {
   border: 2px solid red !important;
+}
+
+.media {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.box {
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  padding: 16px;
+  width: 100%;
+  max-width: 220px;
+  text-align: center;
+}
+
+.box label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.box input[type="file"] {
+  margin-bottom: 10px;
+}
+
+.profileImagePreview {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #2196f3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .card {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .media {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .box {
+    max-width: 100%;
+  }
+
+  .form {
+    width: 100%;
+  }
 }
