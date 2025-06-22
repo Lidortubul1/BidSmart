@@ -294,7 +294,9 @@ router.put( "/upgrade-role",upload.single("id_card_photo"),async (req, res) => {
 
       // עדכון ת"ז וקובץ ת"ז
       await conn.execute(
-        "UPDATE users SET id_number = ?, id_card_photo = ? WHERE email = ?",
+        `UPDATE users 
+        SET id_number = ?, id_card_photo = ?, role = 'seller' 
+        WHERE email = ?`,
         [id_number, idCardPath, email]
       );
 
