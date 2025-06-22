@@ -1,24 +1,26 @@
-//שמות תכנתים: לידור טבול ולילי וינר
-const express = require("express");
-const session = require("express-session");
-const cors = require("cors");
-const http = require("http");
-const { Server } = require("socket.io");
+//שמות תכנתים: לידור טבול ולילי ויינר
+const express = require("express"); // ייבוא ספריות וקבצים
+const session = require("express-session"); //הספרייה שמריצה את שרת ה-API
+const cors = require("cors"); //מאפשרת לשמור session של משתמש
+//מאפשר ל־Frontend לשלוח בקשות לשרת
+const http = require("http"); //http יוצר שרת רגיל
+const { Server } = require("socket.io"); //socket.io מאפשר תקשורת בזמן אמת (Live Auction)
+//ייבוא קבצי ראוטים ופונקציות עזר HTTP
 const productRoutes = require("./products.js");
 const authRoutes = require("./auth");
 const quotationRoutes = require("./quotation");
 const categoryRoutes = require("./categories.js");
 const saleRoutes = require("./sale.js");
-const { setupSocket } = require("./socketManager.js");
 const userRoutes = require("./users");
-const db = require("./database.js");
 const paymentRoutes = require("./payment");
-const { checkIsLiveProducts } = require("./liveChecker.js");
-const { checkUnpaidWinners } = require("./saleChecker");
-const { notifyUpcomingAuctions } = require("./liveChecker");
+//מנהל ה (Real-time) עם המשתמשים דרך socket.io
+const { setupSocket } = require("./socketManager.js");
 
-
-
+const db = require("./database.js");
+//פונקציות שרצות באופן קבוע אוטומטית
+const { checkIsLiveProducts } = require("./liveChecker.js"); //כל 10 שניות לבדוק אם צריך להתחיל מכירה
+const { checkUnpaidWinners } = require("./saleChecker"); //כל 12 שעות לבדוק מי זכה ועדיין לא שילם
+const { notifyUpcomingAuctions } = require("./liveChecker"); //כל דקה לבדוק אם יש התראה למכירה שמתקרבת
 
 const app = express(); // יצירת אפליקציית אקספרס חדשה
 const PORT = 5000; // הגדרת פורט להרצת השרת
@@ -26,7 +28,6 @@ const server = http.createServer(app); // יצירת שרת HTTP עם אקספר
 
 // קונפיגורציית Express – מאפשרת ניתוח JSON בבקשות
 app.use(express.json());
-
 // הגדרת socket.io עם הרשאות CORS לקליינט בריאקט
 const io = new Server(server, {
   cors: {
@@ -60,6 +61,7 @@ app.use(
     },
   })
 );
+
 //שימוש בstatic
 // חשיפת תיקיית התמונות לצפייה בדפדפן דרך /uploads
 app.use("/uploads", express.static("uploads"));
@@ -97,5 +99,5 @@ setInterval(() => {
 
 // כל דקה בודק אם יש מכירה שמתחילה עוד 10 דקות – שולח התראה למשתתפים שנרשמו
 setInterval(() => {
-  notifyUpcomingAuctions(); 
+  notifyUpcomingAuctions();
 }, 60000); // כל דקה

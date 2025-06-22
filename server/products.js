@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
       "SELECT * FROM product WHERE product_status = 'for sale'"
     );
 
-    // 🔁 הוספת תמונות לכל מוצר
+    //  הוספת תמונות לכל מוצר
     for (const product of products) {
       const [images] = await conn.execute(
         "SELECT image_url FROM product_images WHERE product_id = ?",
@@ -31,7 +31,6 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch product" });
   }
 });
-
 
 // הוספת מוצר חדש
 router.post("/", upload.array("images", 5), async (req, res) => {
@@ -49,19 +48,25 @@ router.post("/", upload.array("images", 5), async (req, res) => {
   } = req.body;
   const files = req.files;
 
-  // 🟢 אימות שדות חובה לפי הדרישות
+  //  אימות שדות חובה לפי הדרישות
   if (!product_name || product_name.trim() === "") {
-    return res.status(400).json({ success: false, message: "שם המוצר הוא שדה חובה" });
+    return res
+      .status(400)
+      .json({ success: false, message: "שם המוצר הוא שדה חובה" });
   }
 
   if (!start_date) {
-    return res.status(400).json({ success: false, message: "תאריך התחלה הוא שדה חובה" });
+    return res
+      .status(400)
+      .json({ success: false, message: "תאריך התחלה הוא שדה חובה" });
   }
 
   const now = new Date();
   const startDateObj = new Date(start_date);
   if (isNaN(startDateObj.getTime())) {
-    return res.status(400).json({ success: false, message: "תאריך התחלה לא תקין" });
+    return res
+      .status(400)
+      .json({ success: false, message: "תאריך התחלה לא תקין" });
   }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -73,16 +78,22 @@ router.post("/", upload.array("images", 5), async (req, res) => {
   }
 
   if (!start_time) {
-    return res.status(400).json({ success: false, message: "שעת התחלה היא שדה חובה" });
+    return res
+      .status(400)
+      .json({ success: false, message: "שעת התחלה היא שדה חובה" });
   }
 
   if (!end_date) {
-    return res.status(400).json({ success: false, message: "תאריך סיום הוא שדה חובה" });
+    return res
+      .status(400)
+      .json({ success: false, message: "תאריך סיום הוא שדה חובה" });
   }
 
   const endDateObj = new Date(end_date);
   if (isNaN(endDateObj.getTime())) {
-    return res.status(400).json({ success: false, message: "תאריך סיום לא תקין" });
+    return res
+      .status(400)
+      .json({ success: false, message: "תאריך סיום לא תקין" });
   }
   if (endDateObj <= startDateObj) {
     return res.status(400).json({
@@ -99,7 +110,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
   }
 
   const conn = await db.getConnection();
-  await conn.beginTransaction();
+  await conn.beginTransaction(); //פעולה שמאפשרת לקבץ כמה פקודות SQL ביחד – כך שאם אחת מהן נכשלת, כולן מתבטלות
 
   try {
     const [result] = await conn.execute(
@@ -141,18 +152,15 @@ router.post("/", upload.array("images", 5), async (req, res) => {
       );
     }
 
-    console.log("📂 קבצים שהתקבלו:", req.files);
+    console.log(" קבצים שהתקבלו:", req.files);
     await conn.commit();
     res.json({ success: true });
   } catch (error) {
-    await conn.rollback();
-    console.error("❌ שגיאה בהעלאת מוצר:", error);
+    await conn.rollback(); //מבטל את כל השינויים שנעשו במסד הנתונים מאז שהתחילה הטרנזקציה וחוזר למצב הקודם
+    console.error(" שגיאה בהעלאת מוצר:", error);
     res.status(500).json({ success: false, message: "שגיאה בהעלאת מוצר" });
   }
 });
-
-
-
 
 //מחזיר מוצר לפי product_id (אם עוד לא קיים)
 // שליפת מוצר בודד לפי product_id
@@ -174,7 +182,7 @@ router.get("/:id", async (req, res) => {
 
     const product = rows[0];
 
-    // 💡 כאן מוסיפים שליפת תמונות
+    //  כאן מוסיפים שליפת תמונות
     const [images] = await conn.execute(
       "SELECT image_url FROM product_images WHERE product_id = ?",
       [id]
@@ -184,11 +192,9 @@ router.get("/:id", async (req, res) => {
 
     res.json(product);
   } catch (err) {
-    console.error("❌ שגיאה בשרת בשליפת מוצר:", err.message);
+    console.error(" שגיאה בשרת בשליפת מוצר:", err.message);
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
-
-
 
 module.exports = router;
