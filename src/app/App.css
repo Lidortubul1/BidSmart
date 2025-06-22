@@ -1,8 +1,8 @@
-/* App.css */
-html, body, #root {
-  height: 100%;
+body, html, #root {
+  height:auto;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 .App {
@@ -11,13 +11,12 @@ html, body, #root {
   min-height: 100vh;
 }
 
+/* הסר גלילה פנימית */
 .App-content {
   flex: 1;
-  padding: 0;
   padding-top: 64px;
   box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible; /* זה מה שימנע גלילה כפולה */
 }
 
 footer {
