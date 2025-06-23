@@ -5,9 +5,11 @@ import citiesData from "../../assets/data/cities_with_streets.json";
 import ChangePassword from "../../components/ChangePassword/ChangePassword";
 import { updateUserProfile } from "../../services/authApi";
 import CustomModal from "../../components/CustomModal/CustomModal";
+import { useNavigate } from "react-router-dom";
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -173,7 +175,7 @@ function ProfilePage() {
         onConfirm: () => setModalVisible(false),
       });
     }
-
+    
     const formData = new FormData();
     formData.append("email", user.email);
     formData.append("new_email", email);
@@ -227,6 +229,14 @@ function ProfilePage() {
   };
   
 
+  if (!user) {
+    // אפשר להחזיר משהו אחר כמו <Navigate /> או הודעה
+    return (
+      <div className={styles.page}>
+        <p>מתנתק מהמערכת, מעביר בחזרה לדף הבית</p>
+      </div>
+    );
+  }
   return (
     <div className={styles.page}>
       <div className={styles.card}>
