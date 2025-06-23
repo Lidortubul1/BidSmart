@@ -119,6 +119,15 @@ function ProfilePage() {
           onConfirm: () => setModalVisible(false),
         });
       }
+
+      if (!/^\+9725\d{1}$/.test(phonePrefix)) {
+        return showModal({
+          title: "שגיאה",
+          message: "קידומת טלפון לא תקינה",
+          confirmText: "סגור",
+          onConfirm: () => setModalVisible(false),
+        });
+      }
     } else if (user.phone && user.phone !== "") {
       return showModal({
         title: "שגיאה",
@@ -127,6 +136,7 @@ function ProfilePage() {
         onConfirm: () => setModalVisible(false),
       });
     }
+    
 
     if (idNumber !== "") {
       if (!idRegex.test(idNumber)) {
@@ -429,6 +439,7 @@ function ProfilePage() {
               <input
                 value={idNumber}
                 onChange={(e) => setIdNumber(e.target.value)}
+                disabled={user.id_number && user.id_number !== ""}
               />
             </div>
 
