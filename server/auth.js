@@ -195,6 +195,38 @@ router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount:
 
       const conn = await db.getConnection();
 
+      // 🆕 שליפה מהמסד
+      const [existingUsers] = await conn.execute(
+        "SELECT * FROM users WHERE email = ?",
+        [currentEmail]
+      );
+      const existingUser = existingUsers[0];
+
+      if (!existingUser) {
+        return res
+          .status(404)
+          .json({ success: false, message: "משתמש לא נמצא" });
+      }
+
+      // 🆕 מניעת שינוי/מחיקת ת"ז
+      if (existingUser.id_number && existingUser.id_number !== id_number) {
+        return res.status(400).json({
+          success: false,
+          message: "לא ניתן לשנות או למחוק את תעודת הזהות לאחר שהוזנה",
+        });
+      }
+      
+
+      if (phone) {
+        if (!/^\+9725\d{1}\d{7}$/.test(phone)) {
+          return res.status(400).json({
+            success: false,
+            message:
+              "מספר טלפון לא תקין – חייב להתחיל בקידומת +9725 ולהכיל 7 ספרות לאחריה",
+          });
+        }
+      }
+      
       let query = `
         UPDATE users SET
         first_name = ?, last_name = ?, id_number = ?, phone = ?, country = ?,
