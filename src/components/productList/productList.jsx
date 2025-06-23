@@ -17,23 +17,37 @@ export default function ProductList({
       .then(setProducts)
       .catch((error) => console.error("Failed to fetch products:", error));
   }, []);
-
+  // סינון מוצרים לפי שאילתת חיפוש, קטגוריה ותת־קטגוריה
   const filteredProducts = products.filter((product) => {
+    // הופך את שם המוצר ותיאורו לאותיות קטנות לצורך השוואה
     const name = product.product_name?.toLowerCase() || "";
     const desc = product.description?.toLowerCase() || "";
+
+    // גם שאילתת החיפוש באותיות קטנות
     const query = searchQuery.toLowerCase();
 
+    // בודק אם החיפוש תואם לשם או תיאור
     const matchesQuery = !query || name.includes(query) || desc.includes(query);
+
+    // בודק התאמה לקטגוריה אם נבחרה אחת
     const matchesCategory =
       !categoryFilter || product.category === categoryFilter;
+
+    // בודק התאמה לתת־קטגוריה אם נבחרה אחת
     const matchesSubCategory =
       !subCategoryFilter || product.sub_category === subCategoryFilter;
 
+    // מחזיר true רק אם כל התנאים מתקיימים
     return matchesQuery && matchesCategory && matchesSubCategory;
   });
 
+  // מחשב כמה עמודים יש לפי כמות מוצרים בעמוד
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  // מחשב את האינדקס של המוצר הראשון בעמוד הנוכחי
   const startIndex = (currentPage - 1) * productsPerPage;
+
+  // גוזר מתוך המוצרים המסוננים רק את אלו שצריך להציג בעמוד הנוכחי
   const currentProducts = filteredProducts.slice(
     startIndex,
     startIndex + productsPerPage

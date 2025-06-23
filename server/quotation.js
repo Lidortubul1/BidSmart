@@ -3,7 +3,6 @@ const router = express.Router();
 const db = require("./database");
 const nodemailer = require("nodemailer");
 
-
 //להוריד שדה קומפליט
 // שליחת הרשמה או הצעת מחיר
 router.post("/", async (req, res) => {
@@ -148,8 +147,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-
-
 // שליפת כל ההצעות של משתמש לפי תעודת זהות
 router.get("/user/:id_number", async (req, res) => {
   const idNumber = req.params.id_number;
@@ -177,12 +174,10 @@ router.get("/user/:id_number", async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error("❌ שגיאה בשליפת הצעות למשתמש:", err.message);
+    console.error(" שגיאה בשליפת הצעות למשתמש:", err.message);
     res.status(500).json({ error: "שגיאה בשליפת הצעות למשתמש" });
   }
 });
-
-
 
 // שליפת הצעות לפי product_id
 router.get("/:product_id", async (req, res) => {
@@ -214,7 +209,6 @@ router.get("/all", async (req, res) => {
   }
 });
 
-
 //מחיקת הצעה של משתמש לפני שהתחילה המכירה
 router.delete("/:productId/:buyerId", async (req, res) => {
   const { productId, buyerId } = req.params;
@@ -233,10 +227,9 @@ router.delete("/:productId/:buyerId", async (req, res) => {
       res.status(404).json({ success: false, message: "ההצעה לא נמצאה" });
     }
   } catch (err) {
-    console.error("❌ שגיאה במחיקת הצעה:", err.message);
+    console.error(" שגיאה במחיקת הצעה:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
-
 
 module.exports = router;

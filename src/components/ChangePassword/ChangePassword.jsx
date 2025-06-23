@@ -7,7 +7,7 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // 🔒 נעילה
+  const [loading, setLoading] = useState(false); //  נעילה
 
   const validatePassword = (password) => {
     const hasLetters = /[A-Za-z]/.test(password);
@@ -17,9 +17,9 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return; // ⛔ מניעת שליחה כפולה
+    if (loading) return; // מניעת שליחה כפולה
     setError("");
-    setLoading(true); // 🔒 נועלים עם תחילת פעולה
+    setLoading(true); //  נועלים עם תחילת פעולה
 
     // בדיקות לקוח
     if (!validatePassword(newPassword)) {
@@ -35,8 +35,9 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
     }
 
     try {
+      // 
       const data = await changePassword(email, currentPassword, newPassword);
-      console.log("🟢 change-password response:", data);
+      console.log(" change-password response:", data);
 
       if (!data.success) {
         setError(data.message || "שגיאה בשינוי הסיסמה");
@@ -44,13 +45,13 @@ export default function ChangePassword({ email, onClose, onSuccess }) {
         return;
       }
 
-      // ✅ הצלחה אמיתית
+      //  הצלחה 
       onSuccess();
     } catch (err) {
-      console.error("🔴 שינוי סיסמה נכשל:", err);
+      console.error(" שינוי סיסמה נכשל:", err);
       setError("שגיאה כללית בשרת");
     } finally {
-      setLoading(false); // שחרור נעילה תמיד
+      setLoading(false); // שחרור נעילה 
     }
   };
 

@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
       product.images = images.map((img) => img.image_url); // מוסיף product.images
     }
 
-    res.json(products);
+    res.json(products); //  כאן מחזיר את כל המוצרים ללקוח
   } catch (e) {
     console.error("שגיאה בקבלת מוצרים:", e);
     res.status(500).json({ error: "Failed to fetch product" });
@@ -190,7 +190,7 @@ router.get("/:id", async (req, res) => {
 
     product.images = images.map((img) => img.image_url); // מוסיף שדה images עם מערך כתובות תמונה
 
-    res.json(product);
+    res.json(product); 
   } catch (err) {
     console.error(" שגיאה בשרת בשליפת מוצר:", err.message);
     res.status(500).json({ message: "שגיאה בשרת" });

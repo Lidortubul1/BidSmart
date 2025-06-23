@@ -37,8 +37,9 @@ function LoginPage({ isModal = false }) {
 
   const handleLoginSuccess = (user) => {
     login(user);
-    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("user", JSON.stringify(user)); //שומרת את פרטי המשתמש שהתחבר באחסון המקומי של הדפדפן
 
+    //אחראי על ניתוב המשתמש לדף המתאים לפי התפקיד שלו
     if (user.role === "admin") {
       navigate("/admin");
     } else if (user.role === "seller") {

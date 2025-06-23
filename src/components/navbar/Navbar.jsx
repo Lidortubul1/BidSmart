@@ -10,7 +10,7 @@ function Navbar() {
 
   const handleLogout = async () => {
     await logout(); // מחכה לסיום הקריאה
-    navigate("/");
+    navigate("/"); // הפנייה חזרה לדף הבית
   };
   
 

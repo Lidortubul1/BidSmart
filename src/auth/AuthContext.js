@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 
@@ -28,7 +27,7 @@ export function AuthProvider({ children }) {
   // פונקציית התחברות – מקבלת את פרטי המשתמש ושומרת אותם ב־state
   const login = (userData) => {
     setUser(userData);
-  }; 
+  };
 
   // פונקציית התנתקות – שולחת לשרת בקשת logout ומנקה את המשתמש המקומי
   const logout = async () => {
@@ -40,7 +39,7 @@ export function AuthProvider({ children }) {
           withCredentials: true, // שומר על שליחת העוגייה לשרת
         }
       );
-      setUser(null); // מנקה את המשתמש מתוך הקונטקסט
+      setUser(null); // מחיקת המשתמש מה־Context
     } catch (err) {
       console.error("שגיאה בהתנתקות:", err);
     }

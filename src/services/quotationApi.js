@@ -31,7 +31,7 @@ export async function registerToQuotation(productId, buyerIdNumber) {
   }
 }
 
-// הסרת הצעה
+// הסרת קונה ממכירה
 export async function cancelQuotationRegistration(productId, buyerIdNumber) {
   await axios.delete(`${BASE_QUOTATION_URL}/${productId}/${buyerIdNumber}`);
 }

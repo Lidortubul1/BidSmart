@@ -4,6 +4,7 @@ import CustomModal from "../CustomModal/CustomModal";
 import styles from "./ProductForm.module.css";
 
 function ProductForm({ onSubmit }) {
+  //formData שומר את כל ערכי הטופס (שם מוצר, תאריך התחלה/סיום, שעה, מחיר, תמונות, תיאור)
   const [formData, setFormData] = useState({
     product_name: "",
     start_date: "",
@@ -41,8 +42,8 @@ function ProductForm({ onSubmit }) {
   useEffect(() => {
     async function loadCategories() {
       try {
-        const data = await fetchCategories();
-        setCategories(data);
+        const data = await fetchCategories(); // שליפה מהשרת
+        setCategories(data); // עדכון ל־state
       } catch (error) {
         console.error("שגיאה בטעינת קטגוריות:", error);
       }
@@ -51,6 +52,7 @@ function ProductForm({ onSubmit }) {
     loadCategories();
   }, []);
 
+  // פונקציה שמטפלת בשינוי בכל אחד משדות הטופס
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -60,10 +62,11 @@ function ProductForm({ onSubmit }) {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // שלא ירענן את הדף
 
-    const { product_name, start_date, end_date, price } = formData;
+    const { product_name, start_date, end_date, price } = formData; //חילוץ של ערכים מתוך האובייקט formData
 
+    //וולידציה לערכים שהוזנו
     if (
       !product_name ||
       !start_date ||
@@ -94,7 +97,7 @@ function ProductForm({ onSubmit }) {
       sub_category: selectedSubCategory,
     };
 
-    onSubmit(preparedData);
+    onSubmit(preparedData); //(preparedData == formData)
   };
 
   return (
