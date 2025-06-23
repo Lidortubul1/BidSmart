@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
   // פונקציית התחברות – מקבלת את פרטי המשתמש ושומרת אותם ב־state
   const login = (userData) => {
     setUser(userData);
-  };
+  }; //מרגע זה המשתמש נחשב מחובר במערכת
 
   // פונקציית התנתקות – שולחת לשרת בקשת logout ומנקה את המשתמש המקומי
   const logout = async () => {

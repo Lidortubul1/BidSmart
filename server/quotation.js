@@ -9,7 +9,7 @@ const nodemailer = require("nodemailer");
 router.post("/", async (req, res) => {
   const { product_id, buyer_id_number, price } = req.body;
 
-  console.log("📥 קיבלנו בקשת הצעה/הרשמה:", {
+  console.log(" קיבלנו בקשת הצעה/הרשמה:", {
     product_id,
     buyer_id_number,
     price,
@@ -35,7 +35,7 @@ router.post("/", async (req, res) => {
     const now = new Date();
     const endDate = new Date(product.end_date);
 
-    // 🟢 הרשמה רגילה (price = 0)
+    //  הרשמה רגילה (price = 0)
     if (price === 0) {
       const [existing] = await conn.execute(
         "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
@@ -51,9 +51,9 @@ router.post("/", async (req, res) => {
           "INSERT INTO quotation (product_id, buyer_id_number, price) VALUES (?, ?, ?)",
           [product_id, buyer_id_number, 0]
         );
-        console.log("✅ נרשמת בהצלחה ל־quotation");
+        console.log(" נרשמת בהצלחה ל־quotation");
       } catch (err) {
-        console.error("❌ שגיאה בהכנסת שורת הרשמה:", err.message);
+        console.error(" שגיאה בהכנסת שורת הרשמה:", err.message);
         return res
           .status(500)
           .json({ success: false, message: "שגיאה בשמירת ההרשמה" });
@@ -83,29 +83,29 @@ router.post("/", async (req, res) => {
         };
 
         transporter.sendMail(mailOptions, (err, info) => {
-          if (err) console.error("❌ שגיאה בשליחת מייל:", err);
-          else console.log("📧 מייל נשלח:", info.response);
+          if (err) console.error(" שגיאה בשליחת מייל:", err);
+          else console.log(" מייל נשלח:", info.response);
         });
       }
 
       return res.json({ success: true, message: "נרשמת למכירה" });
     }
 
-    // 🔒 מכירה הסתיימה
+    //  מכירה הסתיימה
     if (now > endDate) {
       return res
         .status(400)
         .json({ success: false, message: "המכירה הסתיימה" });
     }
 
-    // ⛔ הצעה נמוכה ממחיר פתיחה
+    //  הצעה נמוכה ממחיר פתיחה
     if (price < product.price) {
       return res
         .status(400)
         .json({ success: false, message: "הצעה נמוכה ממחיר פתיחה" });
     }
 
-    // 🔄 בדיקת הצעה קיימת
+    //  בדיקת הצעה קיימת
     const [existingBid] = await conn.execute(
       "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
       [product_id, buyer_id_number]
@@ -119,9 +119,9 @@ router.post("/", async (req, res) => {
            ON DUPLICATE KEY UPDATE price = VALUES(price), bid_time = NOW()`,
           [product_id, buyer_id_number, price]
         );
-        console.log("✅ הצעה עודכנה");
+        console.log(" הצעה עודכנה");
       } catch (err) {
-        console.error("❌ שגיאה בעדכון הצעה:", err.message);
+        console.error(" שגיאה בעדכון הצעה:", err.message);
         return res
           .status(500)
           .json({ success: false, message: "שגיאה בעדכון הצעה" });
@@ -132,9 +132,9 @@ router.post("/", async (req, res) => {
           "INSERT INTO quotation (product_id, buyer_id_number, price) VALUES (?, ?, ?)",
           [product_id, buyer_id_number, price]
         );
-        console.log("✅ הצעה חדשה נשמרה");
+        console.log(" הצעה חדשה נשמרה");
       } catch (err) {
-        console.error("❌ שגיאה בהוספת הצעה:", err.message);
+        console.error(" שגיאה בהוספת הצעה:", err.message);
         return res
           .status(500)
           .json({ success: false, message: "שגיאה בשמירת ההצעה" });
@@ -143,7 +143,7 @@ router.post("/", async (req, res) => {
 
     res.json({ success: true, message: "ההצעה נשמרה בהצלחה" });
   } catch (err) {
-    console.error("❌ שגיאה כללית:", err.message);
+    console.error(" שגיאה כללית:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
@@ -192,7 +192,7 @@ router.get("/:product_id", async (req, res) => {
     const conn = await db.getConnection();
 
     const [bids] = await conn.execute(
-      "SELECT * FROM quotation WHERE product_id = ? ORDER BY price DESC",
+      "SELECT * FROM quotation WHERE product_id = ? ORDER BY price DESC", //שליפה לפי מחיר מהגבוה לנמוך
       [product_id]
     );
 
