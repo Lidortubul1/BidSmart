@@ -9,26 +9,34 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null); // המשתמש המחובר, null אם לא מחובר
 
+  
   useEffect(() => {
-    // בעת טעינת האפליקציה – מבצע בקשה לשרת לבדוק אם יש session קיים (עוגייה)
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
     axios
-      .get("http://localhost:5000/api/auth/session", { withCredentials: true }) // שולח גם את העוגייה
+      .get("http://localhost:5000/api/auth/session", { withCredentials: true })
       .then((res) => {
         if (res.data.loggedIn) {
-          // אם השרת מאשר שהמשתמש מחובר – נשמור אותו ב־state
           setUser(res.data.user);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
         }
       })
       .catch((err) => {
-        // במקרה של שגיאה (שרת לא זמין / לא מחובר) – מדפיס שגיאה לקונסול
         console.error("שגיאה בבדיקת session:", err);
       });
-  }, []); // רץ פעם אחת בלבד – כשנטען הקומפוננט
+  }, []);
+  
+
 
   // פונקציית התחברות – מקבלת את פרטי המשתמש ושומרת אותם ב־state
   const login = (userData) => {
     setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
+  
 
   // פונקציית התנתקות – שולחת לשרת בקשת logout ומנקה את המשתמש המקומי
   const logout = async () => {
@@ -40,6 +48,7 @@ export function AuthProvider({ children }) {
           withCredentials: true, // שומר על שליחת העוגייה לשרת
         }
       );
+      localStorage.removeItem("user"); // מוחק גם מה־localStorage
       setUser(null); // מנקה את המשתמש מתוך הקונטקסט
     } catch (err) {
       console.error("שגיאה בהתנתקות:", err);
