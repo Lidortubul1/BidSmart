@@ -50,3 +50,12 @@ export async function markProductDelivered(product_id) {
   });
   return response.data;
 }
+
+//סימון ע"י המוכר שהפריט נשלח לקונה או נמסר באיסוף עצמי
+export async function markProductAsSent(productId) {
+  try {
+    await axios.put(`/api/sale/mark-as-sent/${productId}`);
+  } catch (error) {
+    console.error("❌ שגיאה בעדכון המוצר כנשלח:", error);
+  }
+}

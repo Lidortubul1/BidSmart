@@ -232,4 +232,9 @@ router.delete("/:productId/:buyerId", async (req, res) => {
   }
 });
 
+
+//פונקציה שמחשבת כמה אנשים נרשמו למוצר 
+
+
+
 module.exports = router;

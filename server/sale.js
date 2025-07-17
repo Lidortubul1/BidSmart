@@ -437,5 +437,19 @@ router.post("/save-order-summary", async (req, res) => {
   }
 });
 
+//שינוי שדה של מוצר ע"י המוכר לפריט שנמסר 
+router.put("/mark-as-sent/:productId", async (req, res) => {
+  const { productId } = req.params;
+  try {
+    const conn = await db.getConnection();
+    await conn.query("UPDATE sale SET sent = 'yes' WHERE product_id = ?", [
+      productId,
+    ]);
+    res.json({ message: "עודכן בהצלחה" });
+  } catch (error) {
+    console.error("❌ שגיאה בעדכון sent:", error);
+    res.status(500).json({ message: "שגיאה בעדכון" });
+  }
+});
 
 module.exports = router;

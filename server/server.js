@@ -15,7 +15,7 @@ const userRoutes = require("./users");
 const paymentRoutes = require("./payment");
 //מנהל ה (Real-time) עם המשתמשים דרך socket.io
 const { setupSocket } = require("./socketManager.js");
-
+const sellerRoutes = require("./seller.js");
 const db = require("./database.js");
 //פונקציות שרצות באופן קבוע אוטומטית
 const { checkIsLiveProducts } = require("./liveChecker.js"); //כל 10 שניות לבדוק אם צריך להתחיל מכירה
@@ -62,10 +62,12 @@ app.use(
   })
 );
 
+
+
 //שימוש בstatic
 // חשיפת תיקיית התמונות לצפייה בדפדפן דרך /uploads
 app.use("/uploads", express.static("uploads"));
-
+app.use("/api/seller", sellerRoutes);//ניהול מוצרים של מוכר
 // רישום כל הנתיבים (ראוטים) עם prefix מתאים לפי נושא
 app.use("/api/product", productRoutes); // מוצר
 app.use("/api/categories", categoryRoutes); // קטגוריות

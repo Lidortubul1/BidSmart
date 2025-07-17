@@ -1,0 +1,66 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+}
+
+.modal p {
+  margin: 5px 0;
+  text-align: right;
+  direction: rtl;
+}
+
+.modal h2, .modal h3 {
+  text-align: center;
+}
+
+
+.closeButton {
+  all: unset;
+  display: inline-block;
+  margin-top: 20px;
+  background-color: #000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.3s ease;
+}
+
+.closeButton:hover {
+  background-color: #333;
+}
+
+.sendButton {
+  margin-top: 20px;
+  background-color: #1a73e8;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.sendButton:hover {
+  background-color: #1558b0;
+}
