@@ -21,6 +21,7 @@ const db = require("./database.js");
 const { checkIsLiveProducts } = require("./liveChecker.js"); //כל 10 שניות לבדוק אם צריך להתחיל מכירה
 const { checkUnpaidWinners } = require("./saleChecker"); //כל 12 שעות לבדוק מי זכה ועדיין לא שילם
 const { notifyUpcomingAuctions } = require("./liveChecker"); //כל דקה לבדוק אם יש התראה למכירה שמתקרבת
+const aiChatRoutes = require("./aiChat.js");
 
 const app = express(); // יצירת אפליקציית אקספרס חדשה
 const PORT = 5000; // הגדרת פורט להרצת השרת
@@ -76,7 +77,7 @@ app.use("/api/quotation", quotationRoutes); // הצעות מחיר
 app.use("/api/sale", saleRoutes); // מכירה וזכיות
 app.use("/api/payment", paymentRoutes); // תשלומים דרך PayPal
 app.use("/api/users", userRoutes); // משתמשים ופרופילים
-
+app.use("/api/ai-chat", aiChatRoutes);//נציגת AI
 // בדיקת חיבור למסד הנתונים והדפסת שם הדאטהבייס
 db.getConnection().then((conn) => {
   conn.query("SELECT DATABASE() AS db").then(([rows]) => {

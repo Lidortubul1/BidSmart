@@ -27,6 +27,7 @@ import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
 import DashboardRouter from "../components/DashboardRouter/DashboardRouter.jsx";
 import LiveAuctionWrapper from "../components/LiveAuctionWrapper/LiveAuctionWrapper.jsx";
+import AIChat from "../components/AIChat/AIChat.jsx";
 
 // לוחות ניהול
 import BuyerDashboard from "../pages/home/BuyerDashboard";
@@ -93,6 +94,9 @@ function App() {
           <Route path="/search-results" element={<SearchResultsPage />} />
         </Routes>
       </div>
+
+      <AIChat/>
+
       <Footer />
     </div>
   );

@@ -1,0 +1,126 @@
+.chatWrapper {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 999;
+  font-family: "Heebo", sans-serif;
+}
+
+.chatToggle {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 1.6rem;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.chatBox {
+  width: 320px;
+  height: 420px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  border-radius: 25px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: "Heebo", sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 25px 25px 0 0;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.header span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.header button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 40px;   /* קובע את הרוחב המדויק של הכפתור */
+}
+
+.messages {
+  flex-grow: 1;
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #f9f9f9;
+}
+
+.user {
+  align-self: flex-end;
+  background: #1565c0;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 20px 0 20px 20px;
+  max-width: 75%;
+  font-size: 0.9rem;
+}
+
+.ai {
+  align-self: flex-start;
+  background: #eee;
+  color: #333;
+  padding: 10px 15px;
+  border-radius: 0 20px 20px 20px;
+  max-width: 75%;
+  font-size: 0.9rem;
+}
+.inputArea {
+  display: flex; /*מציב את ה-input והכפתור בשורה אחת*/
+  padding: 13px; /* ריווח פנימי מכל הצדדים */
+  background: white; /* צבע רקע לבן לאיזור של ההקלדה והכפתור */
+  border-top: 1px solid #eee; /* קו הפרדה אפור דק בחלק העליון */
+  align-items: center; /* ממרכז אנכית את ה-input והכפתור */
+  gap: 5px; /* רווח של 10px בין ה-input לכפתור */
+}
+
+.inputArea input {
+  flex-grow: 1; /* גורם ל-input לתפוס את כל הרוחב הפנוי */
+  padding: 10px 10px; /* ריווח פנימי בטקסט של ה-input (למעלה/למטה 10, ימין/שמאל 16) */
+  border-radius: 30px; /* פינות עגולות ל-input */
+  border: 1px solid #ccc; /* מסגרת אפורה דקה */
+  font-family: inherit; /* ירש את הפונט מהאלמנט האב */
+  font-size: 0.9rem; /* גודל טקסט בינוני */
+  outline: none; /* ביטול מסגרת כחולה בעת פוקוס */
+  height: 36px; /* גובה קבוע ל-input */
+  box-sizing: border-box; /* כולל padding ו-border בתוך החישוב של width/height */
+}
+
+.inputArea button {
+  padding: 3px 10px; /* צמצום הריווח מימין ושמאל */
+  height: 36px; /* אותו גובה כמו ה-input כדי שייראה אחיד */
+  border-radius: 20px; /* פינות עגולות */
+  border: none; /* אין מסגרת */
+  background: black; /* צבע רקע שחור */
+  color: white; /* צבע טקסט לבן */
+  cursor: pointer; /* מצביע עכבר משתנה ליד */
+  font-size: 0.85rem; /* גודל טקסט קטן יחסית */
+  width: 60px;   /* קובע את הרוחב המדויק של הכפתור */
+
+}
+
+.inputArea button:hover {
+  background-color: #333; /* כשהעכבר מעל הכפתור - צבע אפור כהה יותר */
+}
