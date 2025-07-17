@@ -11,7 +11,6 @@ function MyBidsPage() {
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [view, setView] = useState("registered");
-
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState({
     title: "",
@@ -43,14 +42,12 @@ function MyBidsPage() {
 
   useEffect(() => {
     if (!user?.id_number) return;
-
     async function fetchData() {
       try {
         const [bidsRes, salesRes] = await Promise.all([
           getUserBids(user.id_number),
           getAllSales(),
         ]);
-
         setBids(Array.isArray(bidsRes) ? bidsRes : []);
         setSales(Array.isArray(salesRes) ? salesRes : []);
       } catch (err) {
@@ -63,7 +60,6 @@ function MyBidsPage() {
         });
       }
     }
-
     fetchData();
   }, [user?.id_number]);
 
@@ -77,25 +73,17 @@ function MyBidsPage() {
 
   const registeredBids = bids.map((bid) => {
     const product = products.find((p) => p.product_id === bid.product_id);
-    return {
-      ...bid,
-      ...product,
-    };
+    return { ...bid, ...product };
   });
 
   const wonSales = Array.isArray(sales)
     ? sales.filter((s) => String(s.buyer_id_number) === String(user?.id_number))
     : [];
 
-    const wonSalesWithProduct = wonSales.map((sale) => {
-      const product = products.find((p) => p.product_id === sale.product_id);
-      console.log("📷 בדיקת מוצר לזכייה:", product);
-      return {
-        ...sale,
-        ...product,
-      };
-    });
-    
+  const wonSalesWithProduct = wonSales.map((sale) => {
+    const product = products.find((p) => p.product_id === sale.product_id);
+    return { ...sale, ...product };
+  });
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
@@ -121,14 +109,7 @@ function MyBidsPage() {
       });
     }
   };
-  useEffect(() => {
-    console.log("🔥 בדיקת sales:", sales);
-    console.log("🔥 בדיקת user id_number:", user?.id_number);
 
-    const found = sales.filter((s) => s.buyer_id_number == user?.id_number);
-    console.log("✅ נמצאו זכיות:", found);
-  }, [sales, user]);
-  
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>ההצעות שלי</h1>
@@ -193,7 +174,6 @@ function MyBidsPage() {
               <tbody>
                 {wonSalesWithProduct.map((sale, i) => {
                   if (!sale.product_name) return null;
-
                   return (
                     <tr key={i}>
                       <td>
@@ -213,6 +193,7 @@ function MyBidsPage() {
                       <td>
                         {sale.is_delivered === 0 && (
                           <button
+                            className={styles.viewButton}
                             onClick={() => handleMarkDelivered(sale.product_id)}
                           >
                             סמן כבוצע

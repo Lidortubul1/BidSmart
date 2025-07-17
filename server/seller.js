@@ -32,8 +32,9 @@ SELECT p.*,
       `;
 
   switch (filter) {
+    //נמכר ולא נשלח לקונה
     case "sold":
-      query += " AND s.product_id IS NOT NULL";
+      query += " AND s.product_id IS NOT NULL AND s.sent = 'no'";
       break;
     case "pending":
       query += " AND p.is_live = 0";

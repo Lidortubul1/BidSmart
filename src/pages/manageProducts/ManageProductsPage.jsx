@@ -24,8 +24,8 @@ export default function ManageProductsPage() {
           <p className={styles.subText}>כל המוצרים שלך במקום אחד</p>
           <div className={styles.filters}>
             <button onClick={() => setFilter("all")}>כל המוצרים</button>
-            <button onClick={() => setFilter("sold")}>מוצרים שנמכרו</button>
-            <button onClick={() => setFilter("sent")}>מוצרים שנשלחו</button>
+            <button onClick={() => setFilter("sold")}>מוצרים שנמכרו ולא נשלחו/נמסרו לרוכש</button>
+            <button onClick={() => setFilter("sent")}>מוצרים שנשלחו/נמסרו לרוכש</button>
             <button onClick={() => setFilter("pending")}>
               מוצרים שטרם התחילו
             </button>

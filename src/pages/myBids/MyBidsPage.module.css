@@ -1,62 +1,117 @@
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
+
 .container {
-  padding: 40px;
-  background-color: white;
+  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
+  font-family: "Heebo", sans-serif;
+  color: #222;
   min-height: 100vh;
-  margin-right: 220px;
+  padding: 80px 5%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.container::before,
+.container::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.container::before {
+  width: 300px;
+  height: 300px;
+  background: #ffb347;
+  top: -100px;
+  right: -100px;
+}
+
+.container::after {
+  width: 400px;
+  height: 400px;
+  background: #a2cddd;
+  bottom: -150px;
+  left: -150px;
 }
 
 .title {
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 2rem;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
 }
 
 .subtitle {
-  text-align: center;
   font-size: 1.4rem;
+  color: #555;
   margin-bottom: 20px;
-  color: #333;
+  position: relative;
+  z-index: 2;
 }
 
 .buttons {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 2;
 }
 
 .buttons button {
-  padding: 10px 20px;
-  border: none;
-  background-color: #434445;
-  color: white;
-  font-size: 1rem;
-  border-radius: 5px;
+  padding: 12px 26px;
+  border: 1px solid #000;
+  background-color: transparent;
+  color: #000;
+  border-radius: 30px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: 0.3s ease;
+  font-size: 1rem;
+  min-width: 140px;
 }
 
 .buttons button:hover {
-  background-color: #1565c0;
+  background-color: #000;
+  color: white;
 }
 
 .table {
-  width: 100%;
+  width: 90%;
+  max-width: 1000px;
   border-collapse: collapse;
   font-size: 1rem;
+  position: relative;
+  z-index: 2;
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 .table th,
 .table td {
-  padding: 12px;
-  border: 1px solid #ccc;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
   text-align: center;
 }
 
+.table th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
 .image {
-  max-width: 100px;
+  max-width: 90px;
   height: auto;
-  border-radius: 5px;
+  border-radius: 12px;
 }
 
 .empty {
@@ -64,4 +119,34 @@
   color: #888;
   margin-top: 50px;
   font-size: 1.2rem;
+  position: relative;
+  z-index: 2;
+}
+
+.table td button {
+  background-color: #000;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.table td button:hover {
+  background-color: #333;
+}
+.viewButton {
+  background-color: #000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.viewButton:hover {
+  background-color: #333;
 }
