@@ -7,6 +7,7 @@ export default function ManageProductsPage() {
   const [products, setProducts] = useState([]);
   const [filter, setFilter] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState(null);
+const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     async function fetchProducts() {
@@ -16,6 +17,14 @@ export default function ManageProductsPage() {
     fetchProducts();
   }, [filter]);
 
+//חיפוש לפי שם מוצר
+const filteredProducts = products.filter((p) =>
+  p.product_name?.toLowerCase().includes(searchQuery.toLowerCase())
+);
+
+
+
+
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
@@ -24,8 +33,12 @@ export default function ManageProductsPage() {
           <p className={styles.subText}>כל המוצרים שלך במקום אחד</p>
           <div className={styles.filters}>
             <button onClick={() => setFilter("all")}>כל המוצרים</button>
-            <button onClick={() => setFilter("sold")}>מוצרים שנמכרו ולא נשלחו/נמסרו לרוכש</button>
-            <button onClick={() => setFilter("sent")}>מוצרים שנשלחו/נמסרו לרוכש</button>
+            <button onClick={() => setFilter("sold")}>
+              מוצרים שנמכרו ולא נשלחו/נמסרו לרוכש
+            </button>
+            <button onClick={() => setFilter("sent")}>
+              מוצרים שנשלחו/נמסרו לרוכש
+            </button>
             <button onClick={() => setFilter("pending")}>
               מוצרים שטרם התחילו
             </button>
@@ -38,15 +51,23 @@ export default function ManageProductsPage() {
 
       <section className={styles.productsSection}>
         <h2>רשימת המוצרים שלך</h2>
+        <input
+          type="text"
+          placeholder="חפש מוצר לפי שם..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className={styles.searchInput}
+        />
+
         <div className={styles.table}>
           <div className={styles.tableHeader}>
             <span>שם מוצר</span>
-            <span>מחיר נוכחי</span>
+            <span>מחיר סופי</span>
             <span>סטטוס</span>
             <span>?נשלח</span>
             <span>פרטי מוצר</span>
           </div>
-          {products.map((p) => (
+          {filteredProducts.map((p) => (
             <div className={styles.tableRow} key={p.id}>
               <span>{p.product_name}</span>
               <span>{p.current_price} ₪</span>

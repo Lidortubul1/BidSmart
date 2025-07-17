@@ -69,6 +69,15 @@
   color: #555;
   margin-bottom: 20px;
 }
+.searchInput {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-radius: 30px;
+  width: 300px;
+  margin: 20px auto;
+  display: block;
+  font-family: "Heebo", sans-serif;
+}
 
 .filters button {
   background-color: transparent;
@@ -95,6 +104,7 @@
 }
 
 .productsSection h2 {
+  font-size: 1.5rem;
   text-align: center;
   margin-bottom: 20px;
 }

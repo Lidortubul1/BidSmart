@@ -150,3 +150,12 @@
 .viewButton:hover {
   background-color: #333;
 }
+.searchInput {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-radius: 30px;
+  width: 300px;
+  margin: 20px auto;
+  display: block;
+  font-family: "Heebo", sans-serif;
+}

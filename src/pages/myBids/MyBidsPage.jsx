@@ -12,6 +12,7 @@ function MyBidsPage() {
   const [products, setProducts] = useState([]);
   const [view, setView] = useState("registered");
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [modalContent, setModalContent] = useState({
     title: "",
     message: "",
@@ -109,6 +110,13 @@ function MyBidsPage() {
       });
     }
   };
+const filteredRegisteredBids = registeredBids.filter((bid) =>
+  bid.product_name?.toLowerCase().includes(searchQuery.toLowerCase())
+);
+
+const filteredWonSales = wonSalesWithProduct.filter((sale) =>
+  sale.product_name?.toLowerCase().includes(searchQuery.toLowerCase())
+);
 
   return (
     <div className={styles.container}>
@@ -118,10 +126,18 @@ function MyBidsPage() {
         <button onClick={() => setView("registered")}>הצעות שנרשמתי</button>
         <button onClick={() => setView("won")}>מוצרים שזכיתי בהם</button>
       </div>
-
+      
+      <input
+        type="text"
+        placeholder="חפש מוצר לפי שם..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className={styles.searchInput}
+      />
       {view === "registered" && (
         <>
-          <h2 className={styles.subtitle}>רשימת הרשמות</h2>
+          <h2 className={styles.subtitle}>רשימת מוצרים</h2>
+
           {registeredBids.length === 0 ? (
             <p className={styles.empty}>לא נרשמת למוצרים</p>
           ) : (
@@ -135,7 +151,7 @@ function MyBidsPage() {
                 </tr>
               </thead>
               <tbody>
-                {registeredBids.map((bid, i) => (
+                {filteredRegisteredBids.map((bid, i) => (
                   <tr key={i}>
                     <td>
                       <img
@@ -172,7 +188,7 @@ function MyBidsPage() {
                 </tr>
               </thead>
               <tbody>
-                {wonSalesWithProduct.map((sale, i) => {
+                {filteredWonSales.map((sale, i) => {
                   if (!sale.product_name) return null;
                   return (
                     <tr key={i}>
