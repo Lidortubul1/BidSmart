@@ -2,6 +2,7 @@ import styles from "./Navbar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { useState } from "react";
+import logoImg from "../../assets/images/BSlogo.png"
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -31,7 +32,7 @@ function Navbar() {
 
   return (
     <nav className={styles.navbar}>
-      <div className={styles.logo}>BidSmart</div>
+      <img src={logoImg} alt="BidSmart Logo" className={styles.logo} />
 
       <div className={styles.centerSearch}>
         <form onSubmit={handleSearch} className={styles.searchForm}>
@@ -43,7 +44,6 @@ function Navbar() {
               onChange={(e) => setQuery(e.target.value)}
               className={styles.searchInput}
             />
-
           </div>
         </form>
       </div>

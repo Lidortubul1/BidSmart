@@ -118,3 +118,7 @@
 .logoutButton:hover {
   background-color: #333;
 }
+.logo {
+  height: 81px;
+  cursor: pointer;
+}
