@@ -24,9 +24,7 @@ function SellerDashboard() {
           <p className={styles.subText}>
             נהל מכירות בצורה חכמה, הוסף מוצרים וצפה בדוחות בלחיצת כפתור
           </p>
-          <p>
-            שמופיעה בצד שמאל של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה
-          </p>
+          <p>המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה</p>
           <div className={styles.actions}>
             <Link to="/add-product" className={styles.actionButton}>
               + הוסף מוצר

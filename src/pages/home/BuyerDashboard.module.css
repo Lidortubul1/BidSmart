@@ -45,7 +45,11 @@
   bottom: -150px;
   left: -150px;
 }
-
+/* .aiAssistantText {
+  margin-top: 30px;
+  font-size: 0.9rem;
+  color: #555;
+} */
 .heroText {
   max-width: 600px;
   position: relative;

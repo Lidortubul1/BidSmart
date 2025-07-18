@@ -28,6 +28,7 @@ function HomePage() {
           <p className={styles.subText}>
             למצוא מוצרים מדהימים בדרך פשוטה, חכמה ויעילה
           </p>
+
           <p className={styles.startText}>:התחילו עכשיו</p>
           <div className={styles.authLinks}>
             <Link to="/login" className={styles.loginLink}>
@@ -37,6 +38,9 @@ function HomePage() {
               הרשמה
             </Link>
           </div>
+          <p className={styles.aiAssistantText}>
+            המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה
+          </p>
         </div>
       </section>
 
@@ -44,8 +48,6 @@ function HomePage() {
         <h2>מוצרים חמים</h2>
         <ProductList />
       </section>
-
-     
     </div>
   );
 }

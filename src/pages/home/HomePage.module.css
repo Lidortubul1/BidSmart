@@ -101,6 +101,11 @@
   margin-bottom: 20px;
 }
 
+.aiAssistantText {
+  margin-top: 30px;
+  font-size: 0.9rem;
+  color: #555;
+}
 
 
 @media (max-width: 768px) {

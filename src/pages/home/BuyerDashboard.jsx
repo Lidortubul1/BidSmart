@@ -32,6 +32,9 @@ function BuyerDashboard() {
           <p className={styles.subText}>
             צפה בכל המוצרים והשתתף במכרזים בזמן אמת.
           </p>
+          <p className={styles.aiAssistantText}>
+            המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה
+          </p>
           <button onClick={goToBecomeSeller} className={styles.sellButton}>
             רוצה להתחיל למכור פריטים? לחץ כאן כדי להפוך למוכר
           </button>
