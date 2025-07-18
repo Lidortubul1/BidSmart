@@ -49,6 +49,7 @@ function Navbar() {
       </div>
 
       <ul className={styles.navLinks}>
+
         <li>
           <Link to={homePath}>דף הבית</Link>
         </li>

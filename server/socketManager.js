@@ -40,7 +40,9 @@ function setupSocket(io) {
           return;
         }
 
-        const newPrice = Number(product.current_price) + 10;
+        const bidIncrement = Number(product.bid_increment) || 10;
+        const newPrice = Number(product.current_price) + bidIncrement;
+
 
         // 🔄 במקום INSERT קבוע — נבדוק אם קיימת הצעה
         const [existing] = await conn.query(

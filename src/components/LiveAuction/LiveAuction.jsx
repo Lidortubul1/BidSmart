@@ -196,9 +196,9 @@ function LiveAuction() {
                 </p>
                 <button
                   className={styles.bidButton}
-                  onClick={() => handleBid(50)}
+                  onClick={() => handleBid(Number(product.bid_increment))}
                 >
-                  הגש הצעה של +50 ₪
+                  הגש הצעה של +{product.bid_increment} ₪
                 </button>
               </>
             )}

@@ -34,18 +34,20 @@ router.get("/", async (req, res) => {
 
 // הוספת מוצר חדש
 router.post("/", upload.array("images", 5), async (req, res) => {
-  const {
-    product_name,
-    start_date,
-    start_time,
-    end_date,
-    price,
-    description,
-    seller_id_number,
-    product_status, // יישמר אך לא נבדק
-    category,
-    sub_category,
-  } = req.body;
+const {
+  product_name,
+  start_date,
+  start_time,
+  end_date,
+  price,
+  description,
+  seller_id_number,
+  product_status,
+  category,
+  sub_category,
+  bid_increment, 
+} = req.body;
+
   const files = req.files;
 
   //  אימות שדות חובה לפי הדרישות
@@ -108,39 +110,48 @@ router.post("/", upload.array("images", 5), async (req, res) => {
       message: "מחיר הוא שדה חובה וצריך להיות מספר",
     });
   }
+  if (!bid_increment || isNaN(bid_increment)) {
+    return res.status(400).json({
+      success: false,
+      message: "יש לבחור סכום עליית הצעה תקין",
+    });
+  }
 
   const conn = await db.getConnection();
   await conn.beginTransaction(); //פעולה שמאפשרת לקבץ כמה פקודות SQL ביחד – כך שאם אחת מהן נכשלת, כולן מתבטלות
 
   try {
-    const [result] = await conn.execute(
-      `INSERT INTO product (
-        product_name,
-        start_date,
-        start_time,
-        end_date,
-        price,
-        current_price,
-        description,
-        seller_id_number,
-        product_status,
-        category,
-        sub_category
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        product_name,
-        start_date,
-        start_time,
-        end_date,
-        price,
-        price, // current_price שווה למחיר בתחילה
-        description || null,
-        seller_id_number,
-        product_status,
-        category || null,
-        sub_category || null,
-      ]
-    );
+const [result] = await conn.execute(
+  `INSERT INTO product (
+    product_name,
+    start_date,
+    start_time,
+    end_date,
+    price,
+    current_price,
+    description,
+    seller_id_number,
+    product_status,
+    category,
+    sub_category,
+    bid_increment
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  [
+    product_name,
+    start_date,
+    start_time,
+    end_date,
+    price,
+    price, // current_price
+    description || null,
+    seller_id_number,
+    product_status,
+    category || null,
+    sub_category || null,
+    parseInt(bid_increment) || 10, //ברירת מחדל ל10
+  ]
+);
+
 
     const productId = result.insertId;
 

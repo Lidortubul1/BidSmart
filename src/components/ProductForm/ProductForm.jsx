@@ -13,6 +13,7 @@ function ProductForm({ onSubmit }) {
     price: "",
     image: "",
     description: "",
+    bid_increment: 10, // ברירת מחדל
   });
 
   const [categories, setCategories] = useState({});
@@ -174,6 +175,20 @@ function ProductForm({ onSubmit }) {
               }
             />
           </label>
+
+          <label htmlFor="bid_increment">בחר את סכום העלאת ההצעה:</label>
+          <select
+            id="bid_increment"
+            name="bid_increment"
+            value={formData.bid_increment}
+            onChange={handleChange}
+          >
+            <option value="10">10 ש"ח</option>
+            <option value="50">50 ש"ח</option>
+            <option value="100">100 ש"ח</option>
+            <option value="500">500 ש"ח</option>
+            <option value="1000">1000 ש"ח</option>
+          </select>
 
           <label>
             תיאור
