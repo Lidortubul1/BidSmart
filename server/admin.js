@@ -166,6 +166,16 @@ console.log("email:", email);
   }
 });
 
-
+//פונקציה למחיקת משתמש לצמיתות ע"י המנהל
+router.delete("/user/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    // לדוג' MySQL
+    await connection.query("DELETE FROM users WHERE email = ?", [email]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "שגיאה במחיקת המשתמש" });
+  }
+});
 
 module.exports = router;

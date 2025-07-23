@@ -107,15 +107,16 @@
 
 .tableHeader,
 .tableRow {
-    background: #fff;
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr 1fr 2fr;
+  grid-template-columns: 1.3fr 2.1fr 1fr 1fr 1.4fr 2fr;
+  /*         שם   דואל  תפקיד סטטוס  תאריך   פעולות */
   padding: 15px;
   border-bottom: 1px solid #eee;
   align-items: center;
-  
-    
+    direction: rtl;
+
 }
+
 
 .tableHeader {
   font-weight: 600;
@@ -229,3 +230,27 @@
   color: #666;
   letter-spacing: 0.7px;
 }
+
+
+/* AdminUsers.module.css */
+.filterButtons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  direction: rtl;
+  justify-content: flex-start;
+}
+.filterButtons button {
+  padding: 0.6rem 1.3rem;
+  border: none;
+  border-radius: 2rem;
+  background: #000000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+/* .filterButtons .activeFilterBtn {
+  background: #000000;
+  color: #fff;
+} */
+

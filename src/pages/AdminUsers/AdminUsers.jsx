@@ -6,11 +6,13 @@ import {
   updateUserDetails,
   updateUserStatus,
   fetchAllUsers,
+  deleteUser,
 } from "../../services/adminUsersApi";
 
 function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [editUser, setEditUser] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all"); // "all" | "active" | "blocked"
 
   const [search, setSearch] = useState("");
   const [filtered, setFiltered] = useState([]);
@@ -55,6 +57,55 @@ function AdminUsers() {
     );
   }, [search, users]);
 
+  //סינון רשימה לפי כל המשתמשים/מושהים/פעילים 
+  useEffect(() => {
+    setFiltered(
+      users.filter((u) => {
+        const searchMatch =
+          (u.first_name && u.first_name.includes(search)) ||
+          (u.last_name && u.last_name.includes(search)) ||
+          (u.email && u.email.includes(search)) ||
+          (u.id_number && u.id_number.includes(search));
+        const statusMatch =
+          filterStatus === "all" ? true : u.status === filterStatus;
+        return searchMatch && statusMatch;
+      })
+    );
+  }, [search, users, filterStatus]);
+
+
+
+  //פונקציה למחיקת משתמש ע"י המנהל
+  const handleDelete = (user) => {
+    setModal({
+      show: true,
+      title: "אישור מחיקה",
+      message: `האם אתה בטוח שברצונך למחוק את המשתמש ${user.first_name} ${user.last_name}?`,
+      confirmText: "מחק",
+      onConfirm: async () => {
+        try {
+          await deleteUser(user.email);
+          setUsers((prev) => prev.filter((u) => u.email !== user.email));
+          setModal({
+            show: true,
+            title: "הצלחה",
+            message: "המשתמש נמחק בהצלחה.",
+            confirmText: "סגור",
+            onConfirm: () => setModal((m) => ({ ...m, show: false })),
+          });
+        } catch (e) {
+          setModal({
+            show: true,
+            title: "שגיאה",
+            message: "שגיאה במחיקת המשתמש.",
+            confirmText: "סגור",
+            onConfirm: () => setModal((m) => ({ ...m, show: false })),
+          });
+        }
+      },
+    });
+  };
+
   // בתוך הפונקציה הראשית:
   const handleSuspend = async (user) => {
     // בודק את הסטטוס הנוכחי ומחליף
@@ -77,11 +128,14 @@ function AdminUsers() {
       });
     }
   };
+
+
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
         <div className={styles.heroText}>
           <h1>ניהול משתמשים</h1>
+
           <div className={styles.subText}>
             כאן תוכלו לצפות, לחפש ולנהל את כל המשתמשים במערכת.
             <br />
@@ -99,14 +153,38 @@ function AdminUsers() {
 
       <section className={styles.productsSection}>
         <h2>רשימת משתמשים</h2>
+
+        <div className={styles.filterButtons}>
+          <button
+            className={filterStatus === "all" ? styles.activeFilterBtn : ""}
+            onClick={() => setFilterStatus("all")}
+          >
+            כל המשתמשים
+          </button>
+          <button
+            className={filterStatus === "active" ? styles.activeFilterBtn : ""}
+            onClick={() => setFilterStatus("active")}
+          >
+            פעילים
+          </button>
+          <button
+            className={filterStatus === "blocked" ? styles.activeFilterBtn : ""}
+            onClick={() => setFilterStatus("blocked")}
+          >
+            מושהים
+          </button>
+        </div>
+
         <div className={styles.table}>
           <div className={styles.tableHeader}>
             <div>שם מלא</div>
             <div>דוא"ל</div>
             <div>תפקיד</div>
             <div>סטטוס</div>
+            <div>תאריך הרשמה</div>
             <div>פעולות</div>
           </div>
+
           {filtered.length === 0 && (
             <div
               className={styles.tableRow}
@@ -115,49 +193,60 @@ function AdminUsers() {
               לא נמצאו משתמשים
             </div>
           )}
-          {filtered.map((u) => (
-            <div key={u.email} className={styles.tableRow}>
-              <div>
-                {u.first_name} {u.last_name}
-              </div>
-              <div>{u.email}</div>
-              <div>
-                {u.role === "buyer"
-                  ? "קונה"
-                  : u.role === "seller"
-                  ? "מוכר"
-                  : "מנהל"}
-              </div>
-              <div>
-                <span
-                  style={{
-                    color: u.status === "active" ? "#06915f" : "#e04d4d",
-                    fontWeight: 600,
-                  }}
-                >
-                  {u.status === "active" ? "פעיל" : "מושהה"}
-                </span>
-              </div>
-              <div className={styles.actionButtons}>
-                <button
-                  className={styles.editBtn}
-                  onClick={() => setEditUser(u)}
-                >
-                  ערוך
-                </button>
-                <button
-                  className={styles.suspendBtn}
-                  onClick={() => handleSuspend(u)}
-                >
-                  {u.status === "active" ? "השבת" : "הפעל"}
-                </button>
 
-                <button className={styles.deleteBtn}>מחק</button>
+          {filtered
+            .filter((u) => u.role === "buyer" || u.role === "seller")
+            .map((u) => (
+              <div key={u.email} className={styles.tableRow}>
+                <div>
+                  {u.first_name} {u.last_name}
+                </div>
+                <div>{u.email}</div>
+                <div>{u.role === "buyer" ? "קונה" : "מוכר"}</div>
+                <div>
+                  <span
+                    style={{
+                      color: u.status === "active" ? "#06915f" : "#e04d4d",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {u.status === "active" ? "פעיל" : "מושהה"}
+                  </span>
+                </div>
+                <div>
+                  {u.registered
+                    ? new Date(u.registered).toLocaleDateString("he-IL", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                      })
+                    : "—"}
+                </div>
+                <div className={styles.actionButtons}>
+                  <button
+                    className={styles.editBtn}
+                    onClick={() => setEditUser(u)}
+                  >
+                    ערוך
+                  </button>
+                  <button
+                    className={styles.suspendBtn}
+                    onClick={() => handleSuspend(u)}
+                  >
+                    {u.status === "active" ? "השבת" : "הפעל"}
+                  </button>
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={() => handleDelete(u)}
+                  >
+                    מחק
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
+
       {editUser && (
         <EditUserModal
           user={editUser}
@@ -191,6 +280,7 @@ function AdminUsers() {
           }}
         />
       )}
+
       {modal.show && (
         <CustomModal
           title={modal.title}

@@ -24,5 +24,17 @@ export async function updateUserDetails(email, userData) {
 }
 
 
+//פונקציה למחיקת יוזר ע"י המנהל
+// services/adminUsersApi.js
+export async function deleteUser(email) {
+  return fetch(`/api/admin/user/${encodeURIComponent(email)}`, {
+    method: "DELETE",
+  }).then((res) => {
+    if (!res.ok) throw new Error("מחיקה נכשלה");
+    return res.json();
+  });
+}
+
+
 
 
