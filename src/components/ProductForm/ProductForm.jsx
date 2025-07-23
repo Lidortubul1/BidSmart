@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchCategories } from "../../services/categoriesApi";
+import { fetchCategoriesWithSubs } from "../../services/categoriesApi";
 import CustomModal from "../CustomModal/CustomModal";
 import styles from "./ProductForm.module.css";
 
@@ -16,7 +16,7 @@ function ProductForm({ onSubmit }) {
     bid_increment: 10, // ברירת מחדל
   });
 
-  const [categories, setCategories] = useState({});
+const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
 
@@ -43,13 +43,12 @@ function ProductForm({ onSubmit }) {
   useEffect(() => {
     async function loadCategories() {
       try {
-        const data = await fetchCategories(); // שליפה מהשרת
+        const data = await fetchCategoriesWithSubs(); // שליפה מהשרת
         setCategories(data); // עדכון ל־state
       } catch (error) {
         console.error("שגיאה בטעינת קטגוריות:", error);
       }
     }
-
     loadCategories();
   }, []);
 
@@ -94,8 +93,8 @@ function ProductForm({ onSubmit }) {
     const preparedData = {
       ...formData,
       price: parseFloat(formData.price),
-      category: selectedCategory,
-      sub_category: selectedSubCategory,
+      category_id: selectedCategory,
+      subcategory_id: selectedSubCategory,
     };
 
     onSubmit(preparedData); //(preparedData == formData)
@@ -210,9 +209,9 @@ function ProductForm({ onSubmit }) {
               required
             >
               <option value="">בחר קטגוריה</option>
-              {Object.keys(categories).map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -227,9 +226,12 @@ function ProductForm({ onSubmit }) {
                 required
               >
                 <option value="">בחר תת קטגוריה</option>
-                {categories[selectedCategory].map((sub) => (
-                  <option key={sub} value={sub}>
-                    {sub}
+                {(
+                  categories.find((cat) => cat.id == selectedCategory)
+                    ?.subcategories || []
+                ).map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.name}
                   </option>
                 ))}
               </select>

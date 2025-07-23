@@ -10,31 +10,26 @@ export async function fetchAllUsers() {
   return res.data;
 }
 
+
 //פונקציה שמעדכנת את המשתמש לחסום
-export async function updateUserStatus(email, status) {
-  return await axios.put(`/api/admin/users/${email}/status`, { status });
+export async function updateUserStatus(id, status) {
+  return await axios.put(`/api/admin/users/${id}/status`, { status });
 }
 
 
-// עדכון משתמש (email הוא מזהה ייחודי)
+// עדכון משתמש (id הוא מזהה ייחודי)
 // services/adminUsersApi.js
-export async function updateUserDetails(email, userData) {
-  const res = await axios.put(`/api/admin/users/${email}`, userData);
+export async function updateUserDetails(id, userData) {
+  const res = await axios.put(`/api/admin/users/${id}`, userData);
   return res.data;
 }
 
-
 //פונקציה למחיקת יוזר ע"י המנהל
 // services/adminUsersApi.js
-export async function deleteUser(email) {
-  return fetch(`/api/admin/user/${encodeURIComponent(email)}`, {
-    method: "DELETE",
-  }).then((res) => {
-    if (!res.ok) throw new Error("מחיקה נכשלה");
-    return res.json();
-  });
+export async function deleteUser(id) {
+  const res = await axios.delete(`/api/admin/users/${id}`);
+  return res.data;
 }
-
 
 
 

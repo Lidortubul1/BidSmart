@@ -43,10 +43,11 @@ const {
   description,
   seller_id_number,
   product_status,
-  category,
-  sub_category,
-  bid_increment, 
+  category_id, // <-- כאן
+  subcategory_id, // <-- וכאן
+  bid_increment,
 } = req.body;
+
 
   const files = req.files;
 
@@ -132,8 +133,8 @@ const [result] = await conn.execute(
     description,
     seller_id_number,
     product_status,
-    category,
-    sub_category,
+    category_id,      -- כאן
+    subcategory_id,   -- וכאן
     bid_increment
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   [
@@ -146,13 +147,11 @@ const [result] = await conn.execute(
     description || null,
     seller_id_number,
     product_status,
-    category || null,
-    sub_category || null,
-    parseInt(bid_increment) || 10, //ברירת מחדל ל10
+    category_id || null,
+    subcategory_id || null,
+    parseInt(bid_increment) || 10,
   ]
 );
-
-
     const productId = result.insertId;
 
     for (const file of files) {

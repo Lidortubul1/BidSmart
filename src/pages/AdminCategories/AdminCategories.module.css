@@ -1,0 +1,161 @@
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
+
+.categoriesPage {
+  direction: rtl;
+  font-family: "Heebo", sans-serif;
+  max-width: 540px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 2rem;
+  box-shadow: 0 8px 32px #1a233a18;
+  padding: 2.5rem 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #222;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.addCategoryBox {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.addCategoryBox input {
+  /* flex: 1; */
+  border: none;
+  border-radius: 2rem;
+  padding: 0.7rem 1.2rem;
+  background: #f7fafd;
+  transition: background 0.2s;
+  font-size: 1rem;
+}
+
+.addCategoryBox input:focus {
+  background: #eaf6ff;
+  outline: none;
+}
+
+.addCategoryBox button {
+  border: none;
+  background: #1a89ff;
+  color: #fff;
+  border-radius: 2rem;
+padding: 0.1rem 0.1rem;
+font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 6px #1a89ff22;
+  transition: background 0.15s;
+}
+
+
+.addCategoryBox button:hover {
+  background: #1677d1;
+}
+
+.categoriesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.categoryItem {
+  margin-bottom: 2.3rem;
+  border-bottom: 1px solid #f0f3f8;
+  padding-bottom: 1rem;
+}
+
+.categoryTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+}
+
+.categoryName {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #1a89ff;
+}
+
+.actionBtn {
+  background: #f6f6fa;
+  border: none;
+  border-radius: 1.5rem;
+  padding: 0.5rem 1.3rem;
+  color: #222;
+  margin-right: 0.1rem;
+  font-size: 0.98rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.actionBtn:hover {
+  background: #eaf6ff;
+}
+
+.deleteBtn {
+  background: #ffefef;
+  color: #e54a4a;
+  margin-right: 0.3rem;
+}
+
+.deleteBtn:hover {
+  background: #ffe1e1;
+}
+
+.subList {
+  padding: 0 0.7rem 0.5rem 0.7rem;
+  list-style: disc inside;
+}
+
+.addSubRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.addSubRow input {
+  /* flex: 1; */
+  border: none;
+  border-radius: 1.5rem;
+  padding: 0.5rem 1.1rem;
+  background: #f7fafd;
+}
+
+.addSubRow input:focus {
+  background: #eaf6ff;
+  outline: none;
+}
+
+.addSubRow button {
+  border: none;
+  background: #1a89ff;
+  color: #fff;
+  border-radius: 2rem;
+padding: 0.1rem 0.1rem;
+font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 6px #1a89ff22;
+  transition: background 0.15s;
+}
+
+@media (max-width: 600px) {
+  .categoriesPage {
+    padding: 1.3rem 0.4rem;
+    max-width: 99vw;
+  }
+  .addCategoryBox,
+  .addSubRow {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

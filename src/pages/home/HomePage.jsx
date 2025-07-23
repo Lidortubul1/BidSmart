@@ -2,14 +2,14 @@ import ProductList from "../../components/productList/productList";
 import CategoryBar from "../../components/CategoryBar/CategoryBar";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { fetchCategories } from "../../services/categoriesApi";
+import { fetchCategoriesWithSubs } from "../../services/categoriesApi";
 import styles from "./HomePage.module.css";
 
 function HomePage() {
   const [categories, setCategories] = useState({});
 
   useEffect(() => {
-    fetchCategories()
+    fetchCategoriesWithSubs()
       .then((data) => setCategories(data))
       .catch((err) => console.error("שגיאה בטעינת קטגוריות:", err));
   }, []);

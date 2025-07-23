@@ -20,28 +20,19 @@ export default function ProductList({
 
   
   // סינון מוצרים לפי שאילתת חיפוש, קטגוריה ותת־קטגוריה
-  const filteredProducts = products.filter((product) => {
-    // הופך את שם המוצר ותיאורו לאותיות קטנות לצורך השוואה
-    const name = product.product_name?.toLowerCase() || "";
-    const desc = product.description?.toLowerCase() || "";
+const filteredProducts = products.filter((product) => {
+  const name = product.product_name?.toLowerCase() || "";
+  const desc = product.description?.toLowerCase() || "";
+  const query = searchQuery.toLowerCase();
+  const matchesQuery = !query || name.includes(query) || desc.includes(query);
 
-    // גם שאילתת החיפוש באותיות קטנות
-    const query = searchQuery.toLowerCase();
+  const matchesCategory = !categoryFilter || product.category_id == categoryFilter;
+  const matchesSubCategory = !subCategoryFilter || product.subcategory_id == subCategoryFilter;
 
-    // בודק אם החיפוש תואם לשם או תיאור
-    const matchesQuery = !query || name.includes(query) || desc.includes(query);
 
-    // בודק התאמה לקטגוריה אם נבחרה אחת
-    const matchesCategory =
-      !categoryFilter || product.category === categoryFilter;
+  return matchesQuery && matchesCategory && matchesSubCategory;
+});
 
-    // בודק התאמה לתת־קטגוריה אם נבחרה אחת
-    const matchesSubCategory =
-      !subCategoryFilter || product.sub_category === subCategoryFilter;
-
-    // מחזיר true רק אם כל התנאים מתקיימים
-    return matchesQuery && matchesCategory && matchesSubCategory;
-  });
 
   // מחשב כמה עמודים יש לפי כמות מוצרים בעמוד
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);

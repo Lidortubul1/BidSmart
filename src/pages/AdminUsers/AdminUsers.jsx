@@ -57,7 +57,7 @@ function AdminUsers() {
     );
   }, [search, users]);
 
-  //סינון רשימה לפי כל המשתמשים/מושהים/פעילים 
+  //סינון רשימה לפי כל המשתמשים/מושהים/פעילים
   useEffect(() => {
     setFiltered(
       users.filter((u) => {
@@ -73,8 +73,6 @@ function AdminUsers() {
     );
   }, [search, users, filterStatus]);
 
-
-
   //פונקציה למחיקת משתמש ע"י המנהל
   const handleDelete = (user) => {
     setModal({
@@ -84,8 +82,8 @@ function AdminUsers() {
       confirmText: "מחק",
       onConfirm: async () => {
         try {
-          await deleteUser(user.email);
-          setUsers((prev) => prev.filter((u) => u.email !== user.email));
+          await deleteUser(user.id);
+          setUsers((prev) => prev.filter((u) => u.id !== user.id));
           setModal({
             show: true,
             title: "הצלחה",
@@ -111,12 +109,10 @@ function AdminUsers() {
     // בודק את הסטטוס הנוכחי ומחליף
     const newStatus = user.status === "active" ? "blocked" : "active";
     try {
-      await updateUserStatus(user.email, newStatus);
+      await updateUserStatus(user.id, newStatus);
       // עדכון הסטייט (במקום פנייה מחדש לשרת)
       setUsers((prev) =>
-        prev.map((u) =>
-          u.email === user.email ? { ...u, status: newStatus } : u
-        )
+        prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
       );
     } catch {
       setModal({
@@ -128,7 +124,6 @@ function AdminUsers() {
       });
     }
   };
-
 
   return (
     <div className={styles.page}>
@@ -253,11 +248,11 @@ function AdminUsers() {
           onClose={() => setEditUser(null)}
           onSave={async (updatedUser) => {
             try {
-              await updateUserDetails(updatedUser.email, updatedUser);
+              await updateUserDetails(updatedUser.id, updatedUser);
               // עדכון ה־state – מחליף את המשתמש ב־users בחדש
               setUsers((prev) =>
                 prev.map((u) =>
-                  u.email === updatedUser.email ? { ...u, ...updatedUser } : u
+                  u.id === updatedUser.id ? { ...u, ...updatedUser } : u
                 )
               );
               setModal({

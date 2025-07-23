@@ -2,7 +2,13 @@ const express = require("express");
 const router = express.Router();
 const db = require("./database");
 
-//נתונים כללים של הלוח בקרה 
+
+router.use((req, res, next) => {
+  console.log("API CALL", req.method, req.originalUrl);
+  next();
+});
+
+//נתונים כללים של הלוח בקרה
 router.get("/stats", async (req, res) => {
   try {
     const conn = await db.getConnection();
@@ -46,12 +52,33 @@ router.get("/stats", async (req, res) => {
 });
 
 
+//פונקציה למחיקת משתמש לצמיתות ע"י המנהל
+// שים לב - עכשיו id (ולא email)
+router.delete("/users/:id", async (req, res) => {
+    console.log("קיבלתי מחיקת משתמש id=", req.params.id);
+  try {
+    const { id } = req.params;
+    const conn = await db.getConnection(); 
+    const [result] = await conn.query("DELETE FROM users WHERE id = ?", [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "משתמש לא נמצא" });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "שגיאה במחיקת המשתמש" });
+  }
+});
+
+
 // שליפת כל המשתמשים (ללא סיסמה)
 router.get("/users", async (req, res) => {
+       console.log("נכנס לכאן=", req.params.id);
+
   try {
     const conn = await db.getConnection();
     const [rows] = await conn.query(
       `SELECT 
+        id,
         id_number, 
         first_name, 
         last_name, 
@@ -78,17 +105,13 @@ router.get("/users", async (req, res) => {
   }
 });
 
-
 // עדכון סטטוס משתמש
-router.put("/users/:email/status", async (req, res) => {
-  const { email } = req.params;
+router.put("/users/:id/status", async (req, res) => {
+  const { id } = req.params;
   const { status } = req.body;
   try {
     const conn = await db.getConnection();
-    const [result] = await conn.query(
-      "UPDATE users SET status = ? WHERE email = ?",
-      [status, email]
-    );
+    const [result] = await conn.query("UPDATE users SET status = ? WHERE id = ?",[status, id]);
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "משתמש לא נמצא" });
     }
@@ -99,11 +122,11 @@ router.put("/users/:email/status", async (req, res) => {
   }
 });
 
-
 //עריכת משתמש ע"י המנהל מערכת
-router.put("/users/:email", async (req, res) => {
-  const { email } = req.params;
-  // שלוף את כל השדות מה־body כמו קודם
+router.put("/users/:id", async (req, res) => {
+  const { id } = req.params;
+ 
+
   const {
     first_name,
     last_name,
@@ -117,16 +140,9 @@ router.put("/users/:email", async (req, res) => {
     street,
     house_number,
     apartment_number,
-    // id_card_photo -- עריכה בעתיד
   } = req.body;
-    // ודא ש-rating הוא מספר או null
-console.log("Rating received:", rating);
-console.log("rating type:", typeof rating, rating);
-console.log("email:", email);
-
 
   try {
-
     const conn = await db.getConnection();
     const [result] = await conn.query(
       `UPDATE users SET
@@ -142,7 +158,7 @@ console.log("email:", email);
         street = ?,
         house_number = ?,
         apartment_number = ?
-      WHERE email = ?`,
+      WHERE id = ?`,
       [
         first_name,
         last_name,
@@ -156,9 +172,10 @@ console.log("email:", email);
         street,
         house_number,
         apartment_number,
-        email, // פה!
+        id, // לא email!
       ]
     );
+
     res.json({ message: "המשתמש עודכן בהצלחה" });
   } catch (error) {
     console.error("שגיאה בעדכון משתמש:", error);
@@ -166,16 +183,69 @@ console.log("email:", email);
   }
 });
 
-//פונקציה למחיקת משתמש לצמיתות ע"י המנהל
-router.delete("/user/:email", async (req, res) => {
-  try {
-    const { email } = req.params;
-    // לדוג' MySQL
-    await connection.query("DELETE FROM users WHERE email = ?", [email]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "שגיאה במחיקת המשתמש" });
-  }
+
+
+
+
+//ניהול קטגוריות
+
+
+
+
+// הוספת קטגוריה
+router.post("/category", async (req, res) => {
+  const { name } = req.body;
+  console.log("name:", name);
+  if (!name) return res.status(400).json({ error: "יש להזין שם קטגוריה" });
+  const conn = await db.getConnection();
+  await conn.query("INSERT INTO categories (name) VALUES (?)", [name]);
+  res.json({ success: true });
+});
+
+// הוספת תת-קטגוריה
+router.post("/category/subcategory", async (req, res) => {
+  const { name, category_id } = req.body;
+  if (!name || !category_id) return res.status(400).json({ error: "חובה להזין שם ותעודת קטגוריה" });
+  const conn = await db.getConnection();
+  await conn.query(
+    "INSERT INTO subcategories (name, category_id) VALUES (?, ?)",
+    [name, category_id]
+  );
+  res.json({ success: true });
+});
+
+// מחיקת קטגוריה
+router.delete("/category/:id", async (req, res) => {
+  const { id } = req.params;
+  const conn = await db.getConnection();
+  // אפשר להוסיף בדיקה אם יש תתי-קטגוריות קודם, אם צריך
+  await conn.query("DELETE FROM categories WHERE id = ?", [id]);
+  res.json({ success: true });
+});
+
+// מחיקת תת-קטגוריה
+router.delete("/category/subcategory/:id", async (req, res) => {
+  const { id } = req.params;
+  const conn = await db.getConnection();
+  await conn.query("DELETE FROM subcategories WHERE id = ?", [id]);
+  res.json({ success: true });
+});
+
+// שליפת כל הקטגוריות
+router.get("/category", async (req, res) => {
+  const conn = await db.getConnection();
+  const [rows] = await conn.query("SELECT * FROM categories");
+  res.json(rows);
+});
+
+// שליפת תתי-קטגוריות לקטגוריה מסוימת
+router.get("/category/:id/subcategories", async (req, res) => {
+  const { id } = req.params;
+  const conn = await db.getConnection();
+  const [rows] = await conn.query(
+    "SELECT * FROM subcategories WHERE category_id = ?", [id]
+  );
+  res.json(rows);
 });
 
 module.exports = router;

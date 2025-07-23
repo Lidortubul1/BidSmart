@@ -4,7 +4,7 @@ import ProductList from "../../components/productList/productList";
 import styles from "./BuyerDashboard.module.css";
 import CategoryBar from "../../components/CategoryBar/CategoryBar";
 import { useState, useEffect } from "react";
-import { fetchCategories } from "../../services/categoriesApi";
+import { fetchCategoriesWithSubs } from "../../services/categoriesApi";
 
 function BuyerDashboard() {
   const { user } = useAuth();
@@ -17,7 +17,7 @@ function BuyerDashboard() {
   const [categories, setCategories] = useState({});
 
   useEffect(() => {
-    fetchCategories()
+    fetchCategoriesWithSubs()
       .then((data) => setCategories(data))
       .catch((err) => console.error("שגיאה בטעינת קטגוריות:", err));
   }, []);

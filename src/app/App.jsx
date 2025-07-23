@@ -21,6 +21,7 @@ import PaymentCancel from "../pages/payment-cancel/payment-cancel.jsx";
 import ForgotPasswordPage from "../pages/ForgotPassword/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPassword/ResetPasswordPage";
 import AdminUsers from "../pages/AdminUsers/AdminUsers.jsx";
+import AdminCategories from "../pages/AdminCategories/AdminCategories.jsx";
 
 // קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
@@ -78,6 +79,8 @@ function App() {
           <Route path="/admin-dashboard" element={ <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />}/>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/categories" element={<AdminCategories />} />
+
                 {/* ... מסלולים נוספים */}
            
           <Route

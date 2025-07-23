@@ -20,6 +20,7 @@ import {
 
 export default function EditUserModal({ user, onClose, onSave }) {
   const [form, setForm] = useState({
+    id: user.id,
     email: user.email || "",
     first_name: user.first_name || "",
     last_name: user.last_name || "",
@@ -62,6 +63,7 @@ export default function EditUserModal({ user, onClose, onSave }) {
 
   const cleanUserData = (data) => ({
     ...data,
+    id: data.id,
     rating:
       data.role === "seller"
         ? data.rating === "" || data.rating === null
