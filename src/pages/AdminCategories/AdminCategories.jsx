@@ -8,6 +8,7 @@ import {
   deleteCategory,
   deleteSubcategory,
 } from "../../services/adminCategoryApi";
+import CustomModal from "../../components/CustomModal/CustomModal";
 
 export default function AdminCategories() {
   const [categories, setCategories] = useState([]);
@@ -15,6 +16,28 @@ export default function AdminCategories() {
   const [expanded, setExpanded] = useState({});
   const [subcategories, setSubcategories] = useState({});
   const [newSub, setNewSub] = useState({});
+
+  // --- State להודעת modal ---
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    title: "",
+    message: "",
+    confirmText: "סגור",
+    onConfirm: () => setModalOpen(false),
+  });
+
+  function openModal({ title, message, confirmText = "סגור", onConfirm }) {
+    setModalConfig({
+      title,
+      message,
+      confirmText,
+      onConfirm: () => {
+        setModalOpen(false);
+        onConfirm && onConfirm();
+      },
+    });
+    setModalOpen(true);
+  }
 
   useEffect(() => {
     loadCategories();
@@ -32,19 +55,51 @@ export default function AdminCategories() {
     }
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
-  
-  //הוספת קטגוריה
+
+  // הוספת קטגוריה
   async function handleAddCategory() {
     if (!newCategory.trim()) return;
-    await addCategory(newCategory);
+
+    const exists = categories.some(
+      (cat) =>
+        cat.name.trim().toLowerCase() === newCategory.trim().toLowerCase()
+    );
+    if (exists) {
+      openModal({
+        title: "שגיאה",
+        message: "כבר קיימת קטגוריה בשם הזה",
+      });
+      return;
+    }
+    const category = await addCategory(newCategory);
     setNewCategory("");
-    loadCategories();
+    if (category && category.id) {
+      await addSubcategory("אחר", category.id);
+    } else {
+      await loadCategories();
+      const updatedCategories = await fetchCategories();
+      const newCat = updatedCategories.find((cat) => cat.name === newCategory);
+      if (newCat) {
+        await addSubcategory("אחר", newCat.id);
+      }
+    }
+    await loadCategories();
   }
 
-  //הוספת תת-קטגוריה
+  // הוספת תת-קטגוריה
   async function handleAddSubcategory(categoryId) {
     const name = newSub[categoryId];
     if (!name || !name.trim()) return;
+    const exists = (subcategories[categoryId] || []).some(
+      (sub) => sub.name.trim().toLowerCase() === name.trim().toLowerCase()
+    );
+    if (exists) {
+      openModal({
+        title: "שגיאה",
+        message: "כבר קיימת תת־קטגוריה בשם הזה בקטגוריה הזו",
+      });
+      return;
+    }
     await addSubcategory(name, categoryId);
     setNewSub((prev) => ({ ...prev, [categoryId]: "" }));
     const subs = await fetchSubcategories(categoryId);
@@ -52,18 +107,28 @@ export default function AdminCategories() {
   }
 
   async function handleDeleteCategory(id) {
-    if (window.confirm("למחוק את הקטגוריה?")) {
-      await deleteCategory(id);
-      loadCategories();
-    }
+    openModal({
+      title: "אישור מחיקה",
+      message: "למחוק את הקטגוריה?",
+      confirmText: "מחק",
+      onConfirm: async () => {
+        await deleteCategory(id);
+        loadCategories();
+      },
+    });
   }
 
   async function handleDeleteSubcategory(subId, categoryId) {
-    if (window.confirm("למחוק את תת־הקטגוריה?")) {
-      await deleteSubcategory(subId);
-      const subs = await fetchSubcategories(categoryId);
-      setSubcategories((prev) => ({ ...prev, [categoryId]: subs }));
-    }
+    openModal({
+      title: "אישור מחיקה",
+      message: "למחוק את תת־הקטגוריה?",
+      confirmText: "מחק",
+      onConfirm: async () => {
+        await deleteSubcategory(subId);
+        const subs = await fetchSubcategories(categoryId);
+        setSubcategories((prev) => ({ ...prev, [categoryId]: subs }));
+      },
+    });
   }
 
   return (
@@ -98,25 +163,29 @@ export default function AdminCategories() {
             {expanded[cat.id] && (
               <div>
                 <ul className={styles.subList}>
-                  {(subcategories[cat.id] || []).map((sub) => (
-                    <li
-                      key={sub.id}
-                      style={{ display: "flex", alignItems: "center" }}
-                    >
-                      <span>{sub.name}</span>
-                      <button
-                        className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                        style={{
-                          marginRight: 7,
-                          fontSize: ".95em",
-                          padding: "0.3rem 1rem",
-                        }}
-                        onClick={() => handleDeleteSubcategory(sub.id, cat.id)}
+                  {(subcategories[cat.id] || [])
+                    .filter((sub) => sub.name.trim() !== "אחר")
+                    .map((sub) => (
+                      <li
+                        key={sub.id}
+                        style={{ display: "flex", alignItems: "center" }}
                       >
-                        מחק
-                      </button>
-                    </li>
-                  ))}
+                        <span>{sub.name}</span>
+                        <button
+                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                          style={{
+                            marginRight: 7,
+                            fontSize: ".95em",
+                            padding: "0.3rem 1rem",
+                          }}
+                          onClick={() =>
+                            handleDeleteSubcategory(sub.id, cat.id)
+                          }
+                        >
+                          מחק
+                        </button>
+                      </li>
+                    ))}
                 </ul>
                 <div className={styles.addSubRow}>
                   <input
@@ -138,6 +207,14 @@ export default function AdminCategories() {
           </li>
         ))}
       </ul>
+      {modalOpen && (
+        <CustomModal
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmText={modalConfig.confirmText}
+          onConfirm={modalConfig.onConfirm}
+        />
+      )}
     </div>
   );
 }
