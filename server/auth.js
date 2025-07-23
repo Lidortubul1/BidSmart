@@ -31,6 +31,7 @@ router.post("/login", async (req, res) => {
       return res.json({ success: false, message: "סיסמה שגויה" });
     }
 
+    // תוסיף status כאן!
     req.session.user = {
       email: user.email,
       role: user.role,
@@ -46,6 +47,7 @@ router.post("/login", async (req, res) => {
       street: user.street,
       house_number: user.house_number,
       apartment_number: user.apartment_number,
+      status: user.status, // הוסף את זה!
     };
 
     res.json({ success: true, user: req.session.user });
@@ -54,6 +56,7 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
+
 
 //session בדיקת
 router.get("/session", (req, res) => {

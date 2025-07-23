@@ -26,23 +26,33 @@ export default function LoginForm({ onSuccess }) {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await loginUser(email, password); // ✅ שימוש בפונקציה החדשה
+ const handleSubmit = async (e) => {
+   e.preventDefault();
+   try {
+     const response = await loginUser(email, password);
 
-      if (response.success) {
-        const user = response.user;
-        login(user);
-        localStorage.setItem("user", JSON.stringify(user));
-        onSuccess?.(user);
-      } else {
-        showModal("שגיאה", "אימייל או סיסמה לא נכונים");
-      }
-    } catch (err) {
-      showModal("שגיאה", "שגיאה בשרת, נסה שוב מאוחר יותר");
-    }
-  };
+     if (response.success) {
+       const user = response.user;
+       // בדיקת סטטוס
+       if (user.status === "blocked") {
+         showModal(
+           "משתמש חסום",
+           "!ההנהלה חסמה את המשתמש \n :נא פנה למייל \n bidsmart123@gmail.com \n להמשך בירור"
+         );
+         return; // לא ממשיך ללוגין
+       }
+       // אם Active
+       login(user);
+       localStorage.setItem("user", JSON.stringify(user));
+       onSuccess?.(user);
+     } else {
+       showModal("שגיאה", "אימייל או סיסמה לא נכונים");
+     }
+   } catch (err) {
+     showModal("שגיאה", "שגיאה בשרת, נסה שוב מאוחר יותר");
+   }
+ };
+
 
   return (
     <>

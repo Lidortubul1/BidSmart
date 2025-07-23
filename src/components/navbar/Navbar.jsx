@@ -2,7 +2,7 @@ import styles from "./Navbar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { useState } from "react";
-import logoImg from "../../assets/images/BSlogo.png"
+import logoImg from "../../assets/images/BSlogo.png";
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -10,10 +10,9 @@ function Navbar() {
   const [query, setQuery] = useState("");
 
   const handleLogout = async () => {
-    await logout(); // מחכה לסיום הקריאה
-    navigate("/"); // הפנייה חזרה לדף הבית
+    await logout();
+    navigate("/");
   };
-  
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -34,28 +33,34 @@ function Navbar() {
     <nav className={styles.navbar}>
       <img src={logoImg} alt="BidSmart Logo" className={styles.logo} />
 
-      <div className={styles.centerSearch}>
-        <form onSubmit={handleSearch} className={styles.searchForm}>
-          <div className={styles.searchWrapper}>
-            <input
-              type="text"
-              placeholder="חפש מוצר..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
-        </form>
-      </div>
+      {/* חיפוש יופיע רק אם זה לא מנהל */}
+      {user?.role !== "admin" && (
+        <div className={styles.centerSearch}>
+          <form onSubmit={handleSearch} className={styles.searchForm}>
+            <div className={styles.searchWrapper}>
+              <input
+                type="text"
+                placeholder="חפש מוצר..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
+          </form>
+        </div>
+      )}
 
       <ul className={styles.navLinks}>
-
         <li>
           <Link to={homePath}>דף הבית</Link>
         </li>
-        <li>
-          <Link to="/info">?מי אנחנו</Link>
-        </li>
+
+        {/* "מי אנחנו" רק אם זה לא admin */}
+        {user?.role !== "admin" && (
+          <li>
+            <Link to="/info">?מי אנחנו</Link>
+          </li>
+        )}
 
         {!isLoggedIn ? (
           <>
@@ -90,9 +95,23 @@ function Navbar() {
             )}
 
             {user.role === "admin" && (
-              <li>
-                <Link to="/admin">ניהול מערכת</Link>
-              </li>
+              <>
+                <li>
+                  <Link to="/admin/categories">ניהול קטגוריות</Link>
+                </li>
+                <li>
+                  <Link to="/admin/users">ניהול משתמשים</Link>
+                </li>
+                <li>
+                  <Link to="/admin/products">ניהול מוצרים</Link>
+                </li>
+                <li>
+                  <Link to="/admin/messages">פניות משתמשים</Link>
+                </li>
+                <li>
+                  <Link to="/admin/stats">סטטיסטיקות</Link>
+                </li>
+              </>
             )}
 
             <li>

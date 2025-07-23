@@ -1,54 +1,146 @@
-.container {
-  padding: 0;
-  margin: 0;
-  background-color: white;
+.page {
+  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
+  font-family: "Heebo", sans-serif;
+  color: #222;
   min-height: 100vh;
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  align-items: center;
 }
 
-.welcomeSection {
+.hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  margin: 40px auto;
-  padding: 0 20px;
-  max-width: 1200px;
-  width: 100%;
 }
 
-.welcomeSection h1 {
-  font-size: 2rem;
-  margin-bottom: 20px;
+.heroText {
+  background: rgba(255, 255, 255, 0.65);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
 }
 
-.content {
-  padding: 24px;
-  margin: 0 auto;
-  max-width: 1200px;
-  width: 100%;
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 150px);
+  gap: 20px;
+  justify-content: center;
+  margin-top: 30px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+.card {
+  background-color: #fff;
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.card h3 {
   font-size: 1rem;
+  margin-bottom: 10px;
 }
 
-th, td {
-  padding: 12px 16px;
-  text-align: right;
-  border-bottom: 1px solid #eee;
+.card p {
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
-th {
-  background-color: #f8f8f8;
-  font-weight: 600;
+.quickLinks {
+  margin-top: 40px;
+  text-align: center;
 }
 
-tr:hover {
-  background-color: #f5f5f5;
+.quickLinks ul {
+  list-style: none;
+  padding: 0;
+}
+
+.quickLinks li {
+  margin: 10px 0;
+}
+
+.quickLinks a {
+  text-decoration: none;
+  color: #222;
+  font-weight: bold;
+}
+
+.messagesSection {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.messagesSection ul {
+  list-style: none;
+  padding: 0;
+}
+
+.messagesSection li {
+  margin: 10px 0;
+  color: #555;
+}
+
+.quickLinks {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.quickLinks h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.quickLinks ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.quickLinks li {
+  margin: 5px 0;
+}
+
+.quickLinks a {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #000;
+  color: #fff;
+  border-radius: 30px;
+  text-decoration: none;
+  transition: 0.3s;
+  font-weight: bold;
+}
+
+.quickLinks a:hover {
+  background-color: #333;
+}
+
+.messagesSection {
+  margin-top: 50px;
+  text-align: center;
+}
+
+.messagesSection h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.messagesSection ul {
+  list-style: none;
+  padding: 0;
+}
+
+.messagesSection li {
+  margin: 8px 0;
+  color: #555;
+  font-weight: 500;
 }

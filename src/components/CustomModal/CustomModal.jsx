@@ -26,12 +26,14 @@ export default function CustomModal({
 
         <h2 className={styles.modalTitle}>{title}</h2>
         <p className={styles.modalMessage}>
-          {message.split("\n").map((line, i) => (
-            <span key={i}>
-              {line}
-              <br />
-            </span>
-          ))}
+          {typeof message === "string"
+            ? message.split("\n").map((line, i) => (
+                <span key={i}>
+                  {line}
+                  <br />
+                </span>
+              ))
+            : message}
         </p>
 
         <div className={styles.modalActions}>

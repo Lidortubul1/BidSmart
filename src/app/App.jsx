@@ -20,6 +20,7 @@ import PaymentSuccess from "../pages/payment-success/payment-success.jsx";
 import PaymentCancel from "../pages/payment-cancel/payment-cancel.jsx";
 import ForgotPasswordPage from "../pages/ForgotPassword/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPassword/ResetPasswordPage";
+import AdminUsers from "../pages/AdminUsers/AdminUsers.jsx";
 
 // קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
@@ -72,12 +73,13 @@ function App() {
           <Route path="/info" element={<InfoPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-          <Route
-            path="/admin-dashboard"
-            element={
-              <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />
-            }
-          />
+           
+           {/* ... מסלולים של מנהל */}
+          <Route path="/admin-dashboard" element={ <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />}/>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+                {/* ... מסלולים נוספים */}
+           
           <Route
             path="/add-product"
             element={<ProtectedRoute element={<AddProductPage />} />}

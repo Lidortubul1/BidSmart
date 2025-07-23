@@ -17,6 +17,8 @@ export default function ProductList({
       .then(setProducts)
       .catch((error) => console.error("Failed to fetch products:", error));
   }, []);
+
+  
   // סינון מוצרים לפי שאילתת חיפוש, קטגוריה ותת־קטגוריה
   const filteredProducts = products.filter((product) => {
     // הופך את שם המוצר ותיאורו לאותיות קטנות לצורך השוואה

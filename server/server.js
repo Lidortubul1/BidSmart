@@ -13,6 +13,8 @@ const categoryRoutes = require("./categories.js");
 const saleRoutes = require("./sale.js");
 const userRoutes = require("./users");
 const paymentRoutes = require("./payment");
+const adminRoutes = require("./admin.js");
+
 //מנהל ה (Real-time) עם המשתמשים דרך socket.io
 const { setupSocket } = require("./socketManager.js");
 const sellerRoutes = require("./seller.js");
@@ -75,6 +77,7 @@ app.use("/api/categories", categoryRoutes); // קטגוריות
 app.use("/api/auth", authRoutes); // התחברות והרשמה
 app.use("/api/quotation", quotationRoutes); // הצעות מחיר
 app.use("/api/sale", saleRoutes); // מכירה וזכיות
+app.use("/api/admin", adminRoutes); // ניהול מוצרים
 app.use("/api/payment", paymentRoutes); // תשלומים דרך PayPal
 app.use("/api/users", userRoutes); // משתמשים ופרופילים
 app.use("/api/ai-chat", aiChatRoutes);//נציגת AI

@@ -1,0 +1,343 @@
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
+.modalBox,
+.editForm,
+.formRow,
+.header {
+  direction: rtl;
+}
+
+:root {
+  --primary: #1a89ff;
+  --secondary: #14b8a6;
+  --background: #f8fafc;
+  --modal-bg: #fff;
+  --modal-shadow: 0 8px 32px #1a233a18;
+  --border: #e5eaf2;
+  --input-bg: #f7fafd;
+  --input-focus: #eaf6ff;
+  --accent: #d4e9fa;
+  --error: #ff5a5a;
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  z-index: 20000;
+  inset: 0;
+  background: rgba(28, 39, 57, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalBox {
+  background: var(--modal-bg);
+  border-radius: 2.3rem;
+  box-shadow: var(--modal-shadow);
+  max-height: 97vh;
+  overflow-y: auto;
+  display: flex;
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 600px;
+  min-width: 680px;
+  padding: 40px 48px 30px 48px;
+  flex-direction: column;
+  border: 1.4px solid var(--border);
+  animation: modalAppear 0.32s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+}
+
+
+@keyframes modalAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(36px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1.5px solid var(--border);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+}
+.header h2 {
+  margin: 0;
+  font-size: 1.47em;
+  color: #222a3a;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center; 
+  width: 100%;
+}
+.closeBtn {
+  border: none;
+  background: transparent;
+  color: #b0b8c6;
+  font-size: 1.29em;
+  cursor: pointer;
+  transition: color 0.16s;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.closeBtn:hover,
+.closeBtn:focus {
+  color: var(--error);
+  background: #f8f5f5;
+}
+
+/* Form */
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 4px;
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+  background: var(--input-bg);
+  border-radius: 16px;
+  padding: 14px 17px;
+  border: 1.4px solid var(--border);
+  box-shadow: 0 1.5px 10px #dde6f51a;
+  transition: box-shadow 0.19s, border 0.13s, background 0.11s;
+  position: relative;
+}
+
+.formRow:focus-within {
+  background: var(--input-focus);
+  border: 1.8px solid var(--primary);
+  box-shadow: 0 4px 18px #b3e4ff2c;
+}
+
+.formIcon {
+  color: var(--primary);
+  font-size: 1.19em;
+  min-width: 27px;
+  display: flex;
+  align-items: center;
+}
+
+.formRow label {
+    margin-right: 0;
+  margin-left: 18px;
+  text-align: right;
+  width: 120px;
+  font-weight: 600;
+  color: #2c3a50;
+  font-size: 1.05em;
+  letter-spacing: 0.01em;
+}
+
+.formRow input,
+.formRow select {
+  flex: 1;
+  border: 1.2px solid #dde9fa;
+  border-radius: 10px;
+  padding: 9px 15px;
+  font-family: "Heebo", sans-serif;
+  font-size: 1em;
+  background: #fff;
+  transition: border 0.14s, box-shadow 0.13s;
+  outline: none;
+  min-width: 0;
+}
+.formRow input:focus,
+.formRow select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 1px 9px #b7e1ff3a;
+  background: #f7fcff;
+}
+
+.verifiedStatus {
+  font-size: 0.99em;
+  color: var(--secondary);
+  background: #e9fafb;
+  border-radius: 14px;
+  padding: 2.5px 12px 2.5px 9px;
+  font-weight: 600;
+  margin-right: 7px;
+  margin-left: 5px;
+  letter-spacing: 0.01em;
+  border: 1.1px solid #c5f3e7;
+  display: flex;
+  align-items: center;
+}
+
+.photoPreview {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 2px 0;
+}
+.photoPreview img {
+  max-width: 58px;
+  max-height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.2px solid #e4eefd;
+  background: #fff;
+  box-shadow: 0 2px 8px #b8c5e032;
+  transition: box-shadow 0.17s;
+}
+.deletePhotoBtn {
+  background: linear-gradient(90deg, #e5e5e5 0%, #f2f2f2 80%);
+  color: #a0a0a0;
+  border: 1.2px solid #dfdfdf;
+  border-radius: 17px;
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 0.98em;
+  margin-right: 4px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.11s;
+  box-shadow: 0 1.5px 8px #e7e7e736;
+  outline: none;
+}
+.deletePhotoBtn:hover,
+.deletePhotoBtn:focus {
+  background: linear-gradient(90deg, #f8eaea 10%, #ececec 100%);
+  color: #c44a43;
+}
+
+.noPhoto {
+  color: #b2b2b2;
+  background: #f6f8fa;
+  border-radius: 10px;
+  padding: 4px 20px;
+  font-size: 1em;
+  margin-right: 8px;
+  border: 1.1px solid #ebebeb;
+}
+.actions {
+  display: flex;
+  flex-direction: column; /* מיישר לעמודה! */
+  gap: 14px;              /* רווח בין הכפתורים */
+  justify-content: center;
+  align-items: stretch;   /* הכפתורים יתפסו את כל הרוחב */
+  margin-top: 18px;
+}
+
+
+.actionBtn {
+  /* width: 100%; */
+  height: 50px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1.09em;
+  font-family: "Heebo", sans-serif;
+  box-shadow: 0 2px 12px #c6f8e421;
+  /* border: 2px solid var(--primary);      זהה לשניהם */
+  outline: none;
+  cursor: pointer;
+  transition: background .13s, color .13s, border .13s;
+  text-align: center;
+  letter-spacing: .01em;
+  display: inline-block;
+  box-sizing: border-box;
+  background: #fff;                      /* ברירת מחדל לכולם */
+  margin: 0 auto;   /* מרכז אוטומטית את האלמנט בתוך הקונטיינר */
+
+}
+
+.saveBtn {
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 93%) !important;
+  color: #fff !important;
+}
+
+.saveBtn:hover {
+  background: linear-gradient(90deg, #1879e5 0%, #14a695 100%) !important;
+}
+
+.cancelBtn {
+  background: linear-gradient(90deg, #e51829 0%, #970303 100%) !important;
+
+  color: #fff !important;
+   width: 160px;
+  height: 40px;
+   border-radius: 24px;
+    font-size: 0.9em;
+
+
+
+}
+
+.cancelBtn:hover {
+  background: linear-gradient(90deg, #b40320 0%, #461323 100%) !important;
+
+  
+}
+
+.errorBox {
+  margin-top: 2px;
+  margin-bottom: 6px;
+  color: #fff;
+  background: var(--error);
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  font-size: 1.01em;
+  box-shadow: 0 2px 9px #ff9c9c31;
+}
+
+/* רספונסיביות מהממת */
+@media (max-width: 800px) {
+ .modalBox {
+    padding-left: 10vw;
+    padding-right: 10vw;
+    width: 96vw;
+    max-width: 98vw;
+  }
+}
+@media (max-width: 99vw) {
+  .modalBox {
+    padding: 8px 0 8px 0;
+    min-width: 0;
+  }
+  .editForm {
+    gap: 9px;
+  }
+  .formRow {
+    gap: 7px;
+    padding: 10px 7px;
+  }
+  .formRow label {
+    width: 78px;
+    font-size: 0.99em;
+  }
+  .photoPreview img {
+    max-width: 36px;
+    max-height: 36px;
+  }
+  .deletePhotoBtn {
+    font-size: 0.91em;
+    padding: 4px 8px;
+  }
+  .actions {
+    margin-top: 10px;
+  }
+  .header {
+    padding-bottom: 5px;
+  }
+}
+
+@media (max-width: 440px) {
+  .modalBox {
+    border-radius: 10px;
+  }
+}
