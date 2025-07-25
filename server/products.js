@@ -172,7 +172,7 @@ const [result] = await conn.execute(
   }
 });
 
-//מחזיר מוצר לפי product_id (אם עוד לא קיים)
+
 // שליפת מוצר בודד לפי product_id
 router.get("/:id", async (req, res) => {
   const { id } = req.params;

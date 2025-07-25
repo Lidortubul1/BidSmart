@@ -1,0 +1,153 @@
+.detailsPage {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 10px 60px;
+  background: #fff;
+  border-radius: 1.7rem;
+  box-shadow: 0 2px 16px #c2d2e622;
+  direction: rtl;
+  font-family: Heebo, Arial, sans-serif;
+}
+
+h2 {
+  font-size: 2rem;
+  margin-bottom: 2.4rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 19px;
+}
+
+label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #21243d;
+}
+
+input, select, textarea {
+  border: 1.5px solid #e5eaf2;
+  border-radius: 1.2rem;
+  padding: 10px 12px;
+  font-size: 1rem;
+  background: #f7fafd;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #1a89ff;
+  background: #eaf6ff;
+}
+textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.saveBtn {
+  width: 100%;
+  margin-top: 20px;
+  background: linear-gradient(90deg,#14b8a6,#1a89ff);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 1.2rem;
+  padding: 14px 0;
+  cursor: pointer;
+  transition: filter 0.15s;
+  box-shadow: 0 2px 12px #8ebbf733;
+}
+.saveBtn:disabled {
+  opacity: 0.65;
+  filter: grayscale(0.4);
+  cursor: not-allowed;
+}
+.saveBtn:not(:disabled):hover {
+  filter: brightness(1.06);
+}
+
+.imagesGrid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.imageItem {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.imageItem img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1.5px solid #eaeaea;
+  background: #f9fafd;
+}
+
+.deleteImgBtn {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 27px;
+  height: 27px;
+  cursor: pointer;
+  box-shadow: 0 1px 8px #1a233a22;
+  font-size: 1.15rem;
+  transition: background 0.15s;
+}
+.deleteImgBtn:hover {
+  background: #fff2f2;
+}
+
+@media (max-width: 600px) {
+  .detailsPage {
+    padding: 10px 2vw 45px;
+    border-radius: 1.1rem;
+    box-shadow: 0 2px 10px #c2d2e622;
+  }
+  .imagesGrid img {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+
+.addImgLabel {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  background: #f8fafc;
+  border: 1px solid #e5eaf2;
+  padding: 6px 18px;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background 0.16s;
+}
+.addImgLabel:hover {
+  background: #eaf6ff;
+}
+.modalBox {
+  width: min(550px, 95vw);
+  max-width: 95vw;
+  max-height: 95vh;
+  padding: 1.7rem 1.5rem 1.5rem 1.5rem;
+  overflow: auto; /* חשוב! */
+  border-radius: 1.7rem;
+    max-width: 540px;
+  width: 95vw;
+  max-height: 80vh;
+  overflow: auto;
+  box-sizing: border-box;
+}

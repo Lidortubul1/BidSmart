@@ -9,7 +9,6 @@ export default function Product({ product, showDescription = true }) {
   // איחוד תאריך ושעה
 const dateOnly = product.start_date?.slice(0, 10);
 const timeOnly = product.start_time;
-const registrationDeadline = `${dateOnly} בשעה ${timeOnly}`;
 
   return (
     <Link to={`/product/${product.product_id}`} className={styles.link}>
@@ -24,7 +23,8 @@ const registrationDeadline = `${dateOnly} בשעה ${timeOnly}`;
         <h3>{product.product_name}</h3>
         <p>מחיר פתיחה: ₪{product.price}</p>
         {/* <p>סטטוס: {product.product_status}</p> */}
-        <p>ניתן להירשם עד: {registrationDeadline}</p>
+        <p>ניתן להירשם עד התאריך: {dateOnly}</p>
+        <p>בשעה :{timeOnly}</p>
 
         {showDescription && <p>{product.description}</p>}
       </div>

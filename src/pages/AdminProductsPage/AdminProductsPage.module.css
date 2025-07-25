@@ -1,0 +1,111 @@
+.productsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #f6f9fc;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.productsTable th, .productsTable td {
+  padding: 10px;
+  border-bottom: 1px solid #e4e9ef;
+  text-align: center;
+}
+.productsTable th {
+  background: #e9f1fd;
+  font-weight: 600;
+}
+.productsTable tr:hover {
+  background: #f2f7ff;
+}
+.productsTable td button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+.productsTable td img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+
+.searchBox {
+  display: flex;
+  justify-content: center;   /* מרכז אופקית */
+  align-items: center;       /* מרכז אנכית אם צריך */
+  margin-bottom: 22px;
+  width: 100%;
+}
+.searchInput {
+  direction: rtl;
+  border: 1.6px solid #c2dafc;
+  border-radius: 22px;
+  padding: 10px 16px;
+  font-size: 1.08em;
+  width: 540px;
+  background: #f7fafc;
+  outline: none;
+  transition: border 0.2s, background 0.18s;
+}
+.searchInput:focus {
+  border: 2px solid #2b90ec;
+  background: #eaf6ff;
+}
+
+
+.filtersRow {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.filterBtn {
+  border: none;
+  background: #e3ecfc;
+  color: #2656a6;
+  border-radius: 24px;
+  font-size: 1.08em;
+  padding: 8px 22px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.18s;
+  font-weight: 600;
+  box-shadow: 0 1px 4px #9cb5dc22;
+}
+.filterBtn:hover {
+  background: #b2d6ff;
+  color: #123871;
+}
+.activeFilter {
+  background: #1a89ff;
+  color: #fff;
+  box-shadow: 0 2px 8px #4096ff33;
+}
+
+
+.sortBtn {
+  background: #edf4ff;
+  color: #1656c7;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-size: 1em;
+  margin-bottom: 0.8em;
+  cursor: pointer;
+  transition: background 0.17s, color 0.17s;
+  font-weight: 600;
+  box-shadow: 0 2px 8px #4096ff11;
+    width: 240px;
+}
+.sortBtn:hover {
+  background: #c2deff;
+  color: #123871;
+}
+.activeSort {
+  background: #1a89ff;
+  color: #fff;
+  box-shadow: 0 2px 8px #4096ff33;
+
+}

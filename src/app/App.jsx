@@ -22,7 +22,7 @@ import ForgotPasswordPage from "../pages/ForgotPassword/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPassword/ResetPasswordPage";
 import AdminUsers from "../pages/AdminUsers/AdminUsers.jsx";
 import AdminCategories from "../pages/AdminCategories/AdminCategories.jsx";
-
+import AdminProductsPage from "../pages/AdminProductsPage/AdminProductsPage.jsx";
 // קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import Navbar from "../components/navbar/Navbar";
@@ -30,7 +30,7 @@ import Footer from "../components/footer/Footer";
 import DashboardRouter from "../components/DashboardRouter/DashboardRouter.jsx";
 import LiveAuctionWrapper from "../components/LiveAuctionWrapper/LiveAuctionWrapper.jsx";
 import AIChat from "../components/AIChat/AIChat.jsx";
-
+import AdminProductDetails from "../components/AdminProductDetails/AdminProductDetails.jsx";
 // לוחות ניהול
 import BuyerDashboard from "../pages/home/BuyerDashboard";
 import SellerDashboard from "../pages/home/SellerDashboard.jsx";
@@ -74,25 +74,28 @@ function App() {
           <Route path="/info" element={<InfoPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
-           
-           {/* ... מסלולים של מנהל */}
-          <Route path="/admin-dashboard" element={ <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />}/>
+          {/* ... מסלולים של מנהל */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />
+            }
+          />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/categories" element={<AdminCategories />} />
+          <Route path="/admin/products" element={<AdminProductsPage />} />
+          <Route path="/admin/products/:productId" element={<AdminProductDetails />} />
 
-                {/* ... מסלולים נוספים */}
-           
+          {/* ... מסלולים נוספים */}
           <Route
             path="/add-product"
             element={<ProtectedRoute element={<AddProductPage />} />}
           />
           <Route path="/payment-success/:id" element={<PaymentSuccess />} />
           <Route path="/payment-cancel" element={<PaymentCancel />} />
-
           <Route path="/shipping/:id" element={<ShippingForm />} />
           <Route path="/live-auction/:id" element={<LiveAuctionWrapper />} />
-
           <Route path="/become-seller" element={<BecomeSeller />} />
           <Route path="/manage-products" element={<ManageProductsPage />} />
           <Route path="/my-bids" element={<MyBidsPage />} />
@@ -100,7 +103,7 @@ function App() {
         </Routes>
       </div>
 
-      <AIChat/>
+      <AIChat />
 
       <Footer />
     </div>
