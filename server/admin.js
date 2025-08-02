@@ -57,6 +57,17 @@ router.get("/stats", async (req, res) => {
 });
 
 
+
+
+
+
+
+
+
+
+
+//ניהול משתמשים
+
 //פונקציה למחיקת משתמש לצמיתות ע"י המנהל
 // שים לב - עכשיו id (ולא email)
 router.delete("/users/:id", async (req, res) => {
@@ -73,7 +84,6 @@ router.delete("/users/:id", async (req, res) => {
     res.status(500).json({ error: "שגיאה במחיקת המשתמש" });
   }
 });
-
 
 // שליפת כל המשתמשים (ללא סיסמה)
 router.get("/users", async (req, res) => {
@@ -190,6 +200,16 @@ router.put("/users/:id", async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
 //ניהול קטגוריות
 
 // הוספת קטגוריה
@@ -199,8 +219,6 @@ router.post("/category", async (req, res) => {
   const [result] = await conn.execute("INSERT INTO categories (name) VALUES (?)", [name]);
   res.json({ id: result.insertId, name });
 });
-
-
 // הוספת תת-קטגוריה
 router.post("/category/subcategory", async (req, res) => {
   const { name, category_id } = req.body;
@@ -212,7 +230,6 @@ router.post("/category/subcategory", async (req, res) => {
   );
   res.json({ success: true });
 });
-
 // מחיקת קטגוריה + העברת מוצרים ל"אחר"/"כללי"
 router.delete("/category/:id", async (req, res) => {
   const categoryIdToDelete = req.params.id;
@@ -279,9 +296,6 @@ router.delete("/category/:id", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-
-
-
 // מחיקת תת-קטגוריה
 // מחיקת תת-קטגוריה ומעבר כל המוצרים ל"אחר"
 router.delete("/category/subcategory/:id", async (req, res) => {
@@ -331,15 +345,12 @@ console.log(id);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
-
-
 // שליפת כל הקטגוריות
 router.get("/category", async (req, res) => {
   const conn = await db.getConnection();
   const [rows] = await conn.query("SELECT * FROM categories");
   res.json(rows);
 });
-
 // שליפת תתי-קטגוריות לקטגוריה מסוימת
 router.get("/category/:id/subcategories", async (req, res) => {
   const { id } = req.params;
@@ -349,6 +360,12 @@ router.get("/category/:id/subcategories", async (req, res) => {
   );
   res.json(rows);
 });
+
+
+
+
+
+
 
 
 
@@ -379,10 +396,6 @@ router.get("/product/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch product" });
   }
 });
-
-
-
-
 // שליפת כל המוצרים למנהל
 // שליפת כל המוצרים עם תמונה ראשית, קטגוריה, תת-קטגוריה ומוכר
 router.get("/products", async (req, res) => {
@@ -433,7 +446,6 @@ router.get("/products", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בשליפת מוצרים" });
   }
 });
-
 //נתונים כללים של מוצר
 router.get("/product/:id", async (req, res) => {
   const { id } = req.params;
@@ -477,8 +489,6 @@ router.get("/product/:id", async (req, res) => {
     res.status(500).json({ error: "שגיאה בשרת" });
   }
 });
-
-
 // מחיקת מוצר
 router.delete("/product/:id", async (req, res) => {
   const productId = req.params.id;
@@ -499,8 +509,6 @@ router.delete("/product/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה במחיקת מוצר" });
   }
 });
-
-
 // עדכון מוצר (דוגמה – עדכן שדות עיקריים)
 router.put("/product/:id", async (req, res) => {
   const productId = req.params.id;
@@ -555,8 +563,6 @@ router.put("/product/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בעדכון מוצר" });
   }
 });
-
-
 // מחיקת תמונה של מוצר ע"י המנהל
 router.delete("/product/:id/image", async (req, res) => {
   const { id } = req.params;
@@ -569,8 +575,6 @@ router.delete("/product/:id/image", async (req, res) => {
     res.status(500).json({ error: "שגיאה במחיקת תמונה" });
   }
 });
-
-// הוספת תמונה למוצר
 // הוספת תמונה למוצר
 router.post("/product/:id/image", upload.single("image"), async (req, res) => {
   const { id } = req.params;
@@ -583,6 +587,17 @@ router.post("/product/:id/image", upload.single("image"), async (req, res) => {
   );
   res.json({ success: true, image_url });
 });
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -609,11 +624,6 @@ router.get("/messages", async (req, res) => {
     res.status(500).json({ message: "שגיאה בטעינת פניות" });
   }
 });
-
-
-
-
-
 //הודעה שמנהל שולח למשתמש 
 router.post("/messages", async (req, res) => {
   const {
@@ -710,9 +720,6 @@ let messageStatus = status;
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
-
-
-
 //מנהל עונה למשתמש על פנייה קיימת-אם זה אורח התשובה נשלחת למייל שכתב ואם זה משתמש אז להודעות של המשתמש
 // מנהל עונה למשתמש על פנייה קיימת
 router.put("/messages/:id", async (req, res) => {
@@ -755,7 +762,7 @@ router.put("/messages/:id", async (req, res) => {
       recipient &&
       admin_reply &&
       (recipient.user_id === null || recipient.user_status === "blocked");
-      
+
     console.log(admin_reply !== recipient.admin_reply);
     console.log(admin_reply, " -", recipient.admin_reply);
 
@@ -817,15 +824,6 @@ router.put("/messages/:id", async (req, res) => {
     res.status(500).json({ message: "שגיאת שרת" });
   }
 });
-
-
-
-
-
-
-
-
-
 //שליפת כל מיילים של המשתמשים
 router.get("/messages/user-emails", async (req, res) => {
   try {
@@ -838,8 +836,6 @@ router.get("/messages/user-emails", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
-
-
 // מחיקת הודעה לפי ID
 router.delete("/messages/:id", async (req, res) => {
   const { id } = req.params;
@@ -862,6 +858,9 @@ router.delete("/messages/:id", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת בעת המחיקה" });
   }
 });
+
+
+
 
 
 module.exports = router;
