@@ -24,6 +24,7 @@ import AdminUsers from "../pages/AdminUsers/AdminUsers.jsx";
 import AdminCategories from "../pages/AdminCategories/AdminCategories.jsx";
 import AdminProductsPage from "../pages/AdminProductsPage/AdminProductsPage.jsx";
 import AdminMessages from "../pages/AdminMessages/AdminMessages.jsx";
+import AdminStatistics from "../pages/AdminStatistics/AdminStatistics.jsx";
 
 // קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
@@ -77,18 +78,23 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
           {/* ... מסלולים של מנהל */}
-          <Route path="/admin-dashboard"element={<ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />}/>
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute element={<AdminDashboard />} roles={["admin"]} />
+            }
+          />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/categories" element={<AdminCategories />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/messages" element={<AdminMessages />} />
+          <Route path="/admin/stats" element={<AdminStatistics />} />
 
           <Route
             path="/admin/products/:productId"
             element={<AdminProductDetails />}
           />
-
           {/* ... מסלולים נוספים */}
           <Route
             path="/add-product"

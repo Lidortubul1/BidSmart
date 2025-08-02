@@ -13,6 +13,35 @@ router.use((req, res, next) => {
   next();
 });
 
+
+
+//כמות נרשמים לפי חודש ושנה שהתקבל מהמנהל
+router.get("/stats/registrations", async (req, res) => {
+  const { year, month } = req.query;
+
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(
+      `
+      SELECT 
+        DAY(registered) AS day,
+        COUNT(*) AS count
+      FROM users
+      WHERE YEAR(registered) = ? AND MONTH(registered) = ?
+      GROUP BY DAY(registered)
+      ORDER BY day ASC
+    `,
+      [year, month]
+    );
+
+    res.json(rows); // כל רשומה היא { day: 1, count: 3 } למשל
+  } catch (err) {
+    console.error("שגיאה בשליפת הרשמות:", err);
+    res.status(500).json({ message: "שגיאה בטעינת הנתונים" });
+  }
+});
+
+
 //נתונים כללים של הלוח בקרה
 router.get("/stats", async (req, res) => {
   try {
@@ -41,6 +70,9 @@ router.get("/stats", async (req, res) => {
     const [[{ unsoldProducts }]] = await conn.query(
       "SELECT COUNT(*) AS unsoldProducts FROM product WHERE is_live = 1 AND winner_id_number IS NULL"
     );
+    const [[{ blockedUsers }]] = await conn.query(
+      "SELECT COUNT(*) AS blockedUsers FROM users WHERE status = 'blocked' "
+    );
 
     res.json({
       totalSellers,
@@ -49,6 +81,8 @@ router.get("/stats", async (req, res) => {
       undeliveredSales,
       upcomingProducts,
       unsoldProducts,
+      blockedUsers,
+      
     });
   } catch (error) {
     console.error("שגיאה בקבלת סטטיסטיקות:", error);
@@ -56,6 +90,46 @@ router.get("/stats", async (req, res) => {
   }
 });
 
+
+//שליפת כמות מוצרים לפי קטגוריה 
+router.get("/stats/products-by-category", async (req, res) => {
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(`
+      SELECT c.name AS category, COUNT(p.product_id) AS count
+      FROM product p
+      JOIN categories c ON p.category_id = c.id
+      GROUP BY c.name
+      ORDER BY count DESC
+    `);
+
+    res.json(rows); // דוגמה: [{ category: "אלקטרוניקה", count: 5 }, ...]
+  } catch (error) {
+    console.error("שגיאה בשליפת מוצרים לפי קטגוריה:", error);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+//סכום מכירות לפי חודש
+router.get("/stats/sales-by-month", async (req, res) => {
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(`
+      SELECT 
+        MONTH(start_date) AS month,
+        YEAR(start_date) AS year,
+        SUM(current_price) AS total_sales
+      FROM product
+      WHERE product_status = 'sale'
+      GROUP BY YEAR(start_date), MONTH(start_date)
+      ORDER BY year DESC, month DESC
+    `);
+
+    res.json(rows); // דוגמה: [{ month: 8, year: 2025, total_sales: 3200 }, ...]
+  } catch (err) {
+    console.error("שגיאה בשליפת מכירות לפי חודש:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
 
 
 
