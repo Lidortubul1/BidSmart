@@ -151,3 +151,22 @@ textarea {
   overflow: auto;
   box-sizing: border-box;
 }
+/* כפתור חזרה למוצרים  */
+.backBtn {
+  display: block;            /* נדרש בשביל margin auto */
+  margin: 12px auto;         /* מרכז אופקית */
+
+  background-color: #000000;
+  color: white;
+  padding: 2px 6px;         /* ריווח פנימי קטן יותר */
+  font-size: 1rem;          /* שומר על גודל טקסט רגיל */
+  border: none;
+  border-radius: 10px;       /* פחות עיגול */
+  cursor: pointer;
+    width: fit-content;       /* גורם לכפתור להתאים את עצמו לגודל הטקסט בלבד */
+
+  transition: background-color 0.3s;
+}
+.backBtn:hover {
+  background-color: #080909;
+}

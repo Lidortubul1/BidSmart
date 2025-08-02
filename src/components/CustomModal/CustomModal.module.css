@@ -7,57 +7,77 @@
   background-color: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
   display: flex;
-  justify-content: center;  /* מרכז אופקית */
-  align-items: center;      /* מרכז אנכית */
+  justify-content: center;
+  align-items: center;
   z-index: 1000;
 }
 
 .modalBox {
+  direction: rtl;
+  text-align: right;
   position: relative;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
   padding: 30px;
   border-radius: 20px;
-  max-width: 420px;
-  width: 90%;
+  max-width: 600px;
+  width: 95%;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-  text-align: center;
   animation: fadeIn 0.4s ease;
 }
 
 .modalTitle {
   font-size: 1.6rem;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
   font-weight: 700;
   color: #222;
+  text-align: center;
 }
 
 .modalMessage {
-  font-size: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 1.05rem;
   color: #333;
   margin-bottom: 25px;
   line-height: 1.6;
 }
 
+.modalMessage label {
+  font-weight: bold;
+  margin-top: 10px;
+}
+.modalMessage textarea,
+.modalMessage select {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  resize: vertical;
+}
 .modalActions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
   gap: 12px;
+  justify-content: flex-start;
 }
 
 .modalButton {
-  padding: 12px;
+  padding: 12px 20px;
   border-radius: 30px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   border: none;
   transition: background-color 0.3s ease, transform 0.2s ease;
-  width: 100%;
 }
-
-.modalConfirm {
-  background-color: #000;
+modalConfirm {
+  background-color: rgba(0, 0, 0, 0.6) !important; /* רקע כהה יותר עם חשיבות */
+  z-index: 9999 !important; /* לוודא שזה מעל כל דבר אחר */
   color: white;
 }
 
@@ -70,12 +90,13 @@
   color: #333;
 }
 
+
 .modalCancel:hover {
   background-color: #d5d5d5;
 }
 
 .modalExtra {
-  background-color: #007bff;
+  background-color: #0e1114;
   color: white;
 }
 
@@ -83,10 +104,11 @@
   background-color: #0056b3;
 }
 
+
 .modalClose {
   position: absolute;
   top: 10px;
-  right: 14px;
+  left: 14px;
   background: none;
   border: none;
   font-size: 26px;
@@ -100,11 +122,11 @@
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
+
 .modalClose:hover {
-  color: #000;
+  color: #a73d3d;
   transform: scale(1.2);
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -6,6 +6,7 @@ const multer = require("multer");
 //אחסון תמונות
 const storage = require("./storage");
 const upload = multer({ storage });
+const sendMail = require("../server/sendMail");
 
 router.use((req, res, next) => {
   console.log("API CALL", req.method, req.originalUrl);
@@ -581,6 +582,285 @@ router.post("/product/:id/image", upload.single("image"), async (req, res) => {
     [id, image_url]
   );
   res.json({ success: true, image_url });
+});
+
+
+
+
+//ניהול פניות משתמשים
+
+// קבלת כל הפניות
+router.get("/messages", async (req, res) => {
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(`
+      SELECT 
+        cm.*,
+        u.id_number AS user_id_number,
+        u.status AS user_status
+      FROM contact_messages cm
+      LEFT JOIN users u ON cm.user_id = u.id
+      ORDER BY cm.created_at DESC
+    `);
+
+    res.json(rows);
+  } catch (error) {
+    console.error("Error loading contact messages:", error);
+    res.status(500).json({ message: "שגיאה בטעינת פניות" });
+  }
+});
+
+
+
+
+
+//הודעה שמנהל שולח למשתמש 
+router.post("/messages", async (req, res) => {
+  const {
+    email,
+    subject,
+    message,
+    status = "new",
+    admin_reply = "",
+    is_admin_message = 1,
+    sender_role = "admin",
+  } = req.body;
+
+let reply_sent = 0;
+let messageStatus = status;
+
+  if (!email || !subject || !message) {
+    return res.status(400).json({ message: "חובה למלא אימייל, נושא והודעה" });
+  }
+
+  try {
+    const conn = await db.getConnection();
+
+    // בדיקה אם המשתמש קיים בטבלת users
+    let userId = null;
+    let sendEmail = false;
+
+    const [userRows] = await conn.execute(
+      "SELECT id, status FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (userRows.length > 0) {
+      userId = userRows[0].id;
+      const userStatus = userRows[0].status;
+
+      if (userStatus === "blocked" ) {
+        sendEmail = true; // שלח מייל גם אם חסום
+        reply_sent =1;
+        messageStatus = "resolved";
+      }
+    }
+     else {
+      sendEmail = true; // לא קיים בכלל – שלח מייל
+      reply_sent = 1;
+      messageStatus = "resolved";
+    }
+
+    // הכנסת ההודעה למסד הנתונים
+    const [result] = await conn.execute(
+      `INSERT INTO contact_messages 
+        (user_id, email, subject, message, status, reply_sent, admin_reply, created_at, is_admin_message, sender_role) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)`,
+      [
+        userId,
+        email,
+        subject,
+        message,
+        messageStatus,
+        reply_sent,
+        admin_reply,
+        is_admin_message,
+        sender_role,
+      ]
+    );
+
+    // שליחת מייל במידת הצורך
+    if (sendEmail && message&&subject) {
+      console.log("⬅ נכנס לשליחת מייל לאורח:", email);
+      await sendMail({
+        to: email,
+        subject: subject,
+        text: `:נושא\n${subject}\n\n:תשובת הנהלת האתר\n${message}`,
+      });
+      console.log("המייל נשלח ל:", email);
+    }
+
+    const newMessage = {
+      id: result.insertId,
+      user_id: userId,
+      email,
+      subject,
+      message,
+      status,
+      reply_sent,
+      admin_reply,
+      is_admin_message,
+      sender_role,
+      created_at: new Date(),
+    };
+
+    res.status(201).json(newMessage);
+  } catch (err) {
+    console.error("שגיאה ביצירת הודעה חדשה:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+
+
+//מנהל עונה למשתמש על פנייה קיימת-אם זה אורח התשובה נשלחת למייל שכתב ואם זה משתמש אז להודעות של המשתמש
+// מנהל עונה למשתמש על פנייה קיימת
+router.put("/messages/:id", async (req, res) => {
+  const id = req.params.id;
+  const {
+    email,
+    subject,
+    message,
+    status,
+    admin_reply,
+    reply_sent,
+    is_admin_message,
+    sender_role,
+  } = req.body;
+
+  try {
+    const conn = await db.getConnection();
+
+    // שליפת שורת ההודעה עם סטטוס המשתמש
+    const [rows] = await conn.execute(
+      `SELECT cm.user_id, cm.email, cm.admin_reply, u.status AS user_status
+       FROM contact_messages cm
+       LEFT JOIN users u ON cm.user_id = u.id
+       WHERE cm.id = ?`,
+      [id]
+    );
+
+    const recipient = rows[0];
+
+    console.log("Recipient:", recipient, status);
+    // שלח מייל אם:
+    const shouldSendEmailNew =
+      status === "new" &&
+      recipient &&
+      admin_reply &&
+      (recipient.user_id === null || recipient.user_status === "blocked");
+
+    const shouldSendEmailProgg =
+      status === "in_progress" &&
+      recipient &&
+      admin_reply &&
+      (recipient.user_id === null || recipient.user_status === "blocked");
+      
+    console.log(admin_reply !== recipient.admin_reply);
+    console.log(admin_reply, " -", recipient.admin_reply);
+
+    if (shouldSendEmailNew) {
+      console.log("⬅ שליחת מייל ראשון וחדש:", recipient.email);
+      await sendMail({
+        to: recipient.email,
+        subject: subject,
+        text: `הודעתך התקבלה:\n${message}\n\nתשובת הנהלת האתר:\n${admin_reply}`,
+      });
+
+      //לעשות שאם ההודעה שונה זה ישלח אם לא זה לא
+    } else if (
+      shouldSendEmailProgg &&
+      admin_reply?.trim() !== recipient.admin_reply?.trim()
+    ) {
+      console.log("⬅ שליחת מייל שכבר נענתה- שנמצא בטיפול:", recipient.email);
+      console.log(admin_reply !== recipient.admin_reply);
+      console.log(admin_reply, " -", recipient.admin_reply);
+
+      await sendMail({
+        to: recipient.email,
+        subject: subject,
+        text: `בהמשך  לשאלתך: \n${message}\n\nתשובת הנהלת האתר היא: \n${admin_reply}`,
+      });
+    }
+
+    // עדכון הפנייה
+    const updateFields = [
+      email,
+      subject,
+      message,
+      status,
+      admin_reply,
+      reply_sent,
+      sender_role,
+      id,
+    ];
+
+    let updateQuery = `
+      UPDATE contact_messages
+      SET email = ?, subject = ?, message = ?, status = ?, admin_reply = ?, reply_sent = ?, sender_role = ?
+      WHERE id = ?`;
+
+    if (sender_role !== "user") {
+      updateQuery = `
+        UPDATE contact_messages
+        SET email = ?, subject = ?, message = ?, status = ?, admin_reply = ?, reply_sent = ?, is_admin_message = ?, sender_role = ?
+        WHERE id = ?`;
+      updateFields.splice(7, 0, is_admin_message);
+    }
+
+    await conn.execute(updateQuery, updateFields);
+
+    console.log("הודעה עודכנה בהצלחה");
+    res.json({ message: "עודכן בהצלחה" });
+  } catch (err) {
+    console.error("שגיאה בעדכון הודעה:", err);
+    res.status(500).json({ message: "שגיאת שרת" });
+  }
+});
+
+
+
+
+
+
+
+
+
+//שליפת כל מיילים של המשתמשים
+router.get("/messages/user-emails", async (req, res) => {
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute("SELECT email FROM users");
+    const emails = rows.map((row) => row.email);
+    res.json(emails);
+  } catch (err) {
+    console.error("שגיאה בשליפת מיילים:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+
+// מחיקת הודעה לפי ID
+router.delete("/messages/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const conn = await db.getConnection();
+
+    const [result] = await conn.execute(
+      "DELETE FROM contact_messages WHERE id = ?",
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "ההודעה לא נמצאה" });
+    }
+
+    res.json({ message: "ההודעה נמחקה בהצלחה" });
+  } catch (err) {
+    console.error("שגיאה במחיקת ההודעה:", err);
+    res.status(500).json({ message: "שגיאה בשרת בעת המחיקה" });
+  }
 });
 
 

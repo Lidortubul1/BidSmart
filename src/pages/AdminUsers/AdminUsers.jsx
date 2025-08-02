@@ -74,35 +74,7 @@ function AdminUsers() {
   }, [search, users, filterStatus]);
 
   //פונקציה למחיקת משתמש ע"י המנהל
-  const handleDelete = (user) => {
-    setModal({
-      show: true,
-      title: "אישור מחיקה",
-      message: `האם אתה בטוח שברצונך למחוק את המשתמש ${user.first_name} ${user.last_name}?`,
-      confirmText: "מחק",
-      onConfirm: async () => {
-        try {
-          await deleteUser(user.id);
-          setUsers((prev) => prev.filter((u) => u.id !== user.id));
-          setModal({
-            show: true,
-            title: "הצלחה",
-            message: "המשתמש נמחק בהצלחה.",
-            confirmText: "סגור",
-            onConfirm: () => setModal((m) => ({ ...m, show: false })),
-          });
-        } catch (e) {
-          setModal({
-            show: true,
-            title: "שגיאה",
-            message: "שגיאה במחיקת המשתמש.",
-            confirmText: "סגור",
-            onConfirm: () => setModal((m) => ({ ...m, show: false })),
-          });
-        }
-      },
-    });
-  };
+
 
   // בתוך הפונקציה הראשית:
   const handleSuspend = async (user) => {
@@ -134,7 +106,7 @@ function AdminUsers() {
           <div className={styles.subText}>
             כאן תוכלו לצפות, לחפש ולנהל את כל המשתמשים במערכת.
             <br />
-            אפשר לערוך, להשעות, למחוק ולהציג מידע מפורט על כל משתמש.
+            אפשר לערוך, להשעות,  ולהציג מידע מפורט על כל משתמש.
           </div>
         </div>
       </div>
@@ -230,12 +202,7 @@ function AdminUsers() {
                   >
                     {u.status === "active" ? "השבת" : "הפעל"}
                   </button>
-                  <button
-                    className={styles.deleteBtn}
-                    onClick={() => handleDelete(u)}
-                  >
-                    מחק
-                  </button>
+             
                 </div>
               </div>
             ))}

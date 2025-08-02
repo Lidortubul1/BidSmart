@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // עדכן שורה זו
 import { useEffect, useState } from "react";
 import {
   getProductById,
@@ -22,6 +22,7 @@ export default function AdminProductDetails() {
   const [subcategories, setSubcategories] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null); // תמונה נבחרת להגדלה
   const [modal, setModal] = useState(null); // ל־CustomModal
+const navigate = useNavigate();
 
   async function handleAddImage(e) {
     const file = e.target.files[0];
@@ -97,6 +98,13 @@ export default function AdminProductDetails() {
 
   return (
     <div className={styles.detailsPage}>
+      <button
+        className={styles.backBtn}
+        onClick={() => navigate("/admin/products")}
+      >
+        חזרה לכל המוצרים
+      </button>
+
       <h2>פרטי מוצר</h2>
       <div className={styles.formRow}>
         <label>שם</label>

@@ -19,13 +19,13 @@ export default function CustomModal({
 
   return createPortal(
     <div className={styles.modalOverlay} onClick={handleBackgroundClick}>
-      <div className={styles.modalBox}>
+      <div className={styles.modalBox} dir="rtl">
         <button className={styles.modalClose} onClick={onCancel}>
           &times;
         </button>
 
         <h2 className={styles.modalTitle}>{title}</h2>
-        <p className={styles.modalMessage}>
+        <div className={styles.modalMessage}>
           {typeof message === "string"
             ? message.split("\n").map((line, i) => (
                 <span key={i}>
@@ -34,7 +34,7 @@ export default function CustomModal({
                 </span>
               ))
             : message}
-        </p>
+        </div>
 
         <div className={styles.modalActions}>
           {cancelText && onCancel && (
@@ -65,5 +65,6 @@ export default function CustomModal({
       </div>
     </div>,
     document.getElementById("modal-root")
+    
   );
 }

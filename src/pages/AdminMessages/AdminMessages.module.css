@@ -1,0 +1,126 @@
+.container {
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+  direction: rtl;
+}
+
+.title {
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fafafa;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.table th {
+  background-color: #f0f4f8;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: bold;
+  display: block;
+}
+
+.status.new {
+  background-color: #ffbcbc;
+  color: #d70000;
+}
+
+.status.in_progress {
+  background-color: #fff3cd;
+  color: #8a6d3b;
+}
+
+.status.resolved {
+  background-color: #d4edda;
+  color: #2e7d32;
+}
+
+.viewBtn {
+  padding: 6px 14px;
+  border: none;
+  background-color: #1a89ff;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.viewBtn:hover {
+  background-color: #006fe0;
+}
+/* כפתורי מיון  */
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+    justify-content: center;
+
+}
+
+.filters button {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  background-color: #f5f5f5;
+  cursor: pointer;
+  width: 200px;
+  color: #000000;
+  margin-right: 10px;;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.filters button:hover {
+  background-color: #6bb2fe;
+    color: white;
+
+}
+
+.filters .active {
+  background-color: #1a89ff;
+  color: white;
+  border-color: #1a89ff;
+}
+
+
+/* כפתור של שלח הודעה חדשה */
+.newMessageBtn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  background-color: #000000; /* רקע שחור */
+  color: #ffffff; /* טקסט לבן */
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 1rem;
+  display: block;
+width: 250px;
+  align-self: center;
+  margin: 1rem auto; /* מרכז את הכפתור */
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.newMessageBtn:hover {
+  background-color: #333333;
+}

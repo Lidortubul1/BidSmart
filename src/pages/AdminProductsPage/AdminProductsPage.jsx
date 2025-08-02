@@ -3,7 +3,8 @@ import {fetchAllProducts,deleteProduct,} from "../../services/adminProductsApi";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import styles from "./AdminProductsPage.module.css";
 import { useNavigate } from "react-router-dom";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 const FILTERS = [
   { key: "all", label: "כל המוצרים" },
   { key: "not_started", label: "מוצרים שטרם התחילה המכירה" },
@@ -78,14 +79,47 @@ export default function AdminProductsPage() {
       return new Date(a.start_date) - new Date(b.start_date);
     });
   }
-console.log(
-  "start_date:",
-  filteredProducts.map((p) => p.start_date)
-);
+  console.log(
+    "start_date:",
+    filteredProducts.map((p) => p.start_date)
+  );
 
+  //פונקציה לייצוא לאקסל
+
+  // בתוך הפונקציה הראשית AdminProductsPage:
+  function handleExportToExcel() {
+    // יוצרים עותק רק עם העמודות שתרצה
+    const dataToExport = filteredProducts.map((p) => ({
+      "מזהה מוצר": p.product_id,
+      "שם מוצר": p.product_name,
+      קטגוריה: p.category_name,
+      "תת קטגוריה": p.subcategory_name,
+      "תאריך התחלה": p.start_date,
+      "שעת התחלה": p.start_time,
+      סטטוס: p.product_status,
+      מוכר: p.seller_name,
+      "מחיר נוכחי": p.current_price,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "מוצרים");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    saveAs(blob, "products.xlsx");
+  }
   return (
     <div className={styles.page}>
       {/* כפתורי פילטר */}
+
+      <h2>ניהול כל המוצרים</h2>
       <div className={styles.filtersRow}>
         {FILTERS.map((f) => (
           <button
@@ -99,9 +133,9 @@ console.log(
           </button>
         ))}
       </div>
-
-      <h2>ניהול כל המוצרים</h2>
-
+      <button onClick={handleExportToExcel} className={styles.exportBtn}>
+        📤 ייצא לאקסל
+      </button>
       {/* טופס חיפוש */}
       <div className={styles.searchBox}>
         <input
