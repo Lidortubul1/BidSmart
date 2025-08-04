@@ -12,7 +12,7 @@ import {
 
 
 function ShippingForm() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { id } = useParams(); // מזהה המוצר
   const navigate = useNavigate();
 
@@ -125,7 +125,14 @@ function ShippingForm() {
                   onConfirm: () => setModalVisible(false),
                 });
               }
-
+    setUser((prev) => ({
+      ...prev,
+      city: formData.city,
+      street: formData.street,
+      house_number: formData.house_number,
+      apartment_number: formData.apartment_number,
+      zip: formData.zip,
+    }));
               showModal({
                 title: "הצלחה",
                 message: "הכתובת נשמרה גם בפרופיל שלך!",
@@ -191,6 +198,7 @@ function ShippingForm() {
         const cityObj = citiesData.find((c) => c.city === city);
         setAvailableStreets(cityObj ? cityObj.streets : []);
       } else {
+        console.log(data.message);
         showModal({
           title: "שגיאה",
           message: data.message || "לא נמצאה כתובת מגורים מלאה.",
@@ -199,13 +207,17 @@ function ShippingForm() {
         });
       }
     } catch (err) {
+      const serverMessage =
+        err?.response?.data?.message || "לא ניתן לשלוף את כתובת המגורים.";
+
       showModal({
-        title: "שגיאת רשת",
-        message: "לא ניתן לשלוף את כתובת המגורים.",
+        title: "שגיאה",
+        message: serverMessage,
         confirmText: "סגור",
         onConfirm: () => setModalVisible(false),
       });
     }
+
   };
   
 

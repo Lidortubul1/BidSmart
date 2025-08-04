@@ -130,21 +130,28 @@ function LiveAuction() {
   };
 
   if (!product) return <p>טוען מוצר...</p>;
-  if (product && !isLive) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <img
-            src={`http://localhost:5000${product.images?.[0]}`}
-            alt={product.product_name}
-            className={styles.image}
-          />
-          <div className={styles.info}>
+if (product && !isLive) {
+  return (
+    <div className={styles.container}>
+      <div className={styles.cardWrapper}>
+        <div className={styles.cardGrid}>
+          <div className={styles.leftPanel}>
             <h2>{product.product_name}</h2>
             <p>{product.description}</p>
-            <p>
-              מחיר פתיחה: <strong>{product.price} ₪</strong>
-            </p>
+            <div className={styles.imageGallery}>
+              {product.images?.map((url, i) => (
+                <img
+                  key={i}
+                  src={`http://localhost:5000${url}`}
+                  alt={`תמונה ${i + 1}`}
+                  className={styles.galleryImage}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.centerPanel}>
+            <p className={styles.currentPrice}>מחיר פתיחה: {product.price} ₪</p>
             <p className={styles.startText}>
               המכירה תתחיל בתאריך{" "}
               {product.start_date && product.start_time
@@ -152,10 +159,14 @@ function LiveAuction() {
                 : "תאריך לא זמין"}
             </p>
           </div>
+
+
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   return (
     <div className={styles.container}>
@@ -211,17 +222,11 @@ function LiveAuction() {
                     <button
                       className={styles.paymentButton}
                       onClick={() => {
-                        const base = Number(currentPrice) / 1.17;
-                        const vat = Number(currentPrice) - base;
                         const total = Number(currentPrice);
 
                         showModal({
                           title: "🧾 פירוט המחיר",
-                          message: `לפני מע״מ: ₪${base.toFixed(
-                            2
-                          )} \nמע״מ (17%): ₪${vat.toFixed(
-                            2
-                          )} \nסך הכול לתשלום: ₪${total.toFixed(2)}`,
+                          message: `המחיר הסופי הינו ₪${total}`,
                           confirmText: "עבור לתשלום",
                           onConfirm: async () => {
                             try {

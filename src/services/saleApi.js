@@ -34,6 +34,7 @@ export async function getUserSavedAddress(productId) {
   const response = await axios.post(`${BASE_SALE_URL}/get-user-address`, {
     product_id: productId,
   });
+  console.log(response.data);
   return response.data;
 }
 

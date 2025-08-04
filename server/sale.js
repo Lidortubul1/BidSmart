@@ -185,7 +185,7 @@ router.post("/get-user-address", async (req, res) => {
       "SELECT winner_id_number FROM product WHERE product_id = ?",
       [product_id]
     );
-
+    console.log("productRows", productRows[0]);
     if (productRows.length === 0) {
       return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
     }
@@ -196,7 +196,7 @@ router.post("/get-user-address", async (req, res) => {
       "SELECT city, street, house_number, apartment_number, zip FROM users WHERE id_number = ?",
       [winnerId]
     );
-
+console.log("user id", userRows[0]);
     const user = userRows[0];
 
     if (
@@ -206,6 +206,7 @@ router.post("/get-user-address", async (req, res) => {
       !user?.apartment_number ||
       !user?.zip
     ) {
+console.log("לא נמצאה כתובת מגורים מלאה");
       return res.status(400).json({
         success: false,
         message: "לא נמצאה כתובת מגורים מלאה",
