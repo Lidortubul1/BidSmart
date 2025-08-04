@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 31, 2025 at 12:12 PM
+-- Generation Time: Aug 04, 2025 at 12:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -49,6 +49,40 @@ INSERT INTO `categories` (`id`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `contact_messages`
+--
+
+CREATE TABLE `contact_messages` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `first_name` varchar(50) DEFAULT NULL,
+  `last_name` varchar(50) DEFAULT NULL,
+  `email` varchar(255) NOT NULL,
+  `subject` varchar(200) NOT NULL,
+  `message` text NOT NULL,
+  `status` enum('new','in_progress','resolved') DEFAULT 'new',
+  `admin_reply` text DEFAULT NULL,
+  `reply_sent` tinyint(1) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `is_admin_message` tinyint(1) DEFAULT 0,
+  `sender_role` enum('user','admin') DEFAULT 'user'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `contact_messages`
+--
+
+INSERT INTO `contact_messages` (`id`, `user_id`, `first_name`, `last_name`, `email`, `subject`, `message`, `status`, `admin_reply`, `reply_sent`, `created_at`, `is_admin_message`, `sender_role`) VALUES
+(16, 14, 'lidor', 'tubul', 'tubul65431@gmail.com', 'בעיה בתשלום', 'שלום, ניסיתי לשלם עבור מוצר אבל זה נכשל לי', 'resolved', 'נא לפנות לחברת האשראי', 1, '2025-08-01 13:57:48', 0, 'user'),
+(41, 14, NULL, NULL, 'tubul65431@gmail.com', 'בדיקה 1', 'בדיקה 1_2', 'resolved', '', 1, '2025-08-02 13:22:44', 1, 'admin'),
+(43, 8, NULL, NULL, 'mori123@gmail.com', 'בדיקה 3', 'בדיקה 1_3', 'new', '', 0, '2025-08-02 13:25:19', 1, 'admin'),
+(45, NULL, NULL, NULL, 'lidortubul7@gmail.com', 'בדיקה 11', 'בדיקה 11 11', 'resolved', '', 1, '2025-08-02 13:39:21', 1, 'admin'),
+(46, 8, 'מורי', 'ווסרמן', 'mori123@gmail.com', 'האם מוצר תקין', 'האם ניתן לעלות מכרז על רכב?', 'in_progress', 'לא לא ניתן', 1, '2025-08-02 13:48:44', 0, 'user'),
+(47, 14, NULL, NULL, 'tubul65431@gmail.com', 'בדיקה 123456', '1234567712345', 'resolved', '', 1, '2025-08-02 14:57:39', 1, 'admin');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `product`
 --
 
@@ -81,7 +115,7 @@ INSERT INTO `product` (`product_id`, `product_name`, `start_date`, `end_date`, `
 (37, 'אייפון 16 פרו מקס', '2026-03-01', '2027-03-11', 0, 4500.00, NULL, NULL, 4500.00, '16 פרו מקס', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 1, 25),
 (38, ' BYD אטו 3', '2026-03-11', '2027-03-11', 0, 250000.00, NULL, NULL, 250000.00, 'רכב חשמלי BYD ', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 9, 27),
 (39, 'אופניים חשמליים', '2025-07-24', '2027-03-11', 1, 3520.00, '2025-07-17 14:05:26', NULL, 3520.00, 'אופניים חשמליים במצב חדש למכירה ', '208083469', 'for sale', '10:00:00', NULL, NULL, 10, 4, 9),
-(40, 'מחשב נייד', '2025-07-24', '2027-03-11', 1, 5100.00, '2025-07-24 12:34:03', '201234234', 5020.00, 'מחשב נייד גיימינג Lenovo IdeaPad LOQ 15.6\" FHD 144Hz i7-13650HX/16GB/512GB NVME/NVIDIA® GeForce RTX™ 4050 6GB/WIN 11 HOME/3Y 83DV00CKIV', '208083469', 'sale', '08:00:00', '208083469', NULL, 10, 1, 19),
+(40, 'מחשב נייד', '2025-06-11', '2027-03-11', 1, 5100.00, '2025-07-24 12:34:03', '201234234', 5020.00, 'מחשב נייד גיימינג Lenovo IdeaPad LOQ 15.6\" FHD 144Hz i7-13650HX/16GB/512GB NVME/NVIDIA® GeForce RTX™ 4050 6GB/WIN 11 HOME/3Y 83DV00CKIV', '208083469', 'sale', '08:00:00', '208083469', NULL, 10, 1, 33),
 (42, 'מיקסר חשמלי', '2025-07-24', '2027-03-11', 1, 3080.00, '2025-07-24 12:38:10', '201234234', 3020.00, 'מיקסר חשמלי למטבח', '208083469', 'sale', '10:00:00', '208083469', NULL, 10, 6, 13),
 (43, ' ספה מודולרית מבד אריג רחיץ דוחה כתמים דגם פלאנט', '2026-03-31', '2027-03-11', 0, 6000.00, NULL, NULL, 6000.00, 'ספה מודולרית דגם פלאנט היא פתרון מושלם עבור מי שמעוניין בנוחות, גמישות ועיצוב מודרני. הספה מאפשרת לכם למקם את צד השזלונג באיזה צד שתרצו, והמעבר מתבצע בקלות רבה, הודות להחלפת הכריות וההדום.\r\n\r\nהבסיס עשוי מעץ מלא וחזק, מה שמבטיח יציבות ועמידות לאורך זמן. רגלי הספה עשויות PVC יצוק קשיח, העמידות לנזקי מים ומגנות על הרצפה מפני שריטות.', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 3, 7),
 (44, 'ספה פינתית 300 ס\"מ ימין בד כחול ג\'ינס דגם בוקסי', '2026-03-11', '2027-03-11', 0, 4000.00, NULL, NULL, 4000.00, 'ספה פינתית דגם בוקסי מעוצבת בקו רך ונקי בעלת מסעדי ידיים רחבים שלא תרצו לקום ממנה.\r\nגוף הספה בנוי מעץ אורן מלא מהוקצע בשילוב רצועות גומי אלסטיות וגמישות בצורת שתי וערב לתמיכה מלאה למושבים. הספה מיוצרת בישראל. ריפוד נעים למגע בגוון כחול הנותן לספה מראה יוקרתי ועשיר.', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 3, 7),
@@ -89,11 +123,11 @@ INSERT INTO `product` (`product_id`, `product_name`, `start_date`, `end_date`, `
 (47, 'מכשיר סודהסטרים', '2026-03-11', '2027-03-11', 0, 2000.00, NULL, NULL, 2000.00, 'מתאים להגזה בבקבוקי סודהסטרים הבאים: בקבוק 1 ליטר - כמות מים להגזה עד קו המילוי כ-0.84 ליטר | בקבוק 0.5 ליטר - כמות מים להגזה עד קו מילוי 0.45 ליטר', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 3, 14),
 (48, 'ג\'קוזי', '2026-03-11', '2027-03-11', 0, 7000.00, NULL, NULL, 7000.00, '-480\r\nמידות: 239 ס\"מ אורך, 239 ס\"מ רוחב, 99-112 ס\"מ גובה | מתאים ל- 6 אנשים.', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 3, 14),
 (49, 'גלאקסי S20', '2026-03-11', '2027-03-11', 0, 1000.00, NULL, NULL, 1000.00, 'גלאקסי כמו חדש', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 1, 25),
-(51, 'מחשב', '2026-03-11', '2027-03-11', 0, 4000.00, NULL, NULL, 4000.00, 'מחשב חדש', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 1, 19),
+(51, 'מחשב', '2026-03-11', '2027-03-11', 0, 4000.00, NULL, NULL, 4000.00, 'מחשב חדש', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 1, 33),
 (53, 'אייפון 14 פרו מקס', '2026-03-11', '2027-03-11', 0, 3000.00, NULL, NULL, 3000.00, 'אייפון 14 חדש', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 1, 19),
 (54, 'מיקסר חשמלי', '2026-03-11', '2027-03-11', 0, 1500.00, NULL, NULL, 1500.00, 'מיקסר חשמלי חדש', '208083469', 'for sale', '14:00:00', NULL, NULL, 10, 3, 14),
 (58, 'קונסולה Sony PlayStation 5 Slim', '2026-03-11', '2027-03-11', 0, 2899.99, '2025-07-18 18:57:13', NULL, 2899.99, 'עם PS5 במהדורה דיגיטאלית, השחקנים מקבלים טכנולוגיית משחק עוצמתית, בתוך קונסולה חדשה SLIM בעיצוב קומפקטי ואלגנטי.\r\nשמרו את המשחקים האהובים עליכם מוכנים לשליפה עם כונן אחסון SSD בנפח 1TB מובנה.\r\nהתנסו בטעינה במהירות האור עם כונן SSD אולטרה-מהיר, תחושת אפיפות, משחקיות עמוקה יותר, בקר משחק אלחוטי DualSense‎ עם תמיכה במשוב הפטי, הדקים אדפטיביים ושמע תלת מימד, וכן בדור חדש לחלוטין של משחקי PlayStation מדהימים.', '208083469', 'for sale', '20:50:00', NULL, NULL, 100, 5, 12),
-(59, 'samsung TV', '2025-07-30', '2025-07-31', 0, 2400.00, NULL, NULL, 2400.00, 'טלוויזיה SAMSUNG סמסונג 65\" 4K דגם UE65DU7100 /7000 *אחריות ע\"י היבואן*', '208083469', 'for sale', '11:50:00', NULL, NULL, 50, 1, 32);
+(59, 'samsung TV', '2025-07-30', '2025-07-31', 1, 2400.00, NULL, NULL, 2400.00, 'טלוויזיה SAMSUNG סמסונג 65\" 4K דגם UE65DU7100 /7000 *אחריות ע\"י היבואן*', '208083469', 'for sale', '11:50:00', NULL, NULL, 50, 1, 32);
 
 -- --------------------------------------------------------
 
@@ -250,7 +284,8 @@ INSERT INTO `subcategories` (`id`, `name`, `category_id`) VALUES
 (26, 'אחר', 8),
 (27, 'אחר', 9),
 (28, 'בגדי נשים', 9),
-(32, 'טלוויזיות', 1);
+(32, 'טלוויזיות', 1),
+(33, 'מחשבים', 1);
 
 -- --------------------------------------------------------
 
@@ -293,13 +328,13 @@ INSERT INTO `users` (`id`, `email`, `id_number`, `password`, `first_name`, `last
 (8, 'mori123@gmail.com', '12345423', '$2b$10$hZ8VAx3Q1.I2ObfPvTZ2HeemaPPtNujiQOe6DLQqFNhWqCms3Q/lG', 'מורי', 'וסרמן', '0525353869', 'seller', '1750613043307_1-17-1024x611 (1).jpeg', 4.2, NULL, NULL, NULL, NULL, NULL, NULL, '', 'active', '2025-07-22 14:11:25'),
 (9, 'niv12345@gmail.com', '12345232', '$2b$10$w598euryn2F33blL.UhcK.Bec1Qk98ZvWvDtACu/b527LKEZO22.O', 'niv', 'bra', '', 'buyer', '1750594498421__339410_11__1_1.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (10, 'ofir123@gmail.com', NULL, '$2b$10$qlKMaopQZ1ehg8GIXeyw/e7rGPBVNnGLMbpTemn7xP8bycG5iIwQG', 'אופיר', 'יצחק', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
-(11, 'orel123@gmail.com', NULL, '$2b$10$1PxDyDcqFTkz1TpskTajYOvSmWDeSi90V4PUK8QKp3oytVjGyoKfW', 'orel', 'hadad', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
+(11, 'orel123@gmail.com', NULL, '$2b$10$1PxDyDcqFTkz1TpskTajYOvSmWDeSi90V4PUK8QKp3oytVjGyoKfW', 'orel', 'hadad', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-08-01 14:11:25'),
 (12, 'rivka123@gmail.com', NULL, '$2b$10$hSqMMG/UP0CHYbg0lpL3p.GDcsiKYJdxWUtdEZGGT5ofJ9l1L.nua', 'rivka', 'amar', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (13, 'roei123@gmail.com', '234545342', '$2b$10$O3B.Y4745Wh582gpDSLaM.BVAJOhq/8HgTG1hn25CEZeZ4LkeuB/O', 'roei', 'gruber', '', 'buyer', '1749375562006_1-17-1024x611 (1).jpeg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (14, 'tubul65431@gmail.com', '208083469', '$2b$10$kABMWX7xS5PJkZStU6byuO2gEsWZMPiu1HYXMcAc4bphfXzzm0ULK', 'לידור', 'טובול', '+972525353869', 'seller', '1750346749045_16740352ef9e87889dee6621d96a5ee7.webp', NULL, 'ישראל', '234544', 'שלומי ', 'חורשת האקליפטוס', '213', '213', NULL, 'blocked', '2025-07-22 14:11:25'),
 (15, 'yael123@gmail.com', '123456789', '$2b$10$lo7C.yteGNZoOjmmaBgiouPGOwQwf7MnnjjvBLmIACm1ufHMvIhlq', 'yael', 'golan', '', 'admin', '1750612570903_1-17-1024x611 (1).jpeg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (16, 'yarin123@gmail.com', NULL, '$2b$10$NvAHIXpj7gIl/ue/NLO2zuxG6y5hwoy19/BxOCtCL4KvzQXs0Qeda', 'ירין', 'זקס', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
-(17, 'niv@segev-net.co.il', '201234234', '$2b$10$JXojIHpM6FyvwdC2HDM2VeBnWQWhraneS0Ba2VZsfjWUBTi7liE4i', 'ניב', 'בראונשטיין', '', 'seller', '1753349183088_BidSmartLogo.jpg', NULL, NULL, '2343223', 'קרית אתא ', 'לילינבלום', '10', '13', NULL, 'active', '2025-07-24 12:26:06');
+(17, 'nor@segev-net.co.il', '201234234', '$2b$10$JXojIHpM6FyvwdC2HDM2VeBnWQWhraneS0Ba2VZsfjWUBTi7liE4i', 'ניב', 'בראונשטיין', '', 'seller', '1753349183088_BidSmartLogo.jpg', NULL, NULL, '2343223', 'קרית אתא ', 'לילינבלום', '10', '13', NULL, 'blocked', '2025-07-24 12:26:06');
 
 --
 -- Indexes for dumped tables
@@ -310,6 +345,13 @@ INSERT INTO `users` (`id`, `email`, `id_number`, `password`, `first_name`, `last
 --
 ALTER TABLE `categories`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `contact_messages`
+--
+ALTER TABLE `contact_messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_user` (`user_id`);
 
 --
 -- Indexes for table `product`
@@ -369,6 +411,12 @@ ALTER TABLE `categories`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
+-- AUTO_INCREMENT for table `contact_messages`
+--
+ALTER TABLE `contact_messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+
+--
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
@@ -396,7 +444,7 @@ ALTER TABLE `sale`
 -- AUTO_INCREMENT for table `subcategories`
 --
 ALTER TABLE `subcategories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -407,6 +455,12 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `contact_messages`
+--
+ALTER TABLE `contact_messages`
+  ADD CONSTRAINT `fk_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `product`
