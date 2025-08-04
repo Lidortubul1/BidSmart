@@ -15,6 +15,7 @@ function ProductForm({ onSubmit }) {
     description: "",
     bid_increment: 10, // ברירת מחדל
   });
+const [vatIncluded, setVatIncluded] = useState(true);
 
 const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -90,12 +91,14 @@ const [categories, setCategories] = useState([]);
       return;
     }
 
-    const preparedData = {
-      ...formData,
-      price: parseFloat(formData.price),
-      category_id: selectedCategory,
-      subcategory_id: selectedSubCategory,
-    };
+const preparedData = {
+  ...formData,
+  price: parseFloat(formData.price),
+  vat_included: vatIncluded.toString(),
+  category_id: selectedCategory,
+  subcategory_id: selectedSubCategory,
+};
+
 
     onSubmit(preparedData); //(preparedData == formData)
   };
@@ -161,6 +164,29 @@ const [categories, setCategories] = useState([]);
               required
             />
           </label>
+          <fieldset className={styles.vatBox}>
+            <legend>כיצד הוזן המחיר?</legend>
+            <label>
+              <input
+                type="radio"
+                name="vat_included"
+                value="true"
+                checked={vatIncluded === true}
+                onChange={(e) => setVatIncluded(e.target.value === "true")}
+              />
+              מחיר כולל מע"מ
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="vat_included"
+                value="false"
+                checked={vatIncluded === false}
+                onChange={(e) => setVatIncluded(e.target.value === "true")}
+              />
+              מחיר לפני מע"מ (יוצג כולל מע"מ ללקוח)
+            </label>
+          </fieldset>
 
           <label>
             תמונות מוצר

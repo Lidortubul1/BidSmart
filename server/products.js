@@ -43,11 +43,28 @@ const {
   description,
   seller_id_number,
   product_status,
-  category_id, // <-- כאן
-  subcategory_id, // <-- וכאן
+  category_id,
+  subcategory_id,
   bid_increment,
+  vat_included, 
 } = req.body;
 
+let finalPrice = parseFloat(price);
+let priceBeforeVat = null;
+
+
+const isVatIncluded = vat_included === "true";
+
+
+if (!isVatIncluded) {
+  priceBeforeVat = finalPrice;
+  finalPrice = priceBeforeVat * 1.17;
+} else {
+  priceBeforeVat = finalPrice / 1.17;
+}
+
+finalPrice = Number(finalPrice.toFixed(2));
+priceBeforeVat = Number(priceBeforeVat.toFixed(2));
 
   const files = req.files;
 
@@ -130,20 +147,22 @@ const [result] = await conn.execute(
     end_date,
     price,
     current_price,
+    price_before_vat,
     description,
     seller_id_number,
     product_status,
-    category_id,      -- כאן
-    subcategory_id,   -- וכאן
+    category_id,
+    subcategory_id,
     bid_increment
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   [
     product_name,
     start_date,
     start_time,
     end_date,
-    price,
-    price, // current_price
+    finalPrice, // המחיר כולל מע"מ ללקוח
+    finalPrice, // current_price
+    priceBeforeVat, // חדש
     description || null,
     seller_id_number,
     product_status,
@@ -152,6 +171,7 @@ const [result] = await conn.execute(
     parseInt(bid_increment) || 10,
   ]
 );
+
     const productId = result.insertId;
 
     for (const file of files) {
