@@ -7,6 +7,7 @@ import styles from "./SellerDashboard.module.css";
 
 function SellerDashboard() {
   const [categories, setCategories] = useState({});
+const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchCategoriesWithSubs()
@@ -24,7 +25,9 @@ function SellerDashboard() {
           <p className={styles.subText}>
             נהל מכירות בצורה חכמה, הוסף מוצרים וצפה בדוחות בלחיצת כפתור
           </p>
-          <p>המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה</p>
+          <p>
+            המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה
+          </p>
           <div className={styles.actions}>
             <Link to="/add-product" className={styles.actionButton}>
               + הוסף מוצר
@@ -37,8 +40,18 @@ function SellerDashboard() {
       </section>
 
       <section className={styles.productsSection}>
-        <h2>המוצרים שלך</h2>
-        <ProductList />
+        <h2>כל המוצרים</h2>
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="🔍 חפש מוצר לפי שם או תיאור..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
+
+        <ProductList searchQuery={searchQuery} />
       </section>
     </div>
   );

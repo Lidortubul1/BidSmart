@@ -40,6 +40,7 @@ const filteredProducts = products.filter((product) => {
   // מחשב את האינדקס של המוצר הראשון בעמוד הנוכחי
   const startIndex = (currentPage - 1) * productsPerPage;
 
+  
   // גוזר מתוך המוצרים המסוננים רק את אלו שצריך להציג בעמוד הנוכחי
   const currentProducts = filteredProducts.slice(
     startIndex,

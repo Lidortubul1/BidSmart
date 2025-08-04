@@ -33,22 +33,8 @@ function Navbar() {
     <nav className={styles.navbar}>
       <img src={logoImg} alt="BidSmart Logo" className={styles.logo} />
 
-      {/* חיפוש יופיע רק אם זה לא מנהל */}
-      {user?.role !== "admin" && (
-        <div className={styles.centerSearch}>
-          <form onSubmit={handleSearch} className={styles.searchForm}>
-            <div className={styles.searchWrapper}>
-              <input
-                type="text"
-                placeholder="חפש מוצר..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className={styles.searchInput}
-              />
-            </div>
-          </form>
-        </div>
-      )}
+
+
 
       <ul className={styles.navLinks}>
         <li>

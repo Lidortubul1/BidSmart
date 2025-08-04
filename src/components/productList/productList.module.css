@@ -11,21 +11,26 @@
   width: 80%;
   max-width: 1400px;
   padding: 0 20px;
+  direction: rtl; /* תמיכה בעברית */
 }
+
 
 .productsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   gap: 30px;
+  justify-content: flex-start; /* כדי שיישור יהיה לימין */
+  direction: rtl; /* תמיכה בכיווניות עברית */
 }
 
-.empty {
+
+.empty {  
   text-align: center;
   font-size: 1.3rem;
-  color: #777;
-  margin-top: 50px;
+  color: #525151;
+  margin-top: 2px;
   font-weight: bold;
-  background-color: #fbe9e7;
+  background-color: #faf2f1;
   border: 1px solid #f5c6cb;
   padding: 20px;
   border-radius: 16px;

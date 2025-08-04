@@ -7,6 +7,7 @@ import styles from "./HomePage.module.css";
 
 function HomePage() {
   const [categories, setCategories] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchCategoriesWithSubs()
@@ -45,8 +46,18 @@ function HomePage() {
       </section>
 
       <section className={styles.productsSection}>
-        <h2>מוצרים חמים</h2>
-        <ProductList />
+        <h2>כל המוצרים</h2>
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="🔍 חפש מוצר לפי שם או תיאור..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
+
+        <ProductList searchQuery={searchQuery} />
       </section>
     </div>
   );
