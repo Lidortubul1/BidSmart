@@ -119,15 +119,17 @@ function LiveAuction() {
     socket.emit("placeBid", { productId, buyerId, customAmount: amount });
   };
 
-  const formatDateAndTime = (dateStr, timeStr) => {
-    if (!dateStr || !timeStr) return "תאריך לא זמין";
-    const date = new Date(dateStr);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    const [hourStr, minuteStr] = timeStr.split(":");
-    return `${day}/${month}/${year} בשעה ${hourStr}:${minuteStr}`;
-  };
+ const formatDateAndTime = (dateStr) => {
+  if (!dateStr) return "תאריך לא זמין";
+  const date = new Date(dateStr);
+  const formattedDate = date.toLocaleDateString("he-IL");
+  const formattedTime = date.toLocaleTimeString("he-IL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${formattedDate} בשעה ${formattedTime}`;
+};
+
 
   if (!product) return <p>טוען מוצר...</p>;
 if (product && !isLive) {
@@ -152,12 +154,13 @@ if (product && !isLive) {
 
           <div className={styles.centerPanel}>
             <p className={styles.currentPrice}>מחיר פתיחה: {product.price} ₪</p>
-            <p className={styles.startText}>
-              המכירה תתחיל בתאריך{" "}
-              {product.start_date && product.start_time
-                ? formatDateAndTime(product.start_date, product.start_time)
-                : "תאריך לא זמין"}
-            </p>
+           <p className={styles.startText}>
+  המכירה תתחיל בתאריך{" "}
+  {product.start_date
+    ? formatDateAndTime(product.start_date)
+    : "תאריך לא זמין"}
+</p>
+
           </div>
 
 

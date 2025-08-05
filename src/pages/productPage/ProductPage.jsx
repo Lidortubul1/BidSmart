@@ -156,7 +156,8 @@ function ProductPage() {
       console.log("Response:", res);
 
       const dateStr = formatDate(product.start_date);
-      const timeStr = product.start_time;
+      const timeStr = formatTime(product.start_date); 
+
 
       if (res.success) {
         setIsRegistered(true);
@@ -253,13 +254,24 @@ function ProductPage() {
     }
   };
 
-  const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+// עיצוב תאריך בלבד
+const formatDate = (isoDate) => {
+  const date = new Date(isoDate);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// עיצוב שעה בלבד
+const formatTime = (isoDate) => {
+  const date = new Date(isoDate);
+  return date.toLocaleTimeString("he-IL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 
   if (!product) return <p>טוען מוצר...</p>;
   const images = product.images || [];
@@ -317,11 +329,12 @@ function ProductPage() {
           <p className={styles.status}>סטטוס: {product.product_status}</p>
 
           {isRegistered ? (
-            <p className={styles.success}>
-              נרשמת למכירה זו! <br />
-              המכירה תחל בתאריך: {formatDate(product.start_date)} בשעה:{" "}
-              {product.start_time}
-            </p>
+           <p className={styles.success}>
+          נרשמת למכירה זו! <br />
+          המכירה תחל בתאריך: {formatDate(product.start_date)} בשעה:{" "}
+          {formatTime(product.start_date)}
+          </p>
+
           ) : (
             <button className={styles.bidButton} onClick={handleRegisterToSale}>
               {user ? "הירשם/י למכירה" : "התחבר/י והירשם/י למכירה"}

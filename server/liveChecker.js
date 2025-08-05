@@ -1,5 +1,4 @@
 const db = require("./database");
-
 const nodemailer = require("nodemailer");
 
 async function notifyUpcomingAuctions() {
@@ -11,10 +10,9 @@ async function notifyUpcomingAuctions() {
     const [products] = await conn.query(`
       SELECT * FROM product 
       WHERE is_live = 0 
-        AND start_date = CURDATE()
-        AND TIMESTAMP(start_date, start_time) BETWEEN 
-        DATE_ADD(NOW(), INTERVAL 9 MINUTE) AND 
-        DATE_ADD(NOW(), INTERVAL 10 MINUTE)
+        AND start_date BETWEEN 
+          DATE_ADD(NOW(), INTERVAL 9 MINUTE) AND 
+          DATE_ADD(NOW(), INTERVAL 10 MINUTE)
     `);
 
     for (const product of products) {
@@ -58,7 +56,7 @@ async function sendEmailReminder(email, product) {
   await transporter.sendMail(mailOptions);
 }
 
-// כשמגיע התאריך והשעה שהמוצר מוכן למכירה is live=1 עדכון השדה 
+// עדכון is_live = 1 אם זמן התחלת המכירה הגיע
 async function checkIsLiveProducts() {
   console.log("🔄 בודק is_live...");
 
@@ -68,10 +66,8 @@ async function checkIsLiveProducts() {
     const [products] = await conn.query(`
       SELECT * FROM product
       WHERE is_live = 0
-        AND CONCAT(start_date, ' ', start_time) <= NOW()
+        AND start_date <= NOW()
     `);
-
-    // console.log("🧪 נמצאו מוצרים שהגיע זמן ההתחלה שלהם:", products.length);
 
     for (const product of products) {
       await conn.query("UPDATE product SET is_live = 1 WHERE product_id = ?", [

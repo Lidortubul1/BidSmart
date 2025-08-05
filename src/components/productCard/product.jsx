@@ -6,10 +6,15 @@ export default function Product({ product, showDescription = true }) {
     ? `http://localhost:5000${product.images[0]}`
     : "/placeholder.jpg";
 
-  // איחוד תאריך ושעה
-const dateOnly = product.start_date?.slice(0, 10);
-const timeOnly = product.start_time;
+  // חילוץ תאריך ושעה מתוך start_date המאוחד
+  const date = new Date(product.start_date);
 
+  const dateOnly = date.toLocaleDateString("he-IL");
+  const timeOnly = date.toLocaleTimeString("he-IL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+console.log(dateOnly,timeOnly)
   return (
     <Link to={`/product/${product.product_id}`} className={styles.link}>
       <div className={styles.productCard}>
@@ -20,11 +25,11 @@ const timeOnly = product.start_time;
             className={styles.productImage}
           />
         </div>
+
         <h3>{product.product_name}</h3>
         <p>מחיר פתיחה: ₪{product.price}</p>
-        {/* <p>סטטוס: {product.product_status}</p> */}
         <p>ניתן להירשם עד התאריך: {dateOnly}</p>
-        <p>בשעה :{timeOnly}</p>
+        <p>בשעה: {timeOnly}</p>
 
         {showDescription && <p>{product.description}</p>}
       </div>

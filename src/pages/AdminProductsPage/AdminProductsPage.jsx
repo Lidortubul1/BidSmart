@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {fetchAllProducts,deleteProduct,} from "../../services/adminProductsApi";
+import {fetchAllProducts , deleteProduct,} from "../../services/adminProductsApi";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import styles from "./AdminProductsPage.module.css";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +23,19 @@ export default function AdminProductsPage() {
   useEffect(() => {
     fetchAllProducts().then(setProducts);
   }, []);
+
+
+  function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("he-IL", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+function formatTime(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+}
+
 
   function handleDelete(id) {
     setModalConfig({
@@ -79,27 +92,25 @@ export default function AdminProductsPage() {
       return new Date(a.start_date) - new Date(b.start_date);
     });
   }
-  console.log(
-    "start_date:",
-    filteredProducts.map((p) => p.start_date)
-  );
+
 
   //פונקציה לייצוא לאקסל
 
   // בתוך הפונקציה הראשית AdminProductsPage:
   function handleExportToExcel() {
     // יוצרים עותק רק עם העמודות שתרצה
-    const dataToExport = filteredProducts.map((p) => ({
-      "מזהה מוצר": p.product_id,
-      "שם מוצר": p.product_name,
-      קטגוריה: p.category_name,
-      "תת קטגוריה": p.subcategory_name,
-      "תאריך התחלה": p.start_date,
-      "שעת התחלה": p.start_time,
-      סטטוס: p.product_status,
-      מוכר: p.seller_name,
-      "מחיר נוכחי": p.current_price,
-    }));
+ const dataToExport = filteredProducts.map((p) => ({
+  "מזהה מוצר": p.product_id,
+  "שם מוצר": p.product_name,
+  קטגוריה: p.category_name,
+  "תת קטגוריה": p.subcategory_name,
+  "תאריך התחלה": formatDate(p.start_date),
+  "שעת התחלה": formatTime(p.start_date),
+  סטטוס: p.product_status,
+  מוכר: p.seller_name,
+  "מחיר נוכחי": p.current_price,
+}));
+
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -189,20 +200,9 @@ export default function AdminProductsPage() {
                 <td>{p.product_name}</td>
                 <td>{p.category_name}</td>
                 <td>{p.subcategory_name}</td>
-                <td>
-                  {/* פורמט תאריך (YYYY-MM-DD) */}
-                  {p.start_date
-                    ? new Date(p.start_date).toLocaleDateString("he-IL", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                      })
-                    : "-"}
-                </td>
-                <td>
-                  {/* שעת התחלה (hh:mm) */}
-                  {p.start_time ? p.start_time.slice(0, 5) : "-"}
-                </td>
+               <td>{formatDate(p.start_date)}</td>
+              <td>{formatTime(p.start_date)}</td>
+
                 <td>{p.product_status}</td>
                 <td>{p.seller_name}</td>
                 <td>{p.current_price}</td>

@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
     const [products] = await conn.execute(
       "SELECT * FROM product WHERE product_status = 'for sale'"
     );
-
+    console.log(products[0])
     //  הוספת תמונות לכל מוצר
     for (const product of products) {
       const [images] = await conn.execute(
@@ -32,43 +32,42 @@ router.get("/", async (req, res) => {
   }
 });
 
+
+
+
 // הוספת מוצר חדש
 router.post("/", upload.array("images", 5), async (req, res) => {
-const {
-  product_name,
-  start_date,
-  start_time,
-  end_date,
-  price,
-  description,
-  seller_id_number,
-  product_status,
-  category_id,
-  subcategory_id,
-  bid_increment,
-  vat_included, 
-} = req.body;
+  const {
+    product_name,
+    start_date,
+    end_date,
+    price,
+    description,
+    seller_id_number,
+    product_status,
+    category_id,
+    subcategory_id,
+    bid_increment,
+    vat_included,
+  } = req.body;
+  console.log("start_date:", start_date); // צריך להיות בפורמט ISO כמו 2025-08-07T14:00
+  let finalPrice = parseFloat(price);
+  let priceBeforeVat = null;
+  const isVatIncluded = vat_included === "true";
 
-let finalPrice = parseFloat(price);
-let priceBeforeVat = null;
+  if (!isVatIncluded) {
+    priceBeforeVat = finalPrice;
+    finalPrice = priceBeforeVat * 1.17;
+  } else {
+    priceBeforeVat = finalPrice / 1.17;
+  }
 
-
-const isVatIncluded = vat_included === "true";
-
-
-if (!isVatIncluded) {
-  priceBeforeVat = finalPrice;
-  finalPrice = priceBeforeVat * 1.17;
-} else {
-  priceBeforeVat = finalPrice / 1.17;
-}
-
-finalPrice = Number(finalPrice.toFixed(2));
-priceBeforeVat = Number(priceBeforeVat.toFixed(2));
+  finalPrice = Number(finalPrice.toFixed(2));
+  priceBeforeVat = Number(priceBeforeVat.toFixed(2));
 
   const files = req.files;
 
-  //  אימות שדות חובה לפי הדרישות
+  // בדיקות תקינות שדות
   if (!product_name || product_name.trim() === "") {
     return res
       .status(400)
@@ -81,26 +80,18 @@ priceBeforeVat = Number(priceBeforeVat.toFixed(2));
       .json({ success: false, message: "תאריך התחלה הוא שדה חובה" });
   }
 
-  const now = new Date();
   const startDateObj = new Date(start_date);
   if (isNaN(startDateObj.getTime())) {
     return res
       .status(400)
-      .json({ success: false, message: "תאריך התחלה לא תקין" });
-  }
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (startDateObj < today) {
-    return res.status(400).json({
-      success: false,
-      message: "תאריך ההתחלה חייב להיות מתאריך היום ואילך",
-    });
+      .json({ success: false, message: "תאריך/שעת התחלה לא תקין" });
   }
 
-  if (!start_time) {
-    return res
-      .status(400)
-      .json({ success: false, message: "שעת התחלה היא שדה חובה" });
+  if (startDateObj < new Date()) {
+    return res.status(400).json({
+      success: false,
+      message: "תאריך ההתחלה חייב להיות מתאריך ושעה נוכחיים ואילך",
+    });
   }
 
   if (!end_date) {
@@ -115,6 +106,7 @@ priceBeforeVat = Number(priceBeforeVat.toFixed(2));
       .status(400)
       .json({ success: false, message: "תאריך סיום לא תקין" });
   }
+
   if (endDateObj <= startDateObj) {
     return res.status(400).json({
       success: false,
@@ -128,6 +120,7 @@ priceBeforeVat = Number(priceBeforeVat.toFixed(2));
       message: "מחיר הוא שדה חובה וצריך להיות מספר",
     });
   }
+
   if (!bid_increment || isNaN(bid_increment)) {
     return res.status(400).json({
       success: false,
@@ -136,41 +129,39 @@ priceBeforeVat = Number(priceBeforeVat.toFixed(2));
   }
 
   const conn = await db.getConnection();
-  await conn.beginTransaction(); //פעולה שמאפשרת לקבץ כמה פקודות SQL ביחד – כך שאם אחת מהן נכשלת, כולן מתבטלות
+  await conn.beginTransaction();
 
   try {
-const [result] = await conn.execute(
-  `INSERT INTO product (
-    product_name,
-    start_date,
-    start_time,
-    end_date,
-    price,
-    current_price,
-    price_before_vat,
-    description,
-    seller_id_number,
-    product_status,
-    category_id,
-    subcategory_id,
-    bid_increment
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  [
-    product_name,
-    start_date,
-    start_time,
-    end_date,
-    finalPrice, // המחיר כולל מע"מ ללקוח
-    finalPrice, // current_price
-    priceBeforeVat, // חדש
-    description || null,
-    seller_id_number,
-    product_status,
-    category_id || null,
-    subcategory_id || null,
-    parseInt(bid_increment) || 10,
-  ]
-);
+    const [result] = await conn.execute(
+      `INSERT INTO product (
+        product_name,
+        start_date,
+        end_date,
+        price,
+        current_price,
+        price_before_vat,
+        description,
+        seller_id_number,
+        product_status,
+        category_id,
+        subcategory_id,
+        bid_increment
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        product_name,
+        start_date,
+        end_date,
+        finalPrice,
+        finalPrice,
+        priceBeforeVat,
+        description || null,
+        seller_id_number,
+        product_status,
+        category_id || null,
+        subcategory_id || null,
+        parseInt(bid_increment) || 10,
+      ]
+    );
 
     const productId = result.insertId;
 
@@ -182,15 +173,16 @@ const [result] = await conn.execute(
       );
     }
 
-    console.log(" קבצים שהתקבלו:", req.files);
+    console.log("קבצים שהתקבלו:", req.files);
     await conn.commit();
     res.json({ success: true });
   } catch (error) {
-    await conn.rollback(); //מבטל את כל השינויים שנעשו במסד הנתונים מאז שהתחילה הטרנזקציה וחוזר למצב הקודם
-    console.error(" שגיאה בהעלאת מוצר:", error);
+    await conn.rollback();
+    console.error("שגיאה בהעלאת מוצר:", error);
     res.status(500).json({ success: false, message: "שגיאה בהעלאת מוצר" });
   }
 });
+
 
 
 // שליפת מוצר בודד לפי product_id

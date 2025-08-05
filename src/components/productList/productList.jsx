@@ -18,7 +18,7 @@ export default function ProductList({
       .catch((error) => console.error("Failed to fetch products:", error));
   }, []);
 
-  
+
   // סינון מוצרים לפי שאילתת חיפוש, קטגוריה ותת־קטגוריה
 const filteredProducts = products.filter((product) => {
   const name = product.product_name?.toLowerCase() || "";
@@ -59,13 +59,16 @@ const filteredProducts = products.filter((product) => {
             </p>
 
             <div className={styles.productsGrid}>
-              {currentProducts.map((product) => (
-                <Product
-                  key={product.product_id}
-                  product={product}
-                  showDescription={false}
-                />
-              ))}
+             {currentProducts.map((product) => {
+  return (
+    <Product
+      key={product.product_id}
+      product={product}
+      showDescription={false}
+    />
+  );
+})}
+
             </div>
 
             {totalPages > 1 && (

@@ -41,6 +41,7 @@ function MyBidsPage() {
     setModalVisible(true);
   };
 
+
   useEffect(() => {
     if (!user?.id_number) return;
     async function fetchData() {
@@ -92,6 +93,8 @@ function MyBidsPage() {
       .toString()
       .padStart(2, "0")}/${d.getFullYear()}`;
   };
+
+const formatTime = (d) => new Date(d).toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"});
 
   const handleMarkDelivered = async (product_id) => {
     try {
@@ -162,7 +165,7 @@ const filteredWonSales = wonSalesWithProduct.filter((sale) =>
                     </td>
                     <td>{bid.product_name}</td>
                     <td>{formatDate(bid.start_date)}</td>
-                    <td>{bid.start_time}</td>
+                    <td>{formatTime(bid.start_date)}</td>
                   </tr>
                 ))}
               </tbody>

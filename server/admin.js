@@ -109,6 +109,7 @@ router.get("/stats/products-by-category", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
 //סכום מכירות לפי חודש
 router.get("/stats/sales-by-month", async (req, res) => {
   try {
@@ -470,6 +471,7 @@ router.get("/product/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch product" });
   }
 });
+
 // שליפת כל המוצרים למנהל
 // שליפת כל המוצרים עם תמונה ראשית, קטגוריה, תת-קטגוריה ומוכר
 router.get("/products", async (req, res) => {
@@ -485,7 +487,6 @@ router.get("/products", async (req, res) => {
         p.is_live,
         p.start_date,
         p.end_date,
-        p.start_time,
         p.winner_id_number,
         c.name AS category_name,
         s.name AS subcategory_name,
@@ -520,6 +521,8 @@ router.get("/products", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בשליפת מוצרים" });
   }
 });
+
+
 //נתונים כללים של מוצר
 router.get("/product/:id", async (req, res) => {
   const { id } = req.params;
@@ -563,6 +566,8 @@ router.get("/product/:id", async (req, res) => {
     res.status(500).json({ error: "שגיאה בשרת" });
   }
 });
+
+
 // מחיקת מוצר
 router.delete("/product/:id", async (req, res) => {
   const productId = req.params.id;
@@ -583,6 +588,7 @@ router.delete("/product/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה במחיקת מוצר" });
   }
 });
+
 // עדכון מוצר (דוגמה – עדכן שדות עיקריים)
 router.put("/product/:id", async (req, res) => {
   const productId = req.params.id;
@@ -595,26 +601,28 @@ router.put("/product/:id", async (req, res) => {
     product_status,
     description,
     is_live,
-    start_date,
+    start_date,  // מגיע בתצורה "YYYY-MM-DDTHH:MM"
     end_date,
-    start_time,
-    // הוסף שדות נוספים במידת הצורך
   } = req.body;
+
+  // נרמול ל-MySQL (רווח במקום T + שניות)
+  const normalizedStart =
+    start_date ? start_date.replace("T", " ") + ":00" : null;
+
   const conn = await db.getConnection();
   try {
     await conn.query(
       `UPDATE product SET 
-        product_name = COALESCE(?, product_name),
-        price = COALESCE(?, price),
-        current_price = COALESCE(?, current_price),
-        category_id = COALESCE(?, category_id),
+        product_name   = COALESCE(?, product_name),
+        price          = COALESCE(?, price),
+        current_price  = COALESCE(?, current_price),
+        category_id    = COALESCE(?, category_id),
         subcategory_id = COALESCE(?, subcategory_id),
         product_status = COALESCE(?, product_status),
-        description = COALESCE(?, description),
-        is_live = COALESCE(?, is_live),
-        start_date = COALESCE(?, start_date),
-        end_date = COALESCE(?, end_date),
-        start_time = COALESCE(?, start_time)
+        description    = COALESCE(?, description),
+        is_live        = COALESCE(?, is_live),
+        start_date     = COALESCE(?, start_date),
+        end_date       = COALESCE(?, end_date)
       WHERE product_id = ?`,
       [
         product_name,
@@ -625,9 +633,8 @@ router.put("/product/:id", async (req, res) => {
         product_status,
         description,
         is_live,
-        start_date,
+        normalizedStart,
         end_date,
-        start_time,
         productId,
       ]
     );
@@ -637,6 +644,8 @@ router.put("/product/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בעדכון מוצר" });
   }
 });
+
+
 // מחיקת תמונה של מוצר ע"י המנהל
 router.delete("/product/:id/image", async (req, res) => {
   const { id } = req.params;

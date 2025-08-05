@@ -4,22 +4,20 @@ import CustomModal from "../CustomModal/CustomModal";
 import styles from "./ProductForm.module.css";
 
 function ProductForm({ onSubmit }) {
-  //formData שומר את כל ערכי הטופס (שם מוצר, תאריך התחלה/סיום, שעה, מחיר, תמונות, תיאור)
   const [formData, setFormData] = useState({
     product_name: "",
     start_date: "",
-    start_time: "",
     end_date: "",
     price: "",
-    image: "",
     description: "",
-    bid_increment: 10, // ברירת מחדל
+    bid_increment: 10,
   });
-const [vatIncluded, setVatIncluded] = useState(true);
 
-const [categories, setCategories] = useState([]);
+  const [vatIncluded, setVatIncluded] = useState(true);
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
+  const [startTime, setStartTime] = useState(""); // השדה היחיד שמשמש לשעה
 
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({
@@ -44,8 +42,8 @@ const [categories, setCategories] = useState([]);
   useEffect(() => {
     async function loadCategories() {
       try {
-        const data = await fetchCategoriesWithSubs(); // שליפה מהשרת
-        setCategories(data); // עדכון ל־state
+        const data = await fetchCategoriesWithSubs();
+        setCategories(data);
       } catch (error) {
         console.error("שגיאה בטעינת קטגוריות:", error);
       }
@@ -53,7 +51,6 @@ const [categories, setCategories] = useState([]);
     loadCategories();
   }, []);
 
-  // פונקציה שמטפלת בשינוי בכל אחד משדות הטופס
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -63,14 +60,14 @@ const [categories, setCategories] = useState([]);
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault(); // שלא ירענן את הדף
+    e.preventDefault();
 
-    const { product_name, start_date, end_date, price } = formData; //חילוץ של ערכים מתוך האובייקט formData
+    const { product_name, start_date, end_date, price } = formData;
 
-    //וולידציה לערכים שהוזנו
     if (
       !product_name ||
       !start_date ||
+      !startTime || // נפרד
       !end_date ||
       !price ||
       !selectedCategory ||
@@ -78,12 +75,13 @@ const [categories, setCategories] = useState([]);
     ) {
       openModal({
         title: "שגיאה",
-        message: "נא למלא את כל שדות החובה כולל קטגוריה ותת קטגוריה",
+        message: "נא למלא את כל שדות החובה כולל שעת התחלה וקטגוריות",
       });
       return;
     }
 
-    if (new Date(end_date) <= new Date(start_date)) {
+    const combinedStartDate = `${start_date}T${startTime}`;
+    if (new Date(end_date) <= new Date(combinedStartDate)) {
       openModal({
         title: "תאריכים לא תקינים",
         message: "תאריך סיום חייב להיות אחרי תאריך התחלה",
@@ -91,16 +89,16 @@ const [categories, setCategories] = useState([]);
       return;
     }
 
-const preparedData = {
-  ...formData,
-  price: parseFloat(formData.price),
-  vat_included: vatIncluded.toString(),
-  category_id: selectedCategory,
-  subcategory_id: selectedSubCategory,
-};
+    const preparedData = {
+      ...formData,
+      start_date: combinedStartDate, // בפורמט ISO כולל שעה
+      price: parseFloat(price),
+      vat_included: vatIncluded.toString(),
+      category_id: selectedCategory,
+      subcategory_id: selectedSubCategory,
+    };
 
-
-    onSubmit(preparedData); //(preparedData == formData)
+    onSubmit(preparedData);
   };
 
   return (
@@ -135,9 +133,8 @@ const preparedData = {
             שעת התחלה *
             <input
               type="time"
-              name="start_time"
-              value={formData.start_time}
-              onChange={handleChange}
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
               required
             />
           </label>
@@ -164,6 +161,7 @@ const preparedData = {
               required
             />
           </label>
+
           <fieldset className={styles.vatBox}>
             <legend>כיצד הוזן המחיר?</legend>
             <label>
@@ -172,7 +170,7 @@ const preparedData = {
                 name="vat_included"
                 value="true"
                 checked={vatIncluded === true}
-                onChange={(e) => setVatIncluded(e.target.value === "true")}
+                onChange={() => setVatIncluded(true)}
               />
               מחיר כולל מע"מ
             </label>
@@ -182,7 +180,7 @@ const preparedData = {
                 name="vat_included"
                 value="false"
                 checked={vatIncluded === false}
-                onChange={(e) => setVatIncluded(e.target.value === "true")}
+                onChange={() => setVatIncluded(false)}
               />
               מחיר לפני מע"מ (יוצג כולל מע"מ ללקוח)
             </label>
@@ -252,9 +250,8 @@ const preparedData = {
                 required
               >
                 <option value="">בחר תת קטגוריה</option>
-                {(
-                  categories.find((cat) => cat.id == selectedCategory)
-                    ?.subcategories || []
+                {(categories.find((cat) => cat.id == selectedCategory)
+                  ?.subcategories || []
                 ).map((sub) => (
                   <option key={sub.id} value={sub.id}>
                     {sub.name}

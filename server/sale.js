@@ -328,31 +328,35 @@ router.put("/mark-delivered", async (req, res) => {
 
 // שליפת כל המכירות
 // שליפת כל המכירות כולל שם מוצר ותמונות
+//  כל המכירות (לכולם)
 router.get("/all", async (req, res) => {
   try {
     const conn = await db.getConnection();
 
-    const [results] = await conn.query(
-      `SELECT s.*, p.product_name, p.start_date, p.start_time,
-              GROUP_CONCAT(pi.image_url) AS image_urls
-       FROM sale s
-       JOIN product p ON s.product_id = p.product_id
-       LEFT JOIN product_images pi ON p.product_id = pi.product_id
-       GROUP BY s.product_id`
-    );
+    const [results] = await conn.query(`
+      SELECT 
+        s.*,
+        p.product_name,
+        p.start_date,
+        GROUP_CONCAT(pi.image_url) AS image_urls
+      FROM sale s
+      JOIN product p ON s.product_id = p.product_id
+      LEFT JOIN product_images pi ON p.product_id = pi.product_id
+      GROUP BY s.product_id
+    `);
 
-    // המרה של השדה image_urls למערך
-    const formattedResults = results.map((row) => ({
-      ...row,
-      images: row.image_urls ? row.image_urls.split(",") : [],
+    const formatted = results.map(r => ({
+      ...r,
+      images: r.image_urls ? r.image_urls.split(",") : [],
     }));
 
-    res.json(formattedResults);
+    res.json(formatted);
   } catch (err) {
     console.error("❌ שגיאה בשליפת מכירות:", err.message);
     res.status(500).json({ error: "שגיאה בשליפת מכירות" });
   }
 });
+
 
 
 // שליפת כל המכירות לפי ת"ז
