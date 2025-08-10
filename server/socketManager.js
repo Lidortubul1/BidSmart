@@ -1,140 +1,371 @@
+// server/socketManager.js
 const db = require("./database");
-const auctionTimers = {};
 
-//אחראי על ניהול התקשורת בזמן אמת במערכת המכירה הפומבית החיה של  באמצעות Socket.IO.
-//הוא מטפל בהצטרפות למכירה, קבלת הצעות מחיר (bids), עדכון המחיר בזמן אמת, וסיום מכירה.
+// טיימרים ונעילות
+const bidTimers = new Map();       // productId -> timeout (15s מאז ההצעה האחרונה)
+const auctionTimers = new Map();   // productId -> timeout (עד סוף המכירה לפי start+end_time)
+const auctionClosed = new Set();   // מכירות שכבר נסגרו (מניעת סיום כפול)
+const startingAuctions = new Set();// הגנות מירוץ על התחלה
+const startTimers = new Map();     // productId -> timeout (טיימר עד תחילת מכירה)
+
+// המרת end_time (HH:MM[:SS] או מספר בדקות) לדקות
+function minutesFromEndTime(end_time) {
+  if (end_time == null) return 0;
+  if (typeof end_time === "number") return end_time; // כבר בדקות
+  if (typeof end_time === "string") {
+    const [hh = "0", mm = "0", ss = "0"] = end_time.split(":");
+    const h = Number(hh) || 0;
+    const m = Number(mm) || 0;
+    const s = Number(ss) || 0;
+    return h * 60 + m + (s > 0 ? 1 : 0); // עיגול מעלה קליל אם יש שניות
+  }
+  return 0;
+}
+
+// סיום מכירה: קובע זוכה, מכבה is_live, משדר לכולם
+async function endAuction(io, productId) {
+  if (auctionClosed.has(productId)) return;
+  auctionClosed.add(productId);
+
+  try {
+    const conn = await db.getConnection();
+
+    // מחיר נוכחי (fallback)
+    const [prodRows] = await conn.query(
+      "SELECT product_id, current_price FROM product WHERE product_id = ?",
+      [productId]
+    );
+    if (!prodRows.length) {
+      console.error("endAuction: product not found", productId);
+      return;
+    }
+
+    // הזוכה: מחיר גבוה ביותר, ואם תיקו — מוקדם יותר
+    const [winRows] = await conn.query(
+      `SELECT buyer_id_number, price
+         FROM quotation
+        WHERE product_id = ? AND price > 0
+        ORDER BY price DESC, bid_time ASC
+        LIMIT 1`,
+      [productId]
+    );
+
+    const winnerId = winRows[0]?.buyer_id_number || null;
+    const finalPrice = winRows[0]?.price ?? prodRows[0].current_price ?? 0;
+
+    // ⬅️ השינוי כאן
+    if (winnerId == null) {
+      await conn.query(
+        "UPDATE product SET winner_id_number = NULL, product_status = 'Not sold' WHERE product_id = ?",
+        [productId]
+      );
+    } else {
+      await conn.query(
+        "UPDATE product SET winner_id_number = ? WHERE product_id = ?",
+        [winnerId, productId]
+      );
+    }
+
+    // ניקוי טיימרים
+    if (bidTimers.has(productId)) {
+      clearTimeout(bidTimers.get(productId));
+      bidTimers.delete(productId);
+    }
+    if (auctionTimers.has(productId)) {
+      clearTimeout(auctionTimers.get(productId));
+      auctionTimers.delete(productId);
+    }
+
+    // שידור לכולם
+    io.to(`room_${productId}`).emit("auctionEnded", {
+      winnerId: winnerId,
+      finalPrice: Number(finalPrice) || 0,
+    });
+
+    console.log(`🔔 Auction ${productId} ended. Winner: ${winnerId || "—"}`);
+  } catch (err) {
+    console.error("❌ endAuction error:", err.message || err);
+  }
+}
+
+
+
+async function startAuctionNow(io, productId) {
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.query(
+      "SELECT is_live, start_date, end_time FROM product WHERE product_id = ?",
+      [productId]
+    );
+    if (!rows.length) return;
+    if (rows[0].is_live) return; // כבר לייב – אל תתחיל שוב
+
+    await conn.query("UPDATE product SET is_live = 1 WHERE product_id = ?", [productId]);
+
+    // שדר לקליינטים שהמכירה התחילה
+    io.to(`room_${productId}`).emit("auctionStarted");
+
+    // נקה טיימר התחלה אם היה
+    const t = startTimers.get(productId);
+    if (t) clearTimeout(t);
+    startTimers.delete(productId);
+
+    // תזמן טיימר סיום כולל (start_date + end_time)
+    await ensureAuctionEndTimer(io, productId);
+
+    console.log(`🚀 Auction ${productId} started`);
+  } catch (err) {
+    console.error("❌ startAuctionNow error:", err.message || err);
+  }
+}
+
+
+async function ensureStartTimer(io, productId) {
+  if (startTimers.has(productId)) return;
+
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.query(
+      "SELECT start_date, is_live FROM product WHERE product_id = ?",
+      [productId]
+    );
+    if (!rows.length) return;
+
+    const { start_date, is_live } = rows[0];
+    if (is_live) return; // כבר לייב – אין צורך בטיימר
+
+    const msUntil = new Date(start_date).getTime() - Date.now();
+
+    if (msUntil <= 0) {
+      // הזמן כבר הגיע – התחל מיד
+      await startAuctionNow(io, productId);
+      return;
+    }
+
+    const tout = setTimeout(() => startAuctionNow(io, productId), msUntil);
+    startTimers.set(productId, tout);
+
+    console.log(
+      `⏳ Start timer set for product ${productId} — starts in ${Math.ceil(msUntil / 1000)}s`
+    );
+  } catch (err) {
+    console.error("❌ ensureStartTimer error:", err.message || err);
+  }
+}
+
+// הבטחת טיימר סיום כולל (לפי start_date + end_time)
+async function ensureAuctionEndTimer(io, productId) {
+  if (auctionTimers.has(productId)) return;
+
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.query(
+  "SELECT start_date, end_time, is_live, winner_id_number FROM product WHERE product_id = ?",
+      [productId]
+    );
+    if (!rows.length) return;
+
+    const product = rows[0];
+
+// אם לא לייב – אין טיימר
+if (!product.is_live) return;
+
+// חדש: אם כבר יש זוכה – אין מה לתזמן
+if (product.winner_id_number) return;
+
+    const startMs = new Date(product.start_date).getTime();
+    const durationMinutes = minutesFromEndTime(product.end_time);
+    const endMs = startMs + durationMinutes * 60 * 1000;
+    const msLeft = Math.max(endMs - Date.now(), 0);
+
+    if (msLeft === 0) {
+      // עבר הזמן — סיים מיידית
+      endAuction(io, productId);
+      return;
+    }
+
+    const tout = setTimeout(() => endAuction(io, productId), msLeft);
+    auctionTimers.set(productId, tout);
+
+    console.log(
+      `⏳ Auction timer set for product ${productId} — ends in ${Math.ceil(msLeft / 1000)}s`
+    );
+  } catch (err) {
+    console.error("❌ ensureAuctionEndTimer error:", err.message || err);
+  }
+}
+
+// התחלת מכירה (אם הגיע הזמן) + שידור auctionStarted
+async function startAuction(io, productId, { force = false } = {}) {
+  if (auctionClosed.has(productId)) return { started: false, reason: "closed" };
+  if (startingAuctions.has(productId)) return { started: false, reason: "busy" };
+
+  startingAuctions.add(productId);
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.query(
+      "SELECT is_live, start_date, end_time FROM product WHERE product_id = ?",
+      [productId]
+    );
+    if (!rows.length) return { started: false, reason: "notFound" };
+
+    const { is_live, start_date } = rows[0];
+
+    if (is_live === 1) {
+      await ensureAuctionEndTimer(io, productId);
+      io.to(`room_${productId}`).emit("auctionStarted");
+      return { started: false, reason: "alreadyLive" };
+    }
+
+    // טריגר רק אם כבר הגענו לזמן (אלא אם force)
+    if (!force && Date.now() < new Date(start_date).getTime()) {
+      return { started: false, reason: "notYet" };
+    }
+
+    // עדכון מותנה (מונע מירוץ)
+    const [upd] = await conn.query(
+      "UPDATE product SET is_live = 1 WHERE product_id = ? AND is_live = 0",
+      [productId]
+    );
+
+    if (upd.affectedRows > 0) {
+      io.to(`room_${productId}`).emit("auctionStarted");
+      await ensureAuctionEndTimer(io, productId);
+      console.log(`🚀 Auction ${productId} started`);
+      return { started: true };
+    }
+
+    return { started: false, reason: "noRowChanged" };
+  } catch (e) {
+    console.error("❌ startAuction error:", e.message || e);
+    return { started: false, reason: "error" };
+  } finally {
+    startingAuctions.delete(productId);
+  }
+}
 
 function setupSocket(io) {
   io.on("connection", (socket) => {
-    console.log("🔌 חיבור חדש ל-Socket.IO");
+    console.log("🔌 Socket.IO connected", socket.id);
 
-    socket.on("joinAuction", ({ productId }) => {
-      socket.join(`room_${productId}`);
-      console.log(`👤 הצטרף לחדר room_${productId}`);
+    // הצטרפות לחדר מוצר
+socket.on("joinAuction", async ({ productId }) => {
+  try {
+    socket.join(`room_${productId}`);
+    console.log(`👤 joined room_${productId}`);
+
+    // טיימר התחלה אם עדיין לא התחילה
+    await ensureStartTimer(io, productId);
+
+    // טיימר סיום כולל אם כבר לייב
+    await ensureAuctionEndTimer(io, productId);
+  } catch (err) {
+    console.error("❌ joinAuction error:", err.message || err);
+  }
+});
+
+
+    // בקשת התחלה מהקליינט כשקאונטדאון הגיע ל-0
+    socket.on("requestStartAuction", async ({ productId }) => {
+      try {
+        await startAuction(io, productId); // יתחיל רק אם באמת הגיע הזמן
+      } catch (e) {
+        console.error("requestStartAuction error:", e.message || e);
+      }
     });
-    
-    socket.on("placeBid", async ({ productId, buyerId }) => {
-      console.log("📥 הצעה חדשה:", { productId, buyerId });
+
+    // הצעת מחיר
+    socket.on("placeBid", async ({ productId, buyerId, customAmount }) => {
+      if (!buyerId) {
+        console.log("❌ placeBid without buyerId");
+        return;
+      }
+      if (auctionClosed.has(productId)) return;
 
       try {
         const conn = await db.getConnection();
-
         const [rows] = await conn.query(
           "SELECT * FROM product WHERE product_id = ?",
           [productId]
         );
-
         if (!rows.length) {
-          console.log("❌ מוצר לא נמצא במסד");
+          console.log("❌ product not found", productId);
           return;
         }
-
         const product = rows[0];
 
-        const now = new Date();
-        const startDateTime = new Date(
-          `${product.start_date}T${product.start_time}`
-        );
-        if (now < startDateTime) {
-          console.log("⌛ המכירה עדיין לא התחילה");
+        if (product.winner_id_number) {
+  console.log("⛔ auction already ended (has winner)");
+  return;
+}
+        if (!product.is_live) {
+          console.log("⌛ auction is not live");
           return;
         }
 
-        const bidIncrement = Number(product.bid_increment) || 10;
-        const newPrice = Number(product.current_price) + bidIncrement;
+        const now = Date.now();
+        const startMs = new Date(product.start_date).getTime();
+        if (now < startMs) {
+          console.log("⌛ auction not started yet");
+          return;
+        }
 
+        await ensureAuctionEndTimer(io, productId);
 
-        // 🔄 במקום INSERT קבוע — נבדוק אם קיימת הצעה
+        const bidIncrement =
+          Number(customAmount) || Number(product.bid_increment) || 10;
+        const basePrice =
+          Number(product.current_price) || Number(product.price) || 0;
+        const newPrice = basePrice + bidIncrement;
+        const bidTime = new Date();
+
+        // upsert ל־quotation
         const [existing] = await conn.query(
-          "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
+          "SELECT quotation_id FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
           [productId, buyerId]
         );
-
         if (existing.length > 0) {
-          // קיים — נעדכן
           await conn.query(
-            "UPDATE quotation SET price = ?, bid_time = ? WHERE product_id = ? AND buyer_id_number = ?",
-            [newPrice, now, productId, buyerId]
+            "UPDATE quotation SET price = ?, bid_time = ? WHERE quotation_id = ?",
+            [newPrice, bidTime, existing[0].quotation_id]
           );
         } else {
-          // לא קיים — ניצור חדש
           await conn.query(
-            "INSERT INTO quotation (product_id, buyer_id_number, price, bid_time, payment_status) VALUES (?, ?, ?, ?, 'not_completed')",
-            [productId, buyerId, newPrice, now]
+            `INSERT INTO quotation 
+             (product_id, buyer_id_number, price, bid_time, payment_status) 
+             VALUES (?, ?, ?, ?, 'not_completed')`,
+            [productId, buyerId, newPrice, bidTime]
           );
         }
 
-        await conn.query(
-          "UPDATE product SET current_price = ?, last_bid_time = ?, winner_id_number = ? WHERE product_id = ?",
-          [newPrice, now, buyerId, productId]
-        );
+        // עדכון המוצר
+await conn.query(
+  "UPDATE product SET current_price = ?, last_bid_time = ? WHERE product_id = ?",
+  [newPrice, bidTime, productId]
+);
 
+
+        // שדר לקליינטים
         io.to(`room_${productId}`).emit("newBid", {
           price: newPrice,
           buyerId,
-          time: now,
+          time: bidTime.toISOString(),
         });
 
-        if (auctionTimers[productId]) clearTimeout(auctionTimers[productId]);
-
-        auctionTimers[productId] = setTimeout(async () => {
-          try {
-            const [finalRows] = await conn.query(
-              "SELECT * FROM product WHERE product_id = ?",
-              [productId]
-            );
-            const finalProduct = finalRows[0];
-
-            await conn.query(
-              "UPDATE product SET is_live = 0 WHERE product_id = ?",
-              [productId]
-            );
-
-
-
-            const [topBids] = await conn.query(
-              `SELECT buyer_id_number FROM quotation 
-               WHERE product_id = ? AND price > 0
-               ORDER BY price DESC, bid_time ASC 
-               LIMIT 3`,
-              [productId]
-            );
-
-            const winner = topBids[0]?.buyer_id_number || null;
-            const second = topBids[1]?.buyer_id_number || null;
-            const third = topBids[2]?.buyer_id_number || null;
-
-            await conn.query(
-              "UPDATE product SET winner_id_number = ?, second_place_id = ?, third_place_id = ? WHERE product_id = ?",
-              [winner, second, third, productId]
-            );
-
-            // 🆕 שליפה מחודשת כדי לקבל את הנתונים המעודכנים
-            const [updatedRows] = await conn.query(
-              "SELECT * FROM product WHERE product_id = ?",
-              [productId]
-            );
-            const updatedProduct = updatedRows[0];
-
-            io.to(`room_${productId}`).emit("auctionEnded", {winnerId: updatedProduct.winner_id_number,
-              finalPrice: updatedProduct.current_price,
-            });
-            
-            console.log("📤 שולחת ללקוח winnerId:", updatedProduct.winner_id_number);
-
-            console.log(
-              `🔔 המוצר ${productId} הסתיים. זוכה: ${finalProduct.winner_id_number}`
-            );
-          } catch (error) {
-            console.error("❌ שגיאה בסיום מכירה:", error);
-          }
-        }, 10000);
+        // טיימר 15 שניות מאז ההצעה האחרונה
+        if (bidTimers.has(productId)) clearTimeout(bidTimers.get(productId));
+        const bidTimeout = setTimeout(() => endAuction(io, productId), 15_000);
+        bidTimers.set(productId, bidTimeout);
       } catch (err) {
-        console.error("❌ שגיאה בטיפול בהצעה:", err.message);
+        console.error("❌ placeBid error:", err.message || err);
       }
     });
-    
+
+    socket.on("disconnect", () => {
+      // אופציונלי: לוג
+      // console.log("🔌 socket disconnected", socket.id);
+    });
   });
 }
 
-module.exports = { setupSocket }; 
+module.exports = { setupSocket, startAuction, endAuction };

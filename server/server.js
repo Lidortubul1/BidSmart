@@ -14,15 +14,14 @@ const saleRoutes = require("./sale.js");
 const userRoutes = require("./users");
 const paymentRoutes = require("./payment");
 const adminRoutes = require("./admin.js");
-
+const acutionRoutes= require("./auction.js")
 //מנהל ה (Real-time) עם המשתמשים דרך socket.io
 const { setupSocket } = require("./socketManager.js");
 const sellerRoutes = require("./seller.js");
 const db = require("./database.js");
 //פונקציות שרצות באופן קבוע אוטומטית
-const { checkIsLiveProducts } = require("./liveChecker.js"); //כל 10 שניות לבדוק אם צריך להתחיל מכירה
+const { checkIsLiveProducts, notifyUpcomingAuctions,closeExpiredAuctions } = require("./liveChecker.js");
 const { checkUnpaidWinners } = require("./saleChecker"); //כל 12 שעות לבדוק מי זכה ועדיין לא שילם
-const { notifyUpcomingAuctions } = require("./liveChecker"); //כל דקה לבדוק אם יש התראה למכירה שמתקרבת
 require("dotenv").config();
 console.log("Loaded API KEY:", process.env.OPENAI_API_KEY);
 
@@ -35,16 +34,7 @@ const server = http.createServer(app); // יצירת שרת HTTP עם אקספר
 // קונפיגורציית Express – מאפשרת ניתוח JSON בבקשות
 app.use(express.json());
 // הגדרת socket.io עם הרשאות CORS לקליינט בריאקט
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000", // כתובת הפרונט
-    methods: ["GET", "POST"], // שיטות מותרים
-    credentials: true, // מאפשר שליחת עוגיות
-  },
-});
 
-// הפעלת המאזין של WebSocket ומעבר ניהול לאובייקט socketManager
-setupSocket(io);
 
 // מאפשר להוסט 3000 לשלוח בקשות לשרת cors-
 app.use(
@@ -68,7 +58,16 @@ app.use(
   })
 );
 
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000", // כתובת הפרונט
+    methods: ["GET", "POST"], // שיטות מותרים
+    credentials: true, // מאפשר שליחת עוגיות
+  },
+});
 
+// הפעלת המאזין של WebSocket ומעבר ניהול לאובייקט socketManager
+setupSocket(io);
 
 //שימוש בstatic
 // חשיפת תיקיית התמונות לצפייה בדפדפן דרך /uploads
@@ -83,6 +82,8 @@ app.use("/api/sale", saleRoutes); // מכירה וזכיות
 app.use("/api/admin", adminRoutes); // ניהול מוצרים
 app.use("/api/payment", paymentRoutes); // תשלומים דרך PayPal
 app.use("/api/users", userRoutes); // משתמשים ופרופילים
+app.use("/api/auction",acutionRoutes); // מכירה פומבית
+
 
 app.use("/api/ai-chat", aiChatRoutes);//נציגת AI
 // בדיקת חיבור למסד הנתונים והדפסת שם הדאטהבייס
@@ -98,9 +99,7 @@ server.listen(PORT, () => {
 });
 
 // מריץ את הפונקציה שבודקת אילו מוצרים אמורים להפוך ל"לייב"
-setInterval(() => {
-  checkIsLiveProducts();
-}, 10000); // כל 10 שניות
+setInterval(() => { checkIsLiveProducts(io); }, 10000);
 
 // כל 12 שעות בודק אם יש זוכים שלא שילמו בזמן – שולח מיילים או הודעות
 setInterval(() => {
@@ -108,6 +107,7 @@ setInterval(() => {
 }, 12 * 60 * 60 * 1000); // כל 12 שעות
 
 // כל דקה בודק אם יש מכירה שמתחילה עוד 10 דקות – שולח התראה למשתתפים שנרשמו
-setInterval(() => {
-  notifyUpcomingAuctions();
-}, 60000); // כל דקה
+setInterval(() => { notifyUpcomingAuctions(); }, 60000);
+
+
+setInterval(() => closeExpiredAuctions(io), 60_000);

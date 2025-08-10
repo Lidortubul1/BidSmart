@@ -40,7 +40,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
   const {
     product_name,
     start_date,
-    end_date,
+    end_time,
     price,
     description,
     seller_id_number,
@@ -51,6 +51,8 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     vat_included,
   } = req.body;
   console.log("start_date:", start_date); // צריך להיות בפורמט ISO כמו 2025-08-07T14:00
+    console.log("end_time:", end_time); // צריך להיות בפורמט של זמן 00:10:00 נניח
+
   let finalPrice = parseFloat(price);
   let priceBeforeVat = null;
   const isVatIncluded = vat_included === "true";
@@ -94,25 +96,14 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     });
   }
 
-  if (!end_date) {
+  if (!end_time) {
     return res
       .status(400)
-      .json({ success: false, message: "תאריך סיום הוא שדה חובה" });
+      .json({ success: false, message: "זמן מכירה לא מלא" });
   }
 
-  const endDateObj = new Date(end_date);
-  if (isNaN(endDateObj.getTime())) {
-    return res
-      .status(400)
-      .json({ success: false, message: "תאריך סיום לא תקין" });
-  }
 
-  if (endDateObj <= startDateObj) {
-    return res.status(400).json({
-      success: false,
-      message: "תאריך הסיום חייב להיות אחרי תאריך ההתחלה",
-    });
-  }
+
 
   if (!price || isNaN(price)) {
     return res.status(400).json({
@@ -136,7 +127,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
       `INSERT INTO product (
         product_name,
         start_date,
-        end_date,
+        end_time,
         price,
         current_price,
         price_before_vat,
@@ -150,7 +141,7 @@ router.post("/", upload.array("images", 5), async (req, res) => {
       [
         product_name,
         start_date,
-        end_date,
+        end_time,
         finalPrice,
         finalPrice,
         priceBeforeVat,
@@ -182,6 +173,8 @@ router.post("/", upload.array("images", 5), async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בהעלאת מוצר" });
   }
 });
+
+
 
 
 

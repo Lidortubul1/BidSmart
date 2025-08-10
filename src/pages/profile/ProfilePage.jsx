@@ -5,11 +5,24 @@ import citiesData from "../../assets/data/cities_with_streets.json";
 import ChangePassword from "../../components/ChangePassword/ChangePassword";
 import { updateUserProfile } from "../../services/authApi";
 import CustomModal from "../../components/CustomModal/CustomModal";
-import { useNavigate } from "react-router-dom";
+// מפענח טלפון בפורמט +9725XYYYYYYY ומחזיר { prefix, number } אם תקין, אחרת null
+function parseIlMobile(raw) {
+  if (!raw) return null;
+  const cleaned = String(raw).replace(/\s|-/g, ""); // מסיר רווחים/מקפים
+  const m = cleaned.match(/^\+9725\d(\d{7})$/);     // +9725X + 7 ספרות
+  if (!m) return null;
+  const prefix = cleaned.slice(0, 6);               // "+9725X"
+  const number = m[1];                              // 7 ספרות
+  return { prefix, number };
+}
+
+// מחזיר true אם prefix חוקי (כמו +97250..+97258) ו-number 7 ספרות
+function isValidIlMobile(prefix, number) {
+  return /^\+9725\d$/.test(prefix) && /^\d{7}$/.test(number);
+}
 
 function ProfilePage() {
   const { user, setUser } = useAuth();
-  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -17,7 +30,7 @@ function ProfilePage() {
   const [idNumber, setIdNumber] = useState("");
   const [idCardPhoto, setIdCardPhoto] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
-  const [phonePrefix, setPhonePrefix] = useState("+972");
+const [phonePrefix, setPhonePrefix] = useState("+97250"); 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [zip, setZip] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
@@ -59,22 +72,34 @@ function ProfilePage() {
     setModalVisible(true);
   };
 
-  useEffect(() => {
-    if (user) {
-      setEmail(user.email || "");
-      setFirstName(user.first_name || "");
-      setLastName(user.last_name || "");
-      setIdNumber(user.id_number || "");
-      setPhoneNumber(user.phone?.slice(phonePrefix.length) || "");
-      setZip(user.zip || "");
-      setHouseNumber(user.house_number || "");
-      setApartmentNumber(user.apartment_number || "");
-      setSelectedCity(user.city || "");
-      setSelectedStreet(user.street || "");
-      const found = citiesData.find((c) => c.city === user.city);
-      setAvailableStreets(found ? found.streets : []);
+useEffect(() => {
+  if (user) {
+    setEmail(user.email || "");
+    setFirstName(user.first_name || "");
+    setLastName(user.last_name || "");
+    setIdNumber(user.id_number || "");
+    setZip(user.zip || "");
+    setHouseNumber(user.house_number || "");
+    setApartmentNumber(user.apartment_number || "");
+    setSelectedCity(user.city || "");
+    setSelectedStreet(user.street || "");
+    const found = citiesData.find((c) => c.city === user.city);
+    setAvailableStreets(found ? found.streets : []);
+
+    // 🆕 פירוק טלפון שמור
+    const parsed = parseIlMobile(user.phone);
+    if (parsed) {
+      setPhonePrefix(parsed.prefix);
+      setPhoneNumber(parsed.number);
+    } else {
+      setPhoneNumber("");
     }
-  }, [user]);
+  }
+}, [user]);
+
+useEffect(() => {
+  if (phoneError) setPhoneError(false);
+}, [phonePrefix, phoneNumber]);
 
   const handleCityChange = (e) => {
     const city = e.target.value;
@@ -112,32 +137,25 @@ function ProfilePage() {
       });
     }
 
-    if (phoneNumber !== "") {
-      if (phoneNumber.length !== 7) {
-        return showModal({
-          title: "שגיאה",
-          message: "מספר הטלפון חייב להכיל בדיוק 7 ספרות (ללא הקידומת)",
-          confirmText: "סגור",
-          onConfirm: () => setModalVisible(false),
-        });
-      }
+// ולידציה לטלפון
+if (phoneNumber !== "") {
+  if (!isValidIlMobile(phonePrefix, phoneNumber)) {
+    return showModal({
+      title: "שגיאה",
+      message: "מספר נייד לא תקין. יש לבחור קידומת ולמלא 7 ספרות.",
+      confirmText: "סגור",
+      onConfirm: () => setModalVisible(false),
+    });
+  }
+} else if (user.phone && user.phone !== "") {
+  return showModal({
+    title: "שגיאה",
+    message: "לא ניתן למחוק את מספר הטלפון לאחר שמולא",
+    confirmText: "סגור",
+    onConfirm: () => setModalVisible(false),
+  });
+}
 
-      if (!/^\+9725\d{1}$/.test(phonePrefix)) {
-        return showModal({
-          title: "שגיאה",
-          message: "קידומת טלפון לא תקינה",
-          confirmText: "סגור",
-          onConfirm: () => setModalVisible(false),
-        });
-      }
-    } else if (user.phone && user.phone !== "") {
-      return showModal({
-        title: "שגיאה",
-        message: "לא ניתן למחוק את מספר הטלפון לאחר שמולא",
-        confirmText: "סגור",
-        onConfirm: () => setModalVisible(false),
-      });
-    }
     
 
     if (idNumber !== "") {
@@ -182,7 +200,10 @@ function ProfilePage() {
     formData.append("first_name", firstName);
     formData.append("last_name", lastName);
     formData.append("id_number", idNumber);
-    formData.append("phone", phonePrefix + phoneNumber);
+// הוספת phone רק אם יש 7 ספרות (כדי לא לדרוס ערך קיים ב-DB)
+if (phoneNumber !== "") {
+  formData.append("phone", phonePrefix + phoneNumber);
+}
     formData.append("country", country);
     formData.append("zip", zip);
     formData.append("city", selectedCity);
@@ -363,17 +384,26 @@ function ProfilePage() {
                       setPhoneNumber(onlyNums);
                       if (onlyNums.length === 7) setPhoneError(false);
                     }}
-                    onBlur={() => {
-                      if (phoneNumber.length !== 7) {
-                        setPhoneError(true);
-                        showModal({
-                          title: "שגיאה",
-                          message: "מספר טלפון לא תקין",
-                          confirmText: "סגור",
-                          onConfirm: () => setModalVisible(false),
-                        });
-                      }
-                    }}
+onBlur={() => {
+  if (phoneNumber === "") {
+    // אל תראה שגיאה כשאין מספר – הוולידציה האמיתית מתבצעת בשמירה
+    setPhoneError(false);
+    return;
+  }
+  if (!isValidIlMobile(phonePrefix, phoneNumber)) {
+    setPhoneError(true);
+    showModal({
+      title: "שגיאה",
+      message: "מספר נייד לא תקין. יש לבחור קידומת ולמלא 7 ספרות.",
+      confirmText: "סגור",
+      onConfirm: () => setModalVisible(false),
+    });
+  } else {
+    setPhoneError(false);
+  }
+}}
+
+
                   />
                 </div>
               </div>

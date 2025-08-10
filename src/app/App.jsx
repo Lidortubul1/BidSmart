@@ -55,6 +55,9 @@ function App() {
       .catch((err) => console.error("שגיאה בשליפת session:", err));
   }, [setUser]);
 
+console.log("test")
+
+
   return (
     <div className="App">
       <header>

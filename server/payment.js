@@ -9,6 +9,9 @@ const PAYPAL_CLIENT_SECRET =
   "ECwmbEtqsdnepDeVFSN2sEQjVAcVc4KgGq1usvIT9EK4XcYEnUc7J3ZG90jv2W1S9SdyyqXMpnT7fbow";
 const BASE = "https://api-m.sandbox.paypal.com";
 
+
+
+
 // קבלת access token מ-PayPal
 async function getAccessToken() {
   const auth = Buffer.from(
@@ -92,27 +95,99 @@ console.log({product_id});
   }
 });
 
-// עדכון שדה סטטוס מוצר לנמכר 
+// אישור תשלום: מסמן את ההצעה הזוכה כ-is_paid='yes' ומוסיף לטבלת sale עם end_date=NOW() וגם מעדכן את סטטוס המוצר לנמכר
 router.post("/confirm", async (req, res) => {
   const productId = req.body.product_id;
+  if (!productId) {
+    return res.status(400).json({ success: false, message: "חסר product_id" });
+  }
+
+  const conn = await db.getConnection(); // חיבור יחיד
 
   try {
-    const conn = await db.getConnection();
+    await conn.beginTransaction();
 
-    // 1. עדכון הסטטוס של המוצר ל־"sale"
-    await conn.query(
+    // 1) מביאים את הזוכה + שם המוצר
+    const [prodRows] = await conn.execute(
+      "SELECT winner_id_number, product_name FROM product WHERE product_id = ?",
+      [productId]
+    );
+    if (prodRows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
+    }
+        //סימון מוצר כנמכר 
+    await conn.execute(
       "UPDATE product SET product_status = 'sale' WHERE product_id = ?",
       [productId]
     );
 
-    // ⚠️ הסרת שלב הכנסת המוצר לטבלת sale
+    const winnerId = prodRows[0].winner_id_number;
+    const productName = prodRows[0].product_name;
+    if (!winnerId) {
+      await conn.rollback();
+      return res.status(400).json({ success: false, message: "אין זוכה למוצר זה" });
+    }
 
-    res.json({ success: true, product_id: productId });
+    // 2) מאתרים את השורה הזוכה בהצעות
+    const [winRows] = await conn.execute(
+      `SELECT quotation_id, price
+       FROM quotation
+       WHERE product_id = ? AND buyer_id_number = ?
+       ORDER BY price DESC, bid_time DESC
+       LIMIT 1`,
+      [productId, winnerId]
+    );
+    if (winRows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: "לא נמצאה הצעת זוכה" });
+    }
+
+    const { quotation_id: quotationId, price: finalPrice } = winRows[0];
+
+    // 3) מסמנים את ההצעה כבתשלום
+    await conn.execute(
+      "UPDATE quotation SET is_paid = 'yes' WHERE quotation_id = ?",
+      [quotationId]
+    );
+    
+    // 4) בדיקה אם יש כבר רשומת sale למוצר הזה
+    const [existingSale] = await conn.execute(
+      "SELECT sale_id FROM sale WHERE product_id = ? LIMIT 1",
+      [productId]
+    );
+
+    if (existingSale.length === 0) {
+      // הוספת רשומה חדשה
+      await conn.execute(
+        `INSERT INTO sale
+           (end_date, final_price, product_name, product_id, buyer_id_number)
+         VALUES (NOW(), ?, ?, ?, ?)`,
+        [finalPrice, productName, productId, winnerId]
+      );
+    } else {
+      // עדכון רשומה קיימת
+      await conn.execute(
+        `UPDATE sale
+         SET end_date = NOW(),
+             final_price = ?,
+             product_name = ?,
+             buyer_id_number = ?
+         WHERE product_id = ?`,
+        [finalPrice, productName, winnerId, productId]
+      );
+    }
+
+    await conn.commit();
+    return res.json({ success: true, product_id: productId });
   } catch (err) {
-    console.error("❌ שגיאה באישור תשלום:", err.message);
-    res.status(500).json({ success: false });
+    await conn.rollback();
+    console.error("❌ confirmPayment error:", err);
+    return res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
+
+
 
 
 

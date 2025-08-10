@@ -273,6 +273,20 @@ const formatTime = (isoDate) => {
 };
 
 
+function timeToMinutes(timeStr) {
+  if (!timeStr || typeof timeStr !== "string") return "";
+  const parts = timeStr.split(":").map(Number); // ["HH","MM","SS?"]
+  const h = parts[0] || 0;
+  const m = parts[1] || 0;
+  return String(h * 60 + m);
+}
+
+// החזרת early לפני כל שימוש ב-product
+if (!product) return <p>טוען מוצר...</p>;
+
+// אל תגדיר const endTime = product.end_time; (מיותר)
+
+
   if (!product) return <p>טוען מוצר...</p>;
   const images = product.images || [];
 
@@ -325,8 +339,9 @@ const formatTime = (isoDate) => {
         <div className={styles.details}>
           <h1>{product.product_name}</h1>
           <p className={styles.description}>{product.description}</p>
-          <p className={styles.price}>מחיר פתיחה: {product.price} ₪</p>
-          <p className={styles.status}>סטטוס: {product.product_status}</p>
+          <p className={styles.price}>מחיר פתיחה:  ₪{product.price}</p>
+          <p className={styles.status}> {product.product_status} :סטטוס</p>
+          <p className={styles.status}> זמן מכירה: {timeToMinutes(product.end_time)} דקות</p>
 
           {isRegistered ? (
            <p className={styles.success}>

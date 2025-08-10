@@ -1,51 +1,49 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 
-// יצירת קונטקסט (context) גלובלי עבור המשתמש המחובר
 const AuthContext = createContext();
 
-// קומפוננטת Provider שעוטפת את כל האפליקציה ומנהלת את מצב ההתחברות
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // המשתמש המחובר, null אם לא מחובר
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true); // ✅ דגל טעינה פנימי
+
+  console.log("user:", user);
 
   useEffect(() => {
-    // בעת טעינת האפליקציה – מבצע בקשה לשרת לבדוק אם יש session קיים (עוגייה)
-    axios
-      .get("http://localhost:5000/api/auth/session", { withCredentials: true }) // שולח גם את העוגייה
-      .then((res) => {
-        if (res.data.loggedIn) {
-          // אם השרת מאשר שהמשתמש מחובר – נשמור אותו ב־state
+    (async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/auth/session", {
+          withCredentials: true,
+        });
+        if (res.data?.loggedIn) {
           setUser(res.data.user);
         }
-      })
-      .catch((err) => {
-        // במקרה של שגיאה (שרת לא זמין / לא מחובר) – מדפיס שגיאה לקונסול
+      } catch (err) {
         console.error("שגיאה בבדיקת session:", err);
-      });
-  }, []); // רץ פעם אחת בלבד – כשנטען הקומפוננט
+      } finally {
+        setInitializing(false); // ✅ תמיד מסיימים טעינה
+      }
+    })();
+  }, []);
 
-  // פונקציית התחברות – מקבלת את פרטי המשתמש ושומרת אותם ב־state
-  const login = (userData) => {
-    setUser(userData);
-  };
+  const login = (userData) => setUser(userData);
 
-  // פונקציית התנתקות – שולחת לשרת בקשת logout ומנקה את המשתמש המקומי
   const logout = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/auth/logout", // נקודת ההתנתקות בשרת
+        "http://localhost:5000/api/auth/logout",
         {},
-        {
-          withCredentials: true, // שומר על שליחת העוגייה לשרת
-        }
+        { withCredentials: true }
       );
-      setUser(null); // מחיקת המשתמש מה־Context
+      setUser(null);
     } catch (err) {
       console.error("שגיאה בהתנתקות:", err);
     }
   };
 
-  // מחזיר את ה־context לכל הקומפוננטות שהמערכת עוטפת – כולל המשתמש והפונקציות
+  // ✅ בזמן הטעינה הראשונית לא מרנדרים את הילדים (מונע גישה ל-user=null)
+  if (initializing) return null;
+
   return (
     <AuthContext.Provider value={{ user, login, logout, setUser }}>
       {children}
@@ -53,7 +51,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-// פונקציה נוחה לשליפת המידע מה־context מתוך קומפוננטות
 export function useAuth() {
   return useContext(AuthContext);
 }
+

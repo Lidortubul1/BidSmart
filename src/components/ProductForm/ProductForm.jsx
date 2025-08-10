@@ -7,7 +7,7 @@ function ProductForm({ onSubmit }) {
   const [formData, setFormData] = useState({
     product_name: "",
     start_date: "",
-    end_date: "",
+    end_time: "00:10:00",
     price: "",
     description: "",
     bid_increment: 10,
@@ -59,47 +59,41 @@ function ProductForm({ onSubmit }) {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-    const { product_name, start_date, end_date, price } = formData;
+  const { product_name, start_date, end_time, price } = formData;
+  console.log(formData)
+  if (
+    !product_name ||
+    !start_date ||
+    !startTime ||        // שעת התחלה חייבת
+    !end_time ||         // משך מכירה חייב
+    !price ||
+    !selectedCategory ||
+    !selectedSubCategory
+  ) {
+    openModal({
+      title: "שגיאה",
+      message: "נא למלא את כל שדות החובה כולל שעת התחלה, קטגוריות ומשך מכירה",
+    });
+    return;
+  }
 
-    if (
-      !product_name ||
-      !start_date ||
-      !startTime || // נפרד
-      !end_date ||
-      !price ||
-      !selectedCategory ||
-      !selectedSubCategory
-    ) {
-      openModal({
-        title: "שגיאה",
-        message: "נא למלא את כל שדות החובה כולל שעת התחלה וקטגוריות",
-      });
-      return;
-    }
+  const combinedStartDate = `${start_date}T${startTime}`;
 
-    const combinedStartDate = `${start_date}T${startTime}`;
-    if (new Date(end_date) <= new Date(combinedStartDate)) {
-      openModal({
-        title: "תאריכים לא תקינים",
-        message: "תאריך סיום חייב להיות אחרי תאריך התחלה",
-      });
-      return;
-    }
-
-    const preparedData = {
-      ...formData,
-      start_date: combinedStartDate, // בפורמט ISO כולל שעה
-      price: parseFloat(price),
-      vat_included: vatIncluded.toString(),
-      category_id: selectedCategory,
-      subcategory_id: selectedSubCategory,
-    };
-
-    onSubmit(preparedData);
+  const preparedData = {
+    ...formData,
+    start_date: combinedStartDate,          // DATETIME מלא
+    price: parseFloat(price),
+    vat_included: vatIncluded.toString(),
+    category_id: selectedCategory,
+    subcategory_id: selectedSubCategory,
   };
+
+  onSubmit(preparedData);
+};
+
 
   return (
     <>
@@ -139,18 +133,22 @@ function ProductForm({ onSubmit }) {
             />
           </label>
 
-          <label>
-            תאריך סיום *
-            <input
-              type="date"
-              name="end_date"
-              value={formData.end_date}
+          <label htmlFor="end_time">משך מכירה *</label>
+            <select
+              id="end_time"
+              name="end_time"
+              value={formData.end_time}
               onChange={handleChange}
-              required
-            />
-          </label>
-
+              required>
+          <option value="">בחר משך</option>
+          <option value="00:10:00">10 דקות</option>
+          <option value="00:15:00">15 דקות</option>
+          <option value="00:20:00">20 דקות</option>
+          <option value="00:30:00">חצי שעה</option>
+          <option value="01:00:00">שעה</option>
+            </select>
           <label>
+
             מחיר פתיחה *
             <input
               type="number"

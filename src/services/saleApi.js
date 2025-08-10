@@ -60,3 +60,12 @@ export async function markProductAsSent(productId) {
     console.error("❌ שגיאה בעדכון המוצר כנשלח:", error);
   }
 }
+
+//עדכון מספר הטלפון בפרופיל
+export async function updateUserPhone(productId, phone) {
+  const response = await axios.post(`/api/sale/update-user-phone`, {
+    product_id: productId,
+    phone,
+  });
+  return response.data;
+}
