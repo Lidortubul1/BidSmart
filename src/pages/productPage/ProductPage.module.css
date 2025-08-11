@@ -19,6 +19,20 @@
   max-width: 1000px;
   width: 100%;
 }
+.registeredButton {
+  opacity: 0.85;
+  cursor: not-allowed;
+  background: #e8f5e9;  /* ירקרק עדין */
+  color: #2e7d32;       /* ירוק כהה */
+  border: 1px solid #c8e6c9;
+}
+
+.countdown {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #d35400; /* כתמתם עדין */
+  direction: rtl;
+}
 
 .imageWrapper {
   flex: 1;

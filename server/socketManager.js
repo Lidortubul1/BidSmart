@@ -98,21 +98,26 @@ async function startAuctionNow(io, productId) {
       [productId]
     );
     if (!rows.length) return;
+
+    // אל תתחיל לפני הזמן בפועל
+    const startMs = new Date(rows[0].start_date).getTime();
+    if (Date.now() < startMs) {
+      console.log("⌛ startAuctionNow: not yet time");
+      // ודא שיש טיימר שמחכה לזמן הנכון
+      await ensureStartTimer(io, productId);
+      return;
+    }
+
     if (rows[0].is_live) return; // כבר לייב – אל תתחיל שוב
 
     await conn.query("UPDATE product SET is_live = 1 WHERE product_id = ?", [productId]);
-
-    // שדר לקליינטים שהמכירה התחילה
     io.to(`room_${productId}`).emit("auctionStarted");
 
-    // נקה טיימר התחלה אם היה
     const t = startTimers.get(productId);
     if (t) clearTimeout(t);
     startTimers.delete(productId);
 
-    // תזמן טיימר סיום כולל (start_date + end_time)
     await ensureAuctionEndTimer(io, productId);
-
     console.log(`🚀 Auction ${productId} started`);
   } catch (err) {
     console.error("❌ startAuctionNow error:", err.message || err);
@@ -120,7 +125,11 @@ async function startAuctionNow(io, productId) {
 }
 
 
+
+const MAX_TIMEOUT = 2 ** 31 - 1; // ~24.8 days in ms
+
 async function ensureStartTimer(io, productId) {
+  // אם כבר יש טיימר – לא ליצור כפול
   if (startTimers.has(productId)) return;
 
   try {
@@ -134,24 +143,50 @@ async function ensureStartTimer(io, productId) {
     const { start_date, is_live } = rows[0];
     if (is_live) return; // כבר לייב – אין צורך בטיימר
 
-    const msUntil = new Date(start_date).getTime() - Date.now();
+    const startMs = new Date(start_date).getTime();
+    const now = Date.now();
+    let msUntil = startMs - now;
 
     if (msUntil <= 0) {
-      // הזמן כבר הגיע – התחל מיד
-      await startAuctionNow(io, productId);
+      // הזמן כבר הגיע – תנסה להתחיל עכשיו בצורה בטוחה
+      await startAuction(io, productId); // עושה בדיקות בפנים
       return;
     }
 
-    const tout = setTimeout(() => startAuctionNow(io, productId), msUntil);
-    startTimers.set(productId, tout);
+    // ננקה טיימר ישן אם בטעות נשאר
+    if (startTimers.has(productId)) {
+      clearTimeout(startTimers.get(productId));
+      startTimers.delete(productId);
+    }
 
-    console.log(
-      `⏳ Start timer set for product ${productId} — starts in ${Math.ceil(msUntil / 1000)}s`
-    );
+    // נ schedule במקטעים: כל פעם עד MAX_TIMEOUT ואז ממשיכים
+    const chunk = Math.min(msUntil, MAX_TIMEOUT);
+    const tid = setTimeout(async function tick() {
+      try {
+        const now2 = Date.now();
+        const left = startMs - now2;
+        if (left <= 0) {
+          await startAuction(io, productId); // יתחיל רק אם באמת הגיע הזמן
+          startTimers.delete(productId);
+          return;
+        }
+        const next = Math.min(left, MAX_TIMEOUT);
+        const nextTid = setTimeout(tick, next);
+        startTimers.set(productId, nextTid);
+      } catch (e) {
+        console.error("ensureStartTimer tick error:", e);
+        startTimers.delete(productId);
+      }
+    }, chunk);
+
+    startTimers.set(productId, tid);
+
+    console.log(`⏳ Start timer set for product ${productId} — starts in ${Math.ceil(msUntil / 1000)}s`);
   } catch (err) {
     console.error("❌ ensureStartTimer error:", err.message || err);
   }
 }
+
 
 // הבטחת טיימר סיום כולל (לפי start_date + end_time)
 async function ensureAuctionEndTimer(io, productId) {

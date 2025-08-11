@@ -374,11 +374,11 @@ const onAuctionEnded = ({ winnerId, finalPrice }) => {
             <div className={styles.centerPanel}>
               <p className={styles.currentPrice}>מחיר פתיחה: {product.price} ₪</p>
               <p className={styles.startText}>
-                המכירה תתחיל בתאריך{" "}
+               המכירה תחל בתאריך{" "}
                 {product.start_date ? formatDateAndTime(product.start_date) : "תאריך לא זמין"}
               </p>
               {startCountdown != null && (
-                <p className={styles.countdownToStart}>תחל בעוד: {fmtHMS(startCountdown)}</p>
+                <p className={styles.countdownToStart}>ספירה לאחור: {fmtHMS(startCountdown)}</p>
               )}
               <button className={styles.bidButton} disabled>
                 ההגשה תיפתח בתחילת המכירה

@@ -11,6 +11,8 @@ import {
   cancelQuotationRegistration,
 } from "../../services/quotationApi";
 import { uploadIdCard } from "../../services/authApi";
+
+
 function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -56,6 +58,28 @@ function ProductPage() {
     fetchProduct();
   }, [id]);
 
+
+  useEffect(() => {
+  if (!product?.start_date) {
+    setStartCountdownSec(null);
+    return;
+  }
+
+  const startMs = new Date(product.start_date).getTime();
+
+  const tick = () => {
+    const now = Date.now();
+    const diffSec = Math.max(Math.floor((startMs - now) / 1000), 0);
+    setStartCountdownSec(diffSec);
+  };
+
+  tick(); // חישוב מיידי
+  const iv = setInterval(tick, 1000);
+
+  return () => clearInterval(iv);
+}, [product?.start_date]);
+
+
   // useEffect הזה אחראי לבצע הרשמה למכירה מיד אחרי התחברות מוצלחת
   useEffect(() => {
     // אם המשתמש התחבר ויש דגל שאומר שצריך להמשיך את ההרשמה
@@ -78,9 +102,11 @@ function ProductPage() {
         const data = await getQuotationsByProductId(id);
 
         // בודק אם יש שורה בטבלה שמתאימה למשתמש הזה והמחיר שלה הוא 0 (כלומר הרשמה בלבד)
-        const alreadyRegistered = data.some(
-          (q) => q.buyer_id_number === user.id_number && q.price === 0
-        );
+const alreadyRegistered = data.some(
+  (q) => q.buyer_id_number === user.id_number && Number(q.price) === 0
+);
+setIsRegistered(alreadyRegistered);
+
 
         // אם כן – שומר את זה ב־isRegistered כדי לשנות את התצוגה באתר בהתאם
         setIsRegistered(alreadyRegistered);
@@ -271,6 +297,19 @@ const formatTime = (isoDate) => {
     minute: "2-digit",
   });
 };
+const [startCountdownSec, setStartCountdownSec] = useState(null);
+
+function formatCountdown(total) {
+  if (total == null) return "";
+  const d = Math.floor(total / 86400);
+  const h = Math.floor((total % 86400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const hh = String(h).padStart(2, "0");
+  const mm = String(m).padStart(2, "0");
+  const ss = String(s).padStart(2, "0");
+  return d > 0 ? `${d} ימים ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`;
+}
 
 
 function timeToMinutes(timeStr) {
@@ -341,20 +380,24 @@ if (!product) return <p>טוען מוצר...</p>;
           <p className={styles.description}>{product.description}</p>
           <p className={styles.price}>מחיר פתיחה:  ₪{product.price}</p>
           <p className={styles.status}> {product.product_status} :סטטוס</p>
+          {startCountdownSec !== null && startCountdownSec > 0 && (
+  <p className={styles.countdown}>
+    המכירה תחל בעוד {formatCountdown(startCountdownSec)}
+  </p>
+)}
+
           <p className={styles.status}> זמן מכירה: {timeToMinutes(product.end_time)} דקות</p>
 
-          {isRegistered ? (
-           <p className={styles.success}>
-          נרשמת למכירה זו! <br />
-          המכירה תחל בתאריך: {formatDate(product.start_date)} בשעה:{" "}
-          {formatTime(product.start_date)}
-          </p>
+{isRegistered ? (
+  <p className={styles.success}>
+    נרשמת למכירה זו!
+  </p>
+) : (
+  <button className={styles.bidButton} onClick={handleRegisterToSale}>
+    {user ? "הירשם/י למכירה" : "התחבר/י והירשם/י למכירה"}
+  </button>
+)}
 
-          ) : (
-            <button className={styles.bidButton} onClick={handleRegisterToSale}>
-              {user ? "הירשם/י למכירה" : "התחבר/י והירשם/י למכירה"}
-            </button>
-          )}
 
           {showIdForm && (
             <form onSubmit={handleIdSubmit} className={styles.idForm}>
