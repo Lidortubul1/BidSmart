@@ -42,20 +42,7 @@ import AdminDashboard from "../pages/home/AdminDashboard";
 import "./App.css";
 
 function App() {
-  const { setUser } = useAuth();
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/auth/session", { withCredentials: true })
-      .then((res) => {
-        if (res.data.loggedIn) {
-          setUser(res.data.user);
-        }
-      })
-      .catch((err) => console.error("שגיאה בשליפת session:", err));
-  }, [setUser]);
-
-console.log("test")
 
 
   return (
@@ -78,7 +65,10 @@ console.log("test")
             element={<ResetPasswordPage />}
           />
           <Route path="/info" element={<InfoPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+<Route
+  path="/profile"
+  element={<ProtectedRoute element={<ProfilePage />} />}
+/>
           <Route path="/product/:id" element={<ProductPage />} />
           {/* ... מסלולים של מנהל */}
           <Route

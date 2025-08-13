@@ -46,6 +46,7 @@ function ShippingForm() {
   const [availableStreets, setAvailableStreets] = useState([]);
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   const [loadingOption, setLoadingOption] = useState(true);
+const [sellerPickupAddress, setSellerPickupAddress] = useState(null);
 
   // טופס
   const [formData, setFormData] = useState({
@@ -84,22 +85,26 @@ const sellerAllowsPickup = sellerOption === "delivery+pickup";
 
 
   //לראות מה המוכר בחר אם בחר רק משלוח או גם משלוח וגם איסוף עצמי 
+// טעינת אפשרויות משלוח + כתובת איסוף אם קיימת
 useEffect(() => {
   async function loadSellerOption() {
     setLoadingOption(true);
     try {
-      const { option } = await getSellerDeliveryOptions(id);
+      const { option, pickupAddress } = await getSellerDeliveryOptions(id);
       setSellerOption(option);
       setDeliveryMethod("delivery");
+      setSellerPickupAddress(option === "delivery+pickup" ? pickupAddress ?? null : null);
     } catch {
       setSellerOption("delivery");
       setDeliveryMethod("delivery");
+      setSellerPickupAddress(null);
     } finally {
       setLoadingOption(false);
     }
   }
   loadSellerOption();
 }, [id]);
+
 
 
 
@@ -638,6 +643,59 @@ return (
             />
           </>
         )}
+{deliveryMethod === "pickup" && sellerAllowsPickup && (
+  <div className={styles.pickupBox}>
+    <h3 className={styles.pickupTitle}>כתובת לאיסוף עצמי</h3>
+
+    {!sellerPickupAddress ? (
+      <p className={styles.mutedText}>המוכר לא סיפק כתובת איסוף.</p>
+    ) : (
+      <div className={styles.pickupCard} dir="rtl">
+        {Boolean(sellerPickupAddress.city) && (
+          <div className={styles.row}>
+            <span className={styles.label}>עיר</span>
+            <span className={styles.value}>{sellerPickupAddress.city}</span>
+          </div>
+        )}
+        {Boolean(sellerPickupAddress.street) && (
+          <div className={styles.row}>
+            <span className={styles.label}>רחוב</span>
+            <span className={styles.value}>{sellerPickupAddress.street}</span>
+          </div>
+        )}
+        {Boolean(sellerPickupAddress.house_number) && (
+          <div className={styles.row}>
+            <span className={styles.label}>מס' בית</span>
+            <span className={styles.value}>{sellerPickupAddress.house_number}</span>
+          </div>
+        )}
+        {Boolean(sellerPickupAddress.apartment_number) && (
+          <div className={styles.row}>
+            <span className={styles.label}>דירה</span>
+            <span className={styles.value}>{sellerPickupAddress.apartment_number}</span>
+          </div>
+        )}
+        {Boolean(sellerPickupAddress.zip) && (
+          <div className={styles.row}>
+            <span className={styles.label}>מיקוד</span>
+            <span className={styles.value}>{sellerPickupAddress.zip}</span>
+          </div>
+        )}
+        {Boolean(sellerPickupAddress.country) && (
+          <div className={styles.row}>
+            <span className={styles.label}>ארץ</span>
+            <span className={styles.value}>{sellerPickupAddress.country}</span>
+            
+          </div>
+        )}
+        
+      </div>
+    )}
+    
+  </div>
+)}
+
+
 
          {/* טלפון */}
           <div className={styles.phoneRow}>

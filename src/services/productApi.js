@@ -1,5 +1,6 @@
 // src/services/productApi.js
 import axios from "axios";
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 
 // הגדרות כלליות
 axios.defaults.baseURL = "http://localhost:5000"; // שנה בפרודקשן
@@ -51,3 +52,58 @@ export async function getProductById(productId) {
   const response = await axios.get(`/api/product/${productId}`);
   return response.data;
 }
+
+
+//שליפת בחירת אופציית משלוח של מוכר אם משלוח או גם משלוח וגם איסוף עצמי
+export async function getSellerDeliveryOptions(productId) {
+  const { data } = await axios.get(`/api/product/seller-delivery-options/${productId}`);
+
+  const raw = (data?.option || "delivery").toString().trim().toLowerCase();
+  const option =
+    raw === "delivery+pickup" || raw === "delivery_pickup"
+      ? "delivery+pickup"
+      : "delivery";
+
+  const pickupAddress = data?.pickupAddress || null;
+  const pickupAddressText = formatPickupAddress(pickupAddress);
+
+  return { 
+    option, 
+    pickupAddress, 
+    pickupAddressText, 
+    rating: data?.rating ?? 0 
+  };
+}
+
+
+/** מעצב אובייקט כתובת לטקסט תצוגה נעים */
+function formatPickupAddress(addr) {
+  if (!addr) return "";
+  const parts = [
+    addr.street && addr.house_number ? `${addr.street} ${addr.house_number}` : (addr.street || ""),
+    addr.apartment_number ? `דירה ${addr.apartment_number}` : "",
+    addr.city || "",
+    addr.zip ? `מיקוד ${addr.zip}` : "",
+    addr.country || "",
+  ].filter(Boolean);
+
+  // אם הכל ריק, נחזיר מחרוזת ריקה
+  if (parts.length === 0) return "";
+  return parts.join(", ");
+}
+
+//פונקציה ליצירת כוכבים
+export function renderStars(rating) {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    if (rating >= i) {
+      stars.push(<FaStar key={i} color="#FFD700" size={20} />);
+    } else if (rating >= i - 0.5) {
+      stars.push(<FaStarHalfAlt key={i} color="#FFD700" size={20} />);
+    } else {
+      stars.push(<FaRegStar key={i} color="#ccc" size={20} />);
+    }
+  }
+  return stars;
+}
+

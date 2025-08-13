@@ -60,7 +60,9 @@ router.post("/login", async (req, res) => {
 
 //session בדיקת
 router.get("/session", (req, res) => {
-  if (req.session.user) {
+  if (req.session.user) 
+   {
+     console.log(req.session.user)
     res.json({ loggedIn: true, user: req.session.user });
   } else {
     res.json({ loggedIn: false });

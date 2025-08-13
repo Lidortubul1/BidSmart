@@ -75,7 +75,10 @@ export async function updateUserPhone(productId, phone) {
 //הוצאת הנתון האם זה משלוח או משלוח+איסוף עצמי
 // שלוף את אפשרות המשלוח של המוכר עבור מוצר
 export async function getSellerDeliveryOptions(productId) {
-  const { data } = await axios.get(`${BASE_SALE_URL}/seller-delivery-options/${productId}`);
-  return data; // { option: 'delivery' | 'delivery+pickup' }
+  const { data } = await axios.get(
+    `${BASE_SALE_URL}/seller-delivery-options/${productId}`
+  );
+  // מצופה ש-data יחזיר:
+  // { option: 'delivery' | 'delivery+pickup', pickupAddress?: { city, street, house_number, zip, name?, notes? } }
+  return data;
 }
-

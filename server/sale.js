@@ -490,35 +490,60 @@ router.put("/mark-as-sent/:productId", async (req, res) => {
 
 
 // בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי
+// routes/sale.js (או כל ראוטר מתאים)
+// בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי
 router.get("/seller-delivery-options/:productId", async (req, res) => {
-  const { productId } = req.params;
   try {
-    const conn = await db.getConnection();
+    const { productId } = req.params;
+    const conn = await db.getConnection(); // ✨ כמו בשאר הפונקציות
 
-    // מצא את ת״ז המוכר עבור המוצר
-    const [p] = await conn.execute(
-      "SELECT seller_id_number FROM product WHERE product_id = ?",
+    const [rows] = await conn.query(
+      `SELECT 
+         u.delivery_options AS option_value,
+         u.city, 
+         u.street, 
+         u.house_number, 
+         u.apartment_number, 
+         u.zip, 
+         u.country
+       FROM product p
+       JOIN users u ON u.id_number = p.seller_id_number
+       WHERE p.product_id = ?`,
       [productId]
     );
-    if (p.length === 0) {
-      return res.status(404).json({ message: "מוצר לא נמצא" });
+
+    if (!rows.length) {
+      return res.status(404).json({ option: "delivery", pickupAddress: null });
     }
 
-    // הבא את אפשרות המשלוח של המוכר
-    const [u] = await conn.execute(
-      "SELECT delivery_options FROM users WHERE id_number = ?",
-      [p[0].seller_id_number]
-    );
-    if (u.length === 0) {
-      return res.status(404).json({ message: "מוכר לא נמצא" });
+    const r = rows[0];
+    const option = r.option_value || "delivery";
+
+    let pickupAddress = null;
+    if (option === "delivery+pickup") {
+      pickupAddress = {
+        city: r.city || "",
+        street: r.street || "",
+        house_number: r.house_number || "",
+        apartment_number: r.apartment_number || "",
+        zip: r.zip || "",
+        country: r.country || "",
+      };
+
+      // אם כל השדות ריקים – לא מחזירים כתובת
+      const allEmpty = Object.values(pickupAddress).every(
+        (v) => !String(v || "").trim()
+      );
+      if (allEmpty) pickupAddress = null;
     }
 
-    const option = u[0].delivery_options === "delivery+pickup" ? "delivery+pickup" : "delivery";
-    return res.json({ option });
+    res.json({ option, pickupAddress });
   } catch (err) {
-    console.error("seller-delivery-options error:", err);
-    return res.status(500).json({ message: "שגיאת שרת" });
+    console.error("❌ seller-delivery-options error:", err.message);
+    res.status(500).json({ option: "delivery", pickupAddress: null });
   }
 });
+
+
 
 module.exports = router;

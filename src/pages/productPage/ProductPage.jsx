@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
-import { getProductById } from "../../services/productApi";
+import { getProductById , getSellerDeliveryOptions,renderStars } from "../../services/productApi";
 import styles from "./ProductPage.module.css";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import LoginForm from "../../components/LoginForm/LoginForm";
@@ -40,6 +40,42 @@ function ProductPage() {
     extraButtonText: "",
     onExtra: null,
   });
+
+const [sellerOption, setSellerOption] = useState("delivery");
+const [deliveryMethod, setDeliveryMethod] = useState("delivery");
+const [sellerPickupAddress, setSellerPickupAddress] = useState(null);
+const [sellerPickupAddressText, setSellerPickupAddressText] = useState("");
+const [loadingOption, setLoadingOption] = useState(false);
+const [showPickup, setShowPickup] = useState(false);
+
+
+const [sellerRating, setSellerRating] = useState(0);
+
+useEffect(() => {
+  async function loadSellerOption() {
+    setLoadingOption(true);
+    try {
+      const { option, pickupAddress, pickupAddressText, rating } = await getSellerDeliveryOptions(id);
+      setSellerOption(option);
+      setDeliveryMethod("delivery");
+      setSellerPickupAddress(option === "delivery+pickup" ? (pickupAddress ?? null) : null);
+      setSellerPickupAddressText(option === "delivery+pickup" ? (pickupAddressText || "") : "");
+      setSellerRating(rating);
+    } catch {
+      setSellerOption("delivery");
+      setDeliveryMethod("delivery");
+      setSellerPickupAddress(null);
+      setSellerPickupAddressText("");
+      setSellerRating(0);
+    } finally {
+      setLoadingOption(false);
+    }
+  }
+  loadSellerOption();
+  setShowPickup(false);
+}, [id]);
+
+
 
   useEffect(() => {
     async function fetchProduct() {
@@ -161,6 +197,7 @@ setIsRegistered(alreadyRegistered);
         },
         extraButtonText: "הרשמה",
         onExtra: () => navigate("/register"),
+     
       });
       return;
     }
@@ -379,14 +416,39 @@ if (!product) return <p>טוען מוצר...</p>;
           <h1>{product.product_name}</h1>
           <p className={styles.description}>{product.description}</p>
           <p className={styles.price}>מחיר פתיחה:  ₪{product.price}</p>
-          <p className={styles.status}> {product.product_status} :סטטוס</p>
+
+{!loadingOption && sellerOption === "delivery" && (
+  <p className={styles.infoNote}>מוצר זה ניתן <b>רק לשליחה</b>.</p>
+)}
+
+{!loadingOption && sellerOption === "delivery+pickup" && (
+  <div className={styles.infoNote}>
+    מוצר זה ניתן <b>גם לשליחה וגם לאיסוף עצמי</b> מכתובת המוכר.
+    <div style={{ marginTop: "8px" }}>
+      <button
+  type="button"
+  className={`${styles.linkLikeButton} ${showPickup ? styles.linkLikeButtonActive : ""}`}
+  onClick={() => setShowPickup(v => !v)}
+>
+  הצג/הסתר כתובת המוכר
+</button>
+
+      {showPickup && (
+        <div className={styles.pickupBox}>
+          {sellerPickupAddressText || <small>(כתובת המוכר לא זמינה כרגע)</small>}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
           {startCountdownSec !== null && startCountdownSec > 0 && (
   <p className={styles.countdown}>
     המכירה תחל בעוד {formatCountdown(startCountdownSec)}
   </p>
 )}
 
-          <p className={styles.status}> זמן מכירה: {timeToMinutes(product.end_time)} דקות</p>
+          <p className={styles.status}> זמן המכירה למוצר זה הוא {timeToMinutes(product.end_time)} דקות</p>
 
 {isRegistered ? (
   <p className={styles.success}>
@@ -397,6 +459,20 @@ if (!product) return <p>טוען מוצר...</p>;
     {user ? "הירשם/י למכירה" : "התחבר/י והירשם/י למכירה"}
   </button>
 )}
+<div style={{ 
+  display: "flex", 
+  alignItems: "center", 
+  gap: "5px", 
+  margin: "10px 0",
+  direction: "rtl",       // כל השורה RTL
+  justifyContent: "flex-start" // מיושר לצד ימין
+}}>
+  <strong>דירוג מוכר:</strong>
+  {renderStars(sellerRating)}
+  <span>({sellerRating})</span>
+</div>
+
+
 
 
           {showIdForm && (
@@ -466,29 +542,29 @@ if (!product) return <p>טוען מוצר...</p>;
           onCancel={modalConfig.onCancel || (() => setShowModal(false))}
           extraButtonText={modalConfig.extraButtonText}
           onExtra={modalConfig.onExtra}
+        onClose={() => setModalConfig(false)}
         />
       )}
 
-      {showLoginPopup && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <LoginForm
-              onSuccess={(userFromLogin) => {
-                setUser(userFromLogin);
-                setShowLoginPopup(false);
-                setShowModal(false);
-                setShouldContinueRegistration(true); //  זה יפעיל את useEffect למטה
-              }}
-            />
-            <button
-              className={styles.cancel}
-              onClick={() => setShowLoginPopup(false)}
-            >
-              סגור
-            </button>
-          </div>
-        </div>
-      )}
+{showLoginPopup && (
+  <CustomModal
+    message={
+      <LoginForm
+        onSuccess={(userFromLogin) => {
+          setUser(userFromLogin);
+          setShowLoginPopup(false);
+          setShowModal(false);
+          setShouldContinueRegistration(true);
+        }}
+      />
+    }
+    onClose={() => setShowLoginPopup(false)}  // סגירה ב-X, רקע, ו-ESC
+    hideClose={false}                         // אם תרצי להסתיר X: true
+    disableBackdropClose={false}              // אם תרצי למנוע סגירה בלחיצה על רקע/ESC: true
+    // אין כפתורי פוטר: לא מעבירים confirmText/cancelText/extra/skip
+  />
+)}
+
     </div>
   );
 }

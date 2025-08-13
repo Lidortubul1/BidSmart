@@ -175,6 +175,71 @@ router.post("/", upload.array("images", 5), async (req, res) => {
 });
 
 
+// בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי
+// server/routes/product.js (או היכן שהראוטרים שלך)
+router.get("/seller-delivery-options/:productId", async (req, res) => {
+  const { productId } = req.params;
+  let conn;
+  try {
+    conn = await db.getConnection();
+
+    const [rows] = await conn.query(
+      `SELECT 
+         u.delivery_options AS option_value,
+         u.city, 
+         u.street, 
+         u.house_number, 
+         u.apartment_number, 
+         u.zip, 
+         u.country,
+         u.rating
+       FROM product p
+       JOIN users u ON u.id_number = p.seller_id_number
+       WHERE p.product_id = ?`,
+      [productId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ option: "delivery", pickupAddress: null, rating: 0 });
+    }
+
+    const r = rows[0];
+    const raw = (r.option_value || "delivery").toString().trim().toLowerCase();
+    const normalized =
+      raw === "delivery+pickup" || raw === "delivery_pickup"
+        ? "delivery+pickup"
+        : "delivery";
+
+    let pickupAddress = null;
+    if (normalized === "delivery+pickup") {
+      pickupAddress = {
+        city: r.city || "",
+        street: r.street || "",
+        house_number: r.house_number || "",
+        apartment_number: r.apartment_number || "",
+        zip: r.zip || "",
+        country: r.country || "",
+      };
+
+      const allEmpty = Object.values(pickupAddress).every(
+        (v) => !String(v || "").trim()
+      );
+      if (allEmpty) pickupAddress = null;
+    }
+
+    res.json({
+      option: normalized,
+      pickupAddress,
+      rating: r.rating ?? 0 // אם אין דירוג, נחזיר 0
+    });
+  } catch (err) {
+    console.error("❌ seller-delivery-options error:", err);
+    res.status(500).json({ option: "delivery", pickupAddress: null, rating: 0 });
+  } finally {
+    if (conn) conn.release?.();
+  }
+});
+
 
 
 

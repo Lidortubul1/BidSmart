@@ -15,6 +15,50 @@ h3 {
   margin-bottom: 20px;
   color: #333;
 }
+.pickupBox {
+  margin: 1rem 0 1.25rem;
+}
+
+.pickupTitle {
+  margin: 0 0 .5rem 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.mutedText {
+  margin: .5rem 0 0 0;
+  opacity: .75;
+}
+
+.pickupCard {
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: .75rem .9rem;
+  background: #fafafa;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 130px 1fr; /* תווית | ערך */
+  gap: .5rem;
+  align-items: start;
+  padding: .4rem 0;
+  border-bottom: 1px dashed #e5e5e5;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-weight: 600;
+  color: #444;
+}
+
+.value {
+  color: #111;
+  word-break: break-word;
+}
 
 .form {
   display: flex;

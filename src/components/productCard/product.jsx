@@ -14,7 +14,6 @@ export default function Product({ product, showDescription = true }) {
     hour: "2-digit",
     minute: "2-digit",
   });
-console.log(dateOnly,timeOnly)
   return (
     <Link to={`/product/${product.product_id}`} className={styles.link}>
       <div className={styles.productCard}>

@@ -73,7 +73,6 @@
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 modalConfirm {
   background-color: rgba(0, 0, 0, 0.6) !important; /* רקע כהה יותר עם חשיבות */
@@ -101,7 +100,7 @@ modalConfirm {
 }
 
 .modalExtra:hover {
-  background-color: #0056b3;
+  background-color: #000000;
 }
 
 
