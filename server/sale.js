@@ -327,10 +327,6 @@ router.post("/use-saved-address", async (req, res) => {
 
 
 
-
-
-
-
 // סימון מוצר כהתקבל
 router.put("/mark-delivered", async (req, res) => {
   const { product_id } = req.body;
@@ -487,6 +483,41 @@ router.put("/mark-as-sent/:productId", async (req, res) => {
   } catch (error) {
     console.error("❌ שגיאה בעדכון sent:", error);
     res.status(500).json({ message: "שגיאה בעדכון" });
+  }
+});
+
+
+
+
+// בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי
+router.get("/seller-delivery-options/:productId", async (req, res) => {
+  const { productId } = req.params;
+  try {
+    const conn = await db.getConnection();
+
+    // מצא את ת״ז המוכר עבור המוצר
+    const [p] = await conn.execute(
+      "SELECT seller_id_number FROM product WHERE product_id = ?",
+      [productId]
+    );
+    if (p.length === 0) {
+      return res.status(404).json({ message: "מוצר לא נמצא" });
+    }
+
+    // הבא את אפשרות המשלוח של המוכר
+    const [u] = await conn.execute(
+      "SELECT delivery_options FROM users WHERE id_number = ?",
+      [p[0].seller_id_number]
+    );
+    if (u.length === 0) {
+      return res.status(404).json({ message: "מוכר לא נמצא" });
+    }
+
+    const option = u[0].delivery_options === "delivery+pickup" ? "delivery+pickup" : "delivery";
+    return res.json({ option });
+  } catch (err) {
+    console.error("seller-delivery-options error:", err);
+    return res.status(500).json({ message: "שגיאת שרת" });
   }
 });
 

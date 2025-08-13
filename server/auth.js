@@ -292,6 +292,8 @@ router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount:
   }
 );
 
+
+
 //התנתקות מהמערכת
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
@@ -306,42 +308,129 @@ router.post("/logout", (req, res) => {
 });
 
 // הפיכה מקונה למוכר
-router.put( "/upgrade-role",upload.single("id_card_photo"),async (req, res) => {
-    const { id_number, email } = req.body;
-    const idCardPath = req.file?.filename;
+router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => {
+  const {
+    email,
+    id_number,
+    delivery_options,
+    city,
+    street,
+    house_number,
+    apartment_number,
+    zip,
+    country,
+    phone,
+  } = req.body;
 
-    if (!id_number || !email || !idCardPath) {
-      return res.status(400).json({ message: "נא למלא את כל השדות כולל קובץ" });
+  // אל תשתמש ב-undefined כשולחים ל-DB
+  const idCardPath = req.file ? req.file.filename : null;
+
+  if (!email) {
+    return res.status(400).json({ message: "חסר אימייל" });
+  }
+
+  const allowed = ["delivery", "delivery+pickup"];
+  const deliveryValue = allowed.includes(delivery_options) ? delivery_options : "delivery";
+
+  // נרמול טלפון לספרות בלבד; אם אין – הפוך ל-null (לא undefined)
+  const phoneValueRaw = typeof phone === "string" ? phone.replace(/\D/g, "") : "";
+  const phoneValue = phoneValueRaw.length > 0 ? phoneValueRaw : null;
+
+  // אם טלפון חובה:
+  if (phoneValue === null) {
+    return res.status(400).json({ message: "חסר טלפון" });
+  }
+
+  // נרמול ת"ז ל-null אם לא נשלחה
+  const idNumberNorm = typeof id_number === "string" && id_number.trim()
+    ? id_number.trim()
+    : null;
+
+  try {
+    const conn = await db.getConnection();
+
+    const [rows] = await conn.execute(
+      "SELECT id, id_number, id_card_photo FROM users WHERE email = ?",
+      [email]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "משתמש לא נמצא" });
+    }
+    const hasKycAlready = !!(rows[0].id_number && rows[0].id_card_photo);
+
+    if (!hasKycAlready) {
+      if (!idNumberNorm || !idCardPath) {
+        return res.status(400).json({ message: "נא למלא תעודת זהות ולצרף קובץ" });
+      }
     }
 
-    try {
-      const conn = await db.getConnection();
+    // שים לב: אין כאן undefined. רק ערכים בוליאניים/מחרוזות/NULL.
+    await conn.execute(
+      `
+      UPDATE users
+      SET
+        role = 'seller',
+        delivery_options = ?,
+        id_number = IF(?, ?, id_number),
+        id_card_photo = IF(?, ?, id_card_photo),
+        phone = IF(?, ?, phone)
+      WHERE email = ?
+      `,
+      [
+        deliveryValue,
 
-      // בדיקה אם המשתמש קיים
-      const [existingUsers] = await conn.execute(
-        "SELECT * FROM users WHERE email = ?",
+        // id_number
+        idNumberNorm !== null, idNumberNorm,
+
+        // id_card_photo
+        idCardPath !== null, idCardPath,
+
+        // phone
+        phoneValue !== null, phoneValue,
+
+        email,
+      ]
+    );
+
+    if (deliveryValue === "delivery+pickup") {
+      if (!city || !street || !house_number || !apartment_number || !zip) {
+        return res.status(400).json({ message: "נא למלא כתובת חנות לאיסוף עצמי" });
+      }
+      const countryValue =
+        typeof country === "string" && country.trim() ? country.trim() : "ישראל";
+
+      await conn.execute(
+        `
+        UPDATE users
+        SET city = ?, street = ?, house_number = ?, apartment_number = ?, zip = ?, country = ?
+        WHERE email = ?
+        `,
+        [city, street, house_number, apartment_number, zip, countryValue, email]
+      );
+    } else {
+      await conn.execute(
+        `
+        UPDATE users
+        SET city = NULL, street = NULL, house_number = NULL,
+            apartment_number = NULL, zip = NULL, country = NULL
+        WHERE email = ?
+        `,
         [email]
       );
-
-      if (existingUsers.length === 0) {
-        return res.status(404).json({ message: "משתמש לא נמצא" });
-      }
-
-      // עדכון ת"ז וקובץ ת"ז
-      await conn.execute(
-        `UPDATE users 
-        SET id_number = ?, id_card_photo = ?, role = 'seller' 
-        WHERE email = ?`,
-        [id_number, idCardPath, email]
-      );
-
-      res.json({ message: "המשתמש עודכן בהצלחה" });
-    } catch (err) {
-      console.error("שגיאה בעדכון משתמש:", err.message, err.stack);
-      res.status(500).json({ message: "שגיאה בשרת" });
     }
+
+    return res.json({ message: "המשתמש עודכן בהצלחה", delivery_options: deliveryValue });
+  } catch (err) {
+    console.error("שגיאה בעדכון משתמש:", err);
+    return res.status(500).json({ message: "שגיאה בשרת" });
   }
-);
+});
+
+
+
+
+
+
 
 // שינוי סיסמה
 router.put("/change-password", async (req, res) => {

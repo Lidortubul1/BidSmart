@@ -9,22 +9,29 @@ export function AuthProvider({ children }) {
 
   console.log("user:", user);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/auth/session", {
-          withCredentials: true,
-        });
-        if (res.data?.loggedIn) {
-          setUser(res.data.user);
-        }
-      } catch (err) {
-        console.error("שגיאה בבדיקת session:", err);
-      } finally {
-        setInitializing(false); // ✅ תמיד מסיימים טעינה
+useEffect(() => {
+  const stored = localStorage.getItem("user");
+  if (stored) setUser(JSON.parse(stored)); // הידרציה מוקדמת
+}, []);
+
+useEffect(() => {
+  (async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/auth/session", { withCredentials: true });
+      if (res.data?.loggedIn && res.data.user) {
+        setUser(prev => ({ ...(prev || {}), ...res.data.user })); // ← מיזוג, לא דריסה
       }
-    })();
-  }, []);
+    } catch (err) {
+      console.error("שגיאה בבדיקת session:", err);
+    } finally {
+      setInitializing(false);
+    }
+  })();
+}, []);
+
+
+
+
 
   const login = (userData) => setUser(userData);
 
