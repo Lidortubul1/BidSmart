@@ -1,0 +1,116 @@
+/* הכרטיס ממלא את התא בגריד */
+.wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: none;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.08s ease;
+}
+.wrapper:hover { transform: translateY(-1px); border-color: #ffffff; }
+
+/* אופציונלי אבל עוזר ליציבות הגובה של החלק העליון */
+.wrapper :global(.product) {
+  background: transparent !important;
+  box-shadow: none !important;
+    box-shadow: none !important;
+
+  border-radius: 0 !important;
+  margin: 0 !important;
+  flex: 0 0 auto;               /* לא “נמתח”/לא דוחף את הפוטר */
+}
+.wrapper :global(.imageWrapper) { background: transparent !important; }
+
+
+/* footer קבוע בתחתית הכרטיס */
+.cardFooter {
+  margin-top: auto;             /* מצמיד את כל הפוטר לתחתית הכרטיס */
+  padding: 12px 14px;
+  border-top: 1px solid #e9eef5;
+  background: transparent;
+
+  /* חשוב: לוודא שאין display:grid בשום מקום אחר! */
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+  height: 150px;                /* גובה קבוע => הקו באותו גובה בכל הכרטיסים */
+}
+
+
+/* מוודאים סדר חד-משמעי: קודם הסטטוסים, ואז הכפתור */
+.metaRow {
+  order: 1;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-height: 72px;            /* ~2–3 שורות */
+  overflow: auto;              /* ← במקום hidden */
+  align-content: flex-start;
+  padding-inline-end: 2px;     /* שלא יעלה על הסקרול */
+  scrollbar-width: thin;       /* Firefox */
+}
+.metaRow::-webkit-scrollbar { width: 6px; height: 6px; }           /* Chrome/Edge */
+.metaRow::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+.metaRow::-webkit-scrollbar-track { background: transparent; }
+
+
+
+
+/* באדג'ים וצבעים – ללא שינוי */
+.badge {
+  --tone-bg: #eef2ff;
+  --tone-br: #e2e8f0;
+  --tone-fg: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 10px;
+  background: var(--tone-bg);
+  border: 1px solid var(--tone-br);
+  color: var(--tone-fg);
+  border-radius: 999px;
+  line-height: 1;
+  white-space: nowrap;
+    white-space: normal;         /* ← היה nowrap */
+  word-break: break-word;
+  max-width: 100%;
+}
+.badge svg { width: 14px; height: 14px; }
+
+.toneBlue  { --tone-bg: #e8f2ff; --tone-br: #bcd7ff; --tone-fg: #0b63c9; }
+.toneGreen { --tone-bg: #e8f9f0; --tone-br: #b6eccd; --tone-fg: #0a7a43; }
+.toneGray  { --tone-bg: #f3f6fb; --tone-br: #e5ecf7; --tone-fg: #475569; }
+.toneAmber { --tone-bg: #fff5e7; --tone-br: #ffe2b8; --tone-fg: #a36200; }
+
+.actions {
+  order: 2;
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* כפתור */
+.viewButton {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #5d5d5d;
+  background: linear-gradient(90deg, #000000 0%, #0e0e0e 100%);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.viewButton:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(26,137,255,.25); }
+.viewButton:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(26,137,255,.2); }
+
+/* רספונסיביות: נותנים טיפה יותר מקום ב־mobile */
+@media (max-width: 520px) {
+  .cardFooter { height: 136px; }   /* היה 120 */
+  .metaRow { max-height: 64px; }
+  .viewButton { width: 100%; text-align: center; }
+}

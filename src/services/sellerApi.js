@@ -6,18 +6,27 @@ axios.defaults.withCredentials = true;
 
 const BASE_SELLER_URL = "/api/seller";
 
-// שליפת המוצרים של המוכר עם סינון (all, sold, pending, unsold)
+// טיפ: אם את משתמשת ב-session/cookie, השאירי withCredentials: true
 export async function getSellerProducts(filter = "all") {
-  try {
-    const response = await axios.get(
-      `${BASE_SELLER_URL}/products?filter=${filter}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error(
-      "❌ שגיאה בשליפת המוצרים לניהול:",
-      error.response?.data || error.message
-    );
-    throw error;
-  }
+  const { data } = await axios.get(`${BASE_SELLER_URL}/products`, {
+    params: { filter },
+    withCredentials: true,
+  });
+  return data;
 }
+
+// // שליפת המוצרים של המוכר עם סינון (all, sold, pending, unsold)
+// export async function getSellerProducts(filter = "all") {
+//   try {
+//     const response = await axios.get(
+//       `${BASE_SELLER_URL}/products?filter=${filter}`
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error(
+//       "❌ שגיאה בשליפת המוצרים לניהול:",
+//       error.response?.data || error.message
+//     );
+//     throw error;
+//   }
+// }
