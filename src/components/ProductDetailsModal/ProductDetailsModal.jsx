@@ -28,8 +28,7 @@ export default function ProductDetailsModal({ product, onClose }) {
           <p>
             <strong>סטטוס:</strong> {product.status}
           </p>
-
-          {product.product_status === "sale" && (
+         {product.status === "sale" && (
             <>
               {deliveryMethod === "delivery" ? (
                 <>

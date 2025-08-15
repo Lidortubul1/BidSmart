@@ -147,6 +147,11 @@ router.post("/", async (req, res) => {
   }
 });
 
+
+
+
+
+
 // שליפת כל ההצעות של משתמש לפי תעודת זהות
 router.get("/user/:id_number", async (req, res) => {
   const idNumber = req.params.id_number;

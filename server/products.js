@@ -2,10 +2,12 @@ const express = require("express");
 const router = express.Router();
 const db = require("./database");
 const multer = require("multer");
-
+const path = require("path");
+const fs = require("fs");
 //אחסון תמונות
 const storage = require("./storage");
 const upload = multer({ storage });
+const nodemailer = require("nodemailer");
 
 // קבלת כל המוצרים למכירה בלבד שהם לא sale
 router.get("/", async (req, res) => {
@@ -31,6 +33,8 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch product" });
   }
 });
+
+
 
 
 
@@ -276,5 +280,270 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
+
+async function withConn(run) {
+  const conn = await db.getConnection();
+  try {
+    return await run(conn);
+  } finally {
+    // אם זה חיבור שהגיע מ-POOL יש מתחתיו connection.release
+    if (conn?.connection && typeof conn.connection.release === "function") {
+      try { conn.release(); } catch {}
+    }
+    // אם זה חיבור גלובלי (createConnection) – אל תסגרי אותו כאן! (אל תקראי end)
+  }
+}
+
+
+// ---- הרשאה: רק אדמין או המוכר של המוצר ----
+async function ensureOwnerOrAdmin(req, res, next) {
+  try {
+    const user = req.session?.user;
+    if (!user) return res.status(401).json({ message: "לא מחובר" });
+
+    if (user.role === "admin") return next();
+
+    const { id } = req.params;
+    const [rows] = await withConn((conn) =>
+      conn.execute("SELECT seller_id_number FROM product WHERE product_id = ?", [id])
+    );
+    if (!rows.length) return res.status(404).json({ message: "מוצר לא נמצא" });
+
+    const isOwner = user.role === "seller" &&
+      String(user.id_number) === String(rows[0].seller_id_number);
+
+    if (!isOwner) return res.status(403).json({ message: "אין הרשאה" });
+    next();
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "שגיאה בהרשאה" });
+  }
+}
+
+// ---- חסימת עדכון מוצר אם לא למכירה ----
+async function assertEditable(req, res, next) {
+  try {
+    const { id } = req.params;
+    const [rows] = await withConn((conn) =>
+      conn.execute("SELECT product_status FROM product WHERE product_id = ?", [id])
+    );
+    if (!rows.length) return res.status(404).json({ message: "מוצר לא נמצא" });
+
+    const status = String(rows[0].product_status || "").toLowerCase();
+    if (status !== "for sale") {
+      return res.status(409).json({ message: "לא ניתן לערוך מוצר שאינו 'for sale'" });
+    }
+    next();
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "שגיאה בבדיקת סטטוס" });
+  }
+}
+
+
+
+
+
+// עדכון מוצר (עם בדיקת הרשאה + מניעת עדכון אם נמכר/לא-נמכר)
+router.put("/product/:id", ensureOwnerOrAdmin, assertEditable, async (req, res) => {
+  const productId = req.params.id;
+  let {
+    product_name,
+    price,
+    current_price,
+    category_id,
+    subcategory_id,
+    description,
+    start_date,   // "YYYY-MM-DDTHH:MM"
+    end_time,     // "HH:MM:SS" או "HH:MM"
+    price_before_vat,
+  } = req.body;
+
+  const normalizedStart = start_date ? start_date.replace("T", " ") + ":00" : null;
+  const normalizedEnd   = end_time ? (end_time.length === 5 ? end_time + ":00" : end_time) : null;
+
+  try {
+    await withConn((conn) =>
+      conn.execute(
+        `UPDATE product SET 
+          product_name     = COALESCE(?, product_name),
+          price            = COALESCE(?, price),
+          current_price    = COALESCE(?, current_price),
+          category_id      = COALESCE(?, category_id),
+          subcategory_id   = COALESCE(?, subcategory_id),
+          description      = COALESCE(?, description),
+          start_date       = COALESCE(?, start_date),
+          end_time         = COALESCE(?, end_time),
+          price_before_vat = COALESCE(?, price_before_vat)
+        WHERE product_id = ?`,
+        [
+          product_name,
+          price,
+          current_price,
+          category_id,
+          subcategory_id,
+          description,
+          normalizedStart,
+          normalizedEnd,
+          price_before_vat,
+          productId,
+        ]
+      )
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("שגיאה בעדכון מוצר:", err);
+    res.status(500).json({ success: false, message: "שגיאה בעדכון מוצר" });
+  }
+});
+
+
+// העלאת תמונה
+router.post("/product/:id/images", ensureOwnerOrAdmin, assertEditable, upload.single("image"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+    if (!file) return res.status(400).json({ message: "לא התקבלה תמונה" });
+
+    const url = `/uploads/${file.filename}`;
+    await withConn((conn) =>
+      conn.execute("INSERT INTO product_images (product_id, image_url) VALUES (?, ?)", [id, url])
+    );
+    res.json({ success: true, image_url: url });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "שגיאה בהעלאת תמונה" });
+  }
+});
+
+// מחיקת תמונה
+router.delete("/product/:id/images", ensureOwnerOrAdmin, assertEditable, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { image_url } = req.body;
+    if (!image_url) return res.status(400).json({ message: "image_url חסר" });
+
+    const [rows] = await withConn((conn) =>
+      conn.execute(
+        "SELECT image_id FROM product_images WHERE product_id = ? AND image_url = ?",
+        [id, image_url]
+      )
+    );
+    if (!rows.length) return res.status(404).json({ message: "תמונה לא נמצאה למוצר" });
+
+    // מחיקת קובץ מהדיסק (לא נכשלים אם אינו קיים)
+    const fsPath = path.join(process.cwd(), image_url.replace(/^\//, ""));
+    fs.unlink(fsPath, () => {});
+
+    await withConn((conn) =>
+      conn.execute("DELETE FROM product_images WHERE product_id = ? AND image_url = ?", [id, image_url])
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "שגיאה במחיקת תמונה" });
+  }
+});
+
+
+
+// ──────────────────────────────────────────────
+// ביטול מכירה: product_status => 'blocked',
+// מחיקת כל ההצעות, ושליחת מייל לכל הנרשמים/מציעים
+// נתיב בצד-לקוח: POST /api/product/product/:id/cancel
+// ──────────────────────────────────────────────
+router.post("/product/:id/cancel", ensureOwnerOrAdmin, async (req, res) => {
+  const { id } = req.params;
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // ודא שהמוצר קיים
+    const [prodRows] = await conn.execute(
+      "SELECT product_id, product_name, product_status, start_date FROM product WHERE product_id = ? FOR UPDATE",
+      [id]
+    );
+    if (!prodRows.length) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
+    }
+    const product = prodRows[0];
+const niceStart = formatHebDateTime(product.start_date);
+
+    // שלוף את כל המיילים של מי שנרשם/הגיש הצעה
+    const [mailRows] = await conn.execute(
+      `SELECT DISTINCT u.email
+         FROM quotation q
+         JOIN users u ON u.id_number = q.buyer_id_number
+        WHERE q.product_id = ?`,
+      [id]
+    );
+    const emails = mailRows.map(r => r.email).filter(Boolean);
+
+    // עדכן סטטוס ל-blocked ומחק את כל ההצעות
+    await conn.execute(
+      "UPDATE product SET product_status = 'blocked' WHERE product_id = ?",
+      [id]
+    );
+    await conn.execute("DELETE FROM quotation WHERE product_id = ?", [id]);
+
+    await conn.commit();
+
+    // שליחת מיילים - באותה צורה שבה אתה שולח בהרשמה (Gmail service)
+    if (emails.length > 0) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: "bidsmart2025@gmail.com",
+          pass: "zjkkgwzmwjjtcylr", // כמו בקוד הקיים שלך
+        },
+      });
+
+      const mailOptions = {
+  from: "BidSmart <bidsmart2025@gmail.com>",
+  bcc: emails.join(","), // כדי לא לחשוף כתובות
+  subject: "עדכון: המכירה הפומבית בוטלה",
+  text:
+    `שלום,\n` +
+    `המכירה הפומבית של המוצר "${product.product_name}" שהייתה אמורה להתקיים בתאריך ${niceStart} בוטלה על ידי בעל המוצר.\n` +
+    `אנו מתנצלים על חוסר הנוחות.\n\n` +
+    `צוות BidSmart`,
+};
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) console.error("שגיאה בשליחת מיילי ביטול:", err);
+        else console.log("מייל ביטול נשלח:", info.response);
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "המכירה בוטלה, ההצעות נמחקו ונשלחו מיילים למשתתפים (אם היו).",
+      notified: emails.length,
+    });
+  } catch (e) {
+    console.error("שגיאה בביטול מכירה:", e);
+    try { await conn.rollback(); } catch {}
+    return res.status(500).json({ success: false, message: "שגיאה בביטול מכירה" });
+  } finally {
+    // שחרור החיבור לפי סוגו (pool/plain)
+    if (typeof conn.release === "function") conn.release();
+    else if (typeof conn.end === "function") conn.end();
+  }
+});
+
+
+function formatHebDateTime(dt, tz = "Asia/Jerusalem") {
+  const d = new Date(dt);
+  const date = d.toLocaleDateString("he-IL", { timeZone: tz });
+  const time = d.toLocaleTimeString("he-IL", {
+    timeZone: tz,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${date} בשעה ${time}`;
+}
+
 
 module.exports = router;

@@ -1,0 +1,299 @@
+/****************************************************
+ * ProductEditor.module.css
+ * עיצוב מלא לעורך המוצר (RTL) + הערות הסבר
+ ****************************************************/
+
+/* משתני צבעים בסיסיים (גלובליים) לאחידות מותג */
+:root {
+  --bg:            #f6f7fb;     /* רקע כללי של העמוד */
+  --card:          #ffffff;     /* רקע כרטיס/טופס */
+  --text:          #0f172a;     /* צבע טקסט ראשי */
+  --muted:         #64748b;     /* טקסט משני/עזר */
+  --line:          #e2e8f0;     /* גבולות/מסגרות */
+  --primary:       #202020;     /* צבע ראשי לפעולות */
+  --primary-600:   #0f6cd3;     /* מצב ריחוף/פוקוס */
+  --danger:        #e11d48;     /* פעולת מחיקה */
+  --success:       #10b981;     /* הצלחה */
+  --shadow:        0 10px 30px rgba(2, 6, 23, .06); /* צל עדין */
+}
+
+/* ─────────────────────────────
+   מעטפת כללית של טופס העורך
+   ───────────────────────────── */
+.editor {
+  direction: rtl;               /* ממשק בעברית */
+  text-align: right;            /* יישור טקסט לימין */
+  max-width: 920px;             /* רוחב מרבי נוח לקריאה */
+  margin: 24px auto;            /* ממרכז את התוכן */
+  padding: 20px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+/* כותרת הטופס */
+.header {
+  margin: 0 0 12px;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+/* מידע/הודעה קצרה (למשל “נשמר בהצלחה”) */
+.notice {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 10px 0 18px;
+}
+
+/* ─────────────────────────────
+   שורה בטופס: תווית + שדה
+   ───────────────────────────── */
+.formRow {
+  display: grid;
+  grid-template-columns: 150px 1fr; /* עמודה קבועה לתווית, השאר לשדה */
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* תוויות של השדות */
+.formRow > label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* שדות קלט כלליים (input / select / textarea) */
+.formRow :is(input, select, textarea) {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+/* הדגשת פוקוס לשדות */
+.formRow :is(input, select, textarea):focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 137, 255, .15);
+}
+
+/* אזור טקסט */
+.formRow textarea {
+  min-height: 110px;
+  resize: vertical; /* מאפשר מתיחה אנכית */
+}
+
+/* טקסט עזר קטן מתחת לשדה (למשל המרה כולל/לפני מע״מ) */
+.hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: .85rem;
+}
+
+/* ─────────────────────────────
+   סגמנט תמחור: “כולל מע״מ / לפני מע״מ”
+   ───────────────────────────── */
+.segmented {
+  display: inline-flex;
+  background: #fffefe;
+  color: #0f172a;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 4px;
+  gap: 6px;
+}
+
+/* כפתור סגמנט כללי */
+.segmented button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: rgb(4, 4, 4);
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, transform .05s ease;
+}
+
+/* מצב ריחוף קל */
+.segmented button:hover {
+  background: #fbf3f3;
+  color: #000000 ;
+}
+
+/* מצב פעיל (className="on") */
+.on {
+  background: black !important;
+  color: #fcfcfc !important;
+}
+
+/* ─────────────────────────────
+   אזור תמונות: העלאה, גריד, מחיקה
+   ───────────────────────────── */
+
+/* כפתור "הוסף תמונה" (label שמכיל input[type=file]) */
+.addImgLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f7fbff;
+  color: var(--primary-600);
+  border: 1px dashed #bcd7ff;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+  user-select: none;
+  margin-bottom: 10px;
+}
+.addImgLabel:hover {
+  background: #eff6ff;
+  border-color: var(--primary);
+}
+
+/* רשת התמונות */
+.imagesGrid {
+  display: flex;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+/* פריט תמונה בגריד */
+.imageItem {
+  position: relative;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+  transition: box-shadow .15s ease, transform .05s ease;
+}
+.imageItem:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+/* התמונה עצמה */
+.imageItem img {
+  display: block;
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* כפתור מחיקה צף על התמונה */
+.deleteImgBtn {
+  position: absolute;
+  inset-inline-end: 8px; /* ימינה ב-RTL, שמאלה ב-LTR */
+  inset-block-start: 0.01px; /* למעלה */
+  border: 0;
+  width: min-content;
+  background: #ffffffee;
+  color: var(--danger);
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(2, 6, 23, .12);
+  transition: background .15s ease, transform .05s ease;
+}
+.deleteImgBtn:hover { background: #fff; transform: scale(1.04); }
+
+
+
+
+/* ─────────────────────────────
+   אזור פעולות (שמור / ביטול)
+   ───────────────────────────── */
+/* ── אזור פעולות: שני כפתורים זהים ───────────────── */
+.actions {
+  /* במקום flex -> grid כדי להבטיח שוויון מושלם */
+  display:flex;
+  grid-template-columns: repeat(2, minmax(220px, 1fr)); /* שתי עמודות שוות */
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: center;
+
+}
+
+/* שני הכפתורים – אותו מראה ואותו רוחב בתוך התא */
+.primaryBtn {
+  appearance: none;
+  background: black;
+  color: #fff;
+  border: black;
+  border-radius: 30px;
+  height: 44px;
+  width: 300px;            /* חשוב: שניהם ימלאו את התא באותה צורה */
+  padding: 0 16px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: .2px;
+  cursor: pointer;
+  transition: background .15s ease, box-shadow .15s ease, transform .05s ease;
+}
+
+/* hover/focus/disabled נשארים כמו שהיו */
+.primaryBtn:hover,
+.primaryBtn:focus-visible {
+  background: var(--primary-600);
+  box-shadow: 0 6px 20px rgba(26,137,255,.25);
+}
+.primaryBtn:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+
+
+/* מצב disabled ייראה עדיין אותו הסגנון אבל "כבוי" מעט */
+.primaryBtn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+/* כפתור משני (ביטול) */
+.secondaryBtn {
+  appearance: none;
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.secondaryBtn:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+/* ─────────────────────────────
+   רספונסיביות – מסכים צרים
+   ───────────────────────────── */
+@media (max-width: 720px) {
+  .editor { margin: 12px; padding: 16px; }
+
+  /* התווית מעל השדה במסכים קטנים */
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .formRow > label {
+    font-size: .95rem;
+    color: var(--muted);
+  }
+
+  .imagesGrid { grid-template-columns: repeat(2, 1fr); }
+    .primaryBtn {
+    min-width: 0;     /* מאפשר לרדת שורה בנוחות */
+    width: 100%;      /* מלא את השורה – שניהם יהיו באותו רוחב */
+  }
+   .actions {
+    grid-template-columns: 1fr;
+  }
+}

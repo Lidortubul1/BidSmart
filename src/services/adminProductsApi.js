@@ -18,10 +18,6 @@ export async function getProductById(productId) {
 }
 
 
-//פונקצייה למחיקת מוצר ע"י המנהל
-export async function deleteProduct(productId) {
-  return axios.delete(`/api/admin/product/${productId}`);
-}
 
 
 //פונקציה לעדכון מוצר ע"י מנהל
@@ -29,6 +25,11 @@ export async function updateProduct(productId, updateData) {
   return axios.put(`/api/admin/product/${productId}`, updateData);
 }
 
+
+//פונקצייה למחיקת מוצר ע"י המנהל
+export async function deleteProduct(productId) {
+  return axios.delete(`/api/admin/product/${productId}`);
+}
 
 //פונקציה למחיקת תמונה של מוצר
 export async function deleteProductImage(productId, imageUrl) {

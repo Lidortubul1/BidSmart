@@ -471,6 +471,7 @@ router.post("/save-order-summary", async (req, res) => {
   }
 });
 
+
 //שינוי שדה של מוצר ע"י המוכר לפריט שנמסר 
 router.put("/mark-as-sent/:productId", async (req, res) => {
   const { productId } = req.params;

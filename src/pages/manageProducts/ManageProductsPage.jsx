@@ -5,13 +5,15 @@
   import ProductDetailsModal from "../../components/ProductDetailsModal/ProductDetailsModal";
   import { getSellerProducts } from "../../services/sellerApi";
 
-  const FILTERS = [
-    { value: "all",     label: "כל המוצרים" },
-    { value: "sold",    label: "מוצרים שנמכרו + ממתינים למסירה" },
-    { value: "sent",    label: "מוצרים שנשלחו או נמסרו" },
-    { value: "pending", label: "מוצרים שטרם חלה המכירה" },
-    { value: "unsold",  label: "מוצרים שלא נמכרו" },
-  ];
+const FILTERS = [
+  { value: "all",     label: "כל המוצרים" },
+  { value: "sold",    label: "מוצרים שנמכרו + ממתינים למסירה" },
+  { value: "sent",    label: "מוצרים שנשלחו או נמסרו" },
+  { value: "pending", label: "מוצרים שטרם חלה המכירה" },
+  { value: "unsold",  label: "מוצרים שלא נמכרו" },
+  { value: "toShip",  label: "מוצרים שמיועדים לשליחה" }, // ← חדש
+];
+
 
   export default function ManageProductsPage() {
     const [products, setProducts] = useState([]);
@@ -58,7 +60,7 @@
         <div className={styles.hero}>
           <div className={styles.heroText}>
             <h1>ניהול המוצרים שלי</h1>
-            <p className={styles.subText}>כל המוצרים שלך במקום אחד</p>
+            <p className={styles.subText}>לעריכת פרטי מוצר שטרם נרכש נא לחץ עליו</p>
 
             {/* בחירת פילטר כ"תפריט" עם אנימציה */}
             <div className={styles.filterBar} ref={pickerRef}>

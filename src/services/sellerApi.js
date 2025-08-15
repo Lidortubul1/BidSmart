@@ -15,18 +15,3 @@ export async function getSellerProducts(filter = "all") {
   return data;
 }
 
-// // שליפת המוצרים של המוכר עם סינון (all, sold, pending, unsold)
-// export async function getSellerProducts(filter = "all") {
-//   try {
-//     const response = await axios.get(
-//       `${BASE_SELLER_URL}/products?filter=${filter}`
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error(
-//       "❌ שגיאה בשליפת המוצרים לניהול:",
-//       error.response?.data || error.message
-//     );
-//     throw error;
-//   }
-// }

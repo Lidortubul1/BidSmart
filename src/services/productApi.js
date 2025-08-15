@@ -6,6 +6,20 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 axios.defaults.baseURL = "http://localhost:5000"; // שנה בפרודקשן
 axios.defaults.withCredentials = true;
 
+
+
+
+// עדכון מוצר (למוכר+מנהל)
+export async function peUpdateProduct(id, payload) {
+  const { data } = await axios.put(
+    `/api/product/product/${id}`,
+    payload,
+    { withCredentials: true }
+  );
+  return data;
+}
+
+
 // הוספת מוצר
 export async function addProduct(productData) {
   const formData = new FormData();
@@ -105,5 +119,29 @@ export function renderStars(rating) {
     }
   }
   return stars;
+}
+
+
+
+//-מעבר סטטוס מוצר לblocked ------- ביטול מכירה
+export async function cancelProductSale(productId) {
+  const { data } = await axios.post(`/api/product/product/${productId}/cancel`);
+  return data;
+}
+
+// מחיקת תמונה
+export async function removeProductImage(productId, imageUrl) {
+  return axios.delete(`/api/product/product/${productId}/images`, {
+    data: { image_url: imageUrl },
+  });
+}
+
+// הוספת תמונה
+export async function uploadProductImage(productId, file) {
+  const formData = new FormData();
+  formData.append("image", file); // חייב להתאים ל-upload.single("image")
+  await axios.post(`/api/product/product/${productId}/images`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 }
 

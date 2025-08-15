@@ -61,6 +61,8 @@ export async function markProductAsSent(productId) {
   }
 }
 
+
+
 //עדכון מספר הטלפון בפרופיל
 export async function updateUserPhone(productId, phone) {
   const response = await axios.post(`/api/sale/update-user-phone`, {

@@ -362,10 +362,32 @@ if (!product) return <p>טוען מוצר...</p>;
 
 // אל תגדיר const endTime = product.end_time; (מיותר)
 
+const ProductEditor = require("../../components/productEditor/productEditor").default;
 
   if (!product) return <p>טוען מוצר...</p>;
   const images = product.images || [];
+const isAdmin = user?.role === "admin";
+const isOwner = user?.role === "seller" && String(user?.id_number) === String(product.seller_id_number);
 
+
+
+
+
+
+
+
+
+
+if (isAdmin || isOwner) {
+  // טעינה דינמית מונעת מעגלי־תלויות
+  return (
+    <ProductEditor
+      productId={id}
+      onSaved={() => window.history.back()}
+      onCancel={() => window.history.back()}
+    />
+  );
+}
   return (
     <div className={styles.page}>
       <div className={styles.content}>
