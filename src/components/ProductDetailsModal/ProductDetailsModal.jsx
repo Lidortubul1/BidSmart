@@ -23,7 +23,7 @@ export default function ProductDetailsModal({ product, onClose }) {
             <strong>שם:</strong> {product.product_name}
           </p>
           <p>
-            <strong>מחיר נוכחי:</strong> {product.current_price} ₪
+            <strong>מחיר:</strong> {product.current_price} ₪
           </p>
           <p>
             <strong>סטטוס:</strong> {product.status}

@@ -35,9 +35,9 @@ router.get("/products", requireSeller, async (req, res) => {
     const params = [req.sellerId];
 
     if (filter === "sold") {
-      where += " AND p.product_status = 'sale' AND (s.is_delivered = 0 OR s.is_delivered IS NULL)";
+      where += " AND p.product_status = 'sale' ";
     } else if (filter === "sent") {
-      where += " AND p.product_status = 'sale' AND s.is_delivered = 1";
+      where += " AND p.product_status = 'sale' AND s.sent = 'yes'";
     } else if (filter === "pending") {
       where += " AND p.is_live = 0";
     } else if (filter === "unsold") {

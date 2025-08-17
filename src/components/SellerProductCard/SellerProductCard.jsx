@@ -3,10 +3,9 @@ import styles from "./SellerProductCard.module.css";
 
 export default function SellerProductCard({ product, onOpenDetails }) {
   // נורמליזציה כדי לתמוך בגרסאות שונות של הסטטוס
-  const raw = String(product.status || product.product_status || "")
+  const raw = String(product.status || "")
     .trim()
     .toLowerCase();
-
   let statusText = "לא ידוע";
   let statusTone = "toneGray";
   let statusIcon = "info";
@@ -18,21 +17,30 @@ export default function SellerProductCard({ product, onOpenDetails }) {
   } else if (raw === "for sale") {
     statusText = "זמין למכירה";
     statusTone = "toneBlue";
-    statusIcon = "tag"; // ← היה 'play'
+    statusIcon = "tag"; 
   } else if (raw === "not sold") {
     statusText = "לא נמכר";
     statusTone = "toneGray";
     statusIcon = "info";
   }
 
-  // זיהוי 'נשלח' בצורה עמידה (1/ "1"/ true / "yes")
-  const delivered =
-    product.is_deliverd === 1 ||
-    product.is_deliverd === "1" ||
-    product.sent === "yes";
+// ודא/י ששיטת המסירה והמצב מגיעים מהשרת
+const method = String(product.delivery_method || "").toLowerCase();
 
-  const sentLabel = delivered ? "נשלח / נמסר" : "טרם נשלח";
-  const deliveryTone = delivered ? "toneGreen" : "toneAmber";
+const delivered =
+  product.is_delivered === 1 ||
+  product.is_delivered === "1" ||
+  product.sent === "yes";
+
+// טקסט דינמי לפי שיטה + האם נשלח/נמסר בפועל
+const sentLabel =
+  method === "delivery"
+    ? (delivered ? "המוצר נשלח" : "מיועד לשליחה")
+    : method === "pickup"
+    ? (delivered ? "המוצר נאסף" : "מיועד לאיסוף עצמי")
+    : (delivered ? "נשלח / נמסר" : "שיטת מסירה לא הוגדרה");
+
+const deliveryTone = delivered ? "toneGreen" : "toneAmber";
 
   return (
     <div className={styles.wrapper} aria-label="כרטיס מוצר למוכר">

@@ -1,5 +1,6 @@
 // src/components/ProductEditor/ProductEditor.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState ,useRef } from "react";
+import CustomModal from "../../components/CustomModal/CustomModal";
 import { useAuth } from "../../auth/AuthContext";
 import styles from "./productEditor.module.css"
 import {
@@ -39,6 +40,31 @@ export default function ProductEditor({ productId, onSaved, onCancel }) {
     () => cats.find(c => String(c.id) === String(category_id))?.subcategories || [],
     [cats, category_id]
   );
+
+
+// מודאל גנרי
+   const [modalOpen, setModalOpen] = useState(false);
+   const [modalCfg, setModalCfg] = useState({
+     title: "", message: "", confirmText: "", cancelText: "",
+     extraButtonText: "", onConfirm: null, onCancel: null,
+     hideClose: false, disableBackdropClose: false,
+   });
+   const autoCloseTimerRef = useRef(null);
+
+   function showModal(cfg) {
+     // מנקה טיימר קודם אם היה
+   if (autoCloseTimerRef.current) {
+       clearTimeout(autoCloseTimerRef.current);
+       autoCloseTimerRef.current = null;
+     }
+     setModalCfg(prev => ({ ...prev, ...cfg }));
+     setModalOpen(true);
+   }
+   function closeModal() {
+     setModalOpen(false);
+   }
+
+
 
   useEffect(() => {
     (async () => {
@@ -97,9 +123,14 @@ export default function ProductEditor({ productId, onSaved, onCancel }) {
       setLoading(false);
     })().catch((e) => {
       console.error(e);
-      alert(e.message || "שגיאה בטעינה");
-      setLoading(false);
-    });
+  showModal({
+    title: "שגיאה",
+    message: e.message || "שגיאה בטעינה",
+    confirmText: "סגור",
+    onConfirm: () => closeModal(),
+  });
+    setLoading(false);
+  });
   }, [productId, user]);
 
   if (loading) return <div style={{ padding: 16 }}>טוען...</div>;
@@ -122,21 +153,41 @@ export default function ProductEditor({ productId, onSaved, onCancel }) {
       e.target.value = "";
     } catch (err) {
       console.error(err);
-      alert("שגיאה בהעלאת תמונה");
-    }
+   showModal({
+    title: "שגיאה",
+    message: "שגיאה בהעלאת תמונה",
+    confirmText: "סגור",
+    onConfirm: () => closeModal(),
+  });
   }
+}
 
   async function onDeleteImage(imageUrl) {
-    if (!window.confirm("למחוק את התמונה?")) return;
+showModal({
+  title: "מחיקת תמונה",
+  message: "למחוק את התמונה?",
+ cancelText: "ביטול",
+  confirmText: "מחק",
+  onCancel: () => closeModal(),
+  onConfirm: async () => {
+    closeModal();
     try {
       await removeProductImage(productId, imageUrl);
       const refreshed = await getProductById(productId);
       setProduct(refreshed);
       setImages(refreshed.images || []);
-    } catch (err) {
-      console.error(err);
-      alert("שגיאה במחיקת תמונה");
+   } catch (err) {
+         console.error(err);
+      showModal({
+       title: "שגיאה",
+       message: "שגיאה במחיקת תמונה",
+        confirmText: "סגור",
+        onConfirm: () => closeModal(),
+     });
     }
+  }
+});
+ return;
   }
 
   // ——— שמירה ———
@@ -187,32 +238,70 @@ export default function ProductEditor({ productId, onSaved, onCancel }) {
       }
 
       await peUpdateProduct(productId, payload);
-      alert("נשמר בהצלחה");
-      onSaved?.();
+    // מודאל הצלחה שננעל (ללא כפתורים) ונסגר לבד אחרי שנייה
+  showModal({
+    title: "בוצע",
+    message: "השינויים נשמרו בהצלחה",
+    hideClose: true,
+    disableBackdropClose: true,
+  });
+ autoCloseTimerRef.current = setTimeout(() => {
+   closeModal();
+   onSaved?.();
+ }, 1000);
     } catch (err) {
       console.error(err);
-      alert("שגיאה בשמירה");
-    } finally {
+  showModal({
+    title: "שגיאה",
+    message: "שגיאה בשמירה",
+    confirmText: "סגור",
+    onConfirm: () => closeModal(),
+  });    } finally {
       setSaving(false);
     }
   }
 
   const base = "http://localhost:5000";
 
-async function onCancelSaleClick() {                 // ⬅️ חדש
-    if (!window.confirm("האם לבטל את המכירה? כל ההרשמות/הצעות יימחקו ותישלח הודעה למשתתפים.")) return;
-    try {
-      setCancelling(true);
-      await cancelProductSale(productId);
-      alert("המכירה בוטלה. המשתתפים יקבלו עדכון במייל.");
-      onSaved?.(); // לדוג׳ חזרה לרשימת מוצרים
-    } catch (e) {
-      console.error(e);
-      alert("שגיאה בביטול המכירה");
-    } finally {
-      setCancelling(false);
-    }
-  }
+async function onCancelSaleClick() {
+  showModal({
+    title: "אישור ביטול מכירה",
+    message: "האם לבטל את המכירה? כל ההרשמות/הצעות יימחקו ותישלח הודעה למשתתפים.",
+    cancelText: "ביטול",
+    confirmText: "כן, בטל מכירה זו",
+    disableBackdropClose: true,
+    onCancel: () => closeModal(),
+    onConfirm: async () => {
+      closeModal();
+      try {
+        setCancelling(true);
+        await cancelProductSale(productId);
+
+        // הצלחה
+        showModal({
+          title: "בוצע",
+          message: "המכירה בוטלה. המשתתפים יקבלו עדכון במייל.",
+          confirmText: "סגור",
+          onConfirm: () => {
+            closeModal();
+            onSaved?.();
+          },
+        });
+      } catch (e) {
+        console.error(e);
+        showModal({
+          title: "שגיאה",
+          message: "שגיאה בביטול המכירה",
+          confirmText: "סגור",
+          onConfirm: () => closeModal(),
+        });
+      } finally {
+        setCancelling(false);
+      }
+    },
+  });
+}
+
 
 
     const canCancelSale = String(product?.product_status || "").toLowerCase() === "for sale";
@@ -220,6 +309,7 @@ async function onCancelSaleClick() {                 // ⬅️ חדש
 
 
   return (
+    <>
     <form onSubmit={onSubmit} className={styles.editor}>
       <h2 className={styles.header}>עריכת מוצר</h2>
 
@@ -347,7 +437,24 @@ async function onCancelSaleClick() {                 // ⬅️ חדש
         )}
       </div>
     </form>
+    {modalOpen && (
+        <CustomModal
+       title={modalCfg.title}
+       message={modalCfg.message}
+       confirmText={modalCfg.confirmText}
+       cancelText={modalCfg.cancelText}
+       extraButtonText={modalCfg.extraButtonText}
+       onConfirm={modalCfg.onConfirm}
+       onCancel={modalCfg.onCancel || (() => closeModal())}
+       onExtra={modalCfg.onExtra}
+        onClose={() => closeModal()}     // ← סגירת מודאל בלבד, בלי להריץ onCancel
+       hideClose={modalCfg.hideClose}
+       disableBackdropClose={modalCfg.disableBackdropClose}
+     />
+   )}
+   </>
   );
+    
 }
 
 function Row({ label, children }) {

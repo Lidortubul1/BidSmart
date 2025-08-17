@@ -7,11 +7,11 @@
 
 const FILTERS = [
   { value: "all",     label: "כל המוצרים" },
-  { value: "sold",    label: "מוצרים שנמכרו + ממתינים למסירה" },
-  { value: "sent",    label: "מוצרים שנשלחו או נמסרו" },
+  { value: "sold",    label: "כל המוצרים שנמכרו" },
+    { value: "toShip",  label: "מוצרים שמיועדים לשליחה" }, // ← חדש
+  { value: "sent",    label: "מוצרים שנשלחו לרוכש" },
   { value: "pending", label: "מוצרים שטרם חלה המכירה" },
   { value: "unsold",  label: "מוצרים שלא נמכרו" },
-  { value: "toShip",  label: "מוצרים שמיועדים לשליחה" }, // ← חדש
 ];
 
 
