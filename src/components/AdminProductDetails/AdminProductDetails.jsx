@@ -12,7 +12,6 @@ import {
 } from "../../services/adminCategoryApi";
 import styles from "./AdminProductCard.module.css";
 import CustomModal from "../CustomModal/CustomModal";
-
 function toInputDate(dt) {
   if (!dt) return "";
   const d = new Date(dt);

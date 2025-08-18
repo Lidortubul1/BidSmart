@@ -275,3 +275,22 @@
   font-weight: 500;
   color: #333;
 }
+.notice { background:#fff; border:1px dashed #cbd5e1; border-radius:12px; padding:12px 14px; color:#475569; }
+
+/* פרטי הזמנה לקונה הזוכה */
+.orderCard {
+  margin-top: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+.orderTitle { margin: 0 0 10px; font-size: 1.1rem; font-weight: 700; }
+.orderRow { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed #eef2f7; }
+.orderRow:last-child { border-bottom: 0; }
+.orderLabel { min-width: 140px; color: #64748b; }
+
+.badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+.toneGreen { background: #ecfdf5; color: #047857; }
+.toneAmber { background: #fffbeb; color: #b45309; }

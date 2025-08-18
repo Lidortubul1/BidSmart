@@ -8,6 +8,7 @@ import {
   fetchAllMessages,
   saveMessageReply,
 } from "../../services/adminMessagesApi";
+import AdminStatistics from "../AdminStatistics/AdminStatistics.jsx";
 
 function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -121,27 +122,6 @@ function AdminDashboard() {
         </div>
       </section>
 
-      <section className={styles.quickLinks}>
-        <h3>:קישורים מהירים</h3>
-        <ul>
-          <li>
-            <Link to="/admin/categories">ניהול קטגוריות</Link>
-          </li>
-          <li>
-            <Link to="/admin/users">ניהול משתמשים</Link>
-          </li>
-          <li>
-            <Link to="/admin/products">ניהול מוצרים</Link>
-          </li>
-          <li>
-            <Link to="/admin/messages">פניות משתמשים</Link>
-          </li>
-          <li>
-            <Link to="/admin/stats">סטטיסטיקות</Link>
-          </li>
-        </ul>
-      </section>
-
       <section className={styles.messagesSection}>
         <h3>:פניות אחרונות</h3>
         {messages.length > 0 ? (
@@ -197,6 +177,8 @@ function AdminDashboard() {
           <Link to="/admin/messages">לכל הפניות </Link>
         </div>
       </section>
+
+       <AdminStatistics/>
       {modalData && (
         <CustomModal
           title={`מענה לפנייה #${modalData.id}`}

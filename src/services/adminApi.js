@@ -1,10 +1,20 @@
 import axios from "axios";
 
+const BASE = "http://localhost:5000/api/admin";
 
-//סטטיסטיקות כלליות 
-export async function getAdminStats() {
+// עוזר כללי – בונה params רק אם יש ערכים
+function qp(obj) {
+  const p = {};
+  Object.entries(obj || {}).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") p[k] = v;
+  });
+  return p;
+}
+
+// סטטיסטיקות כלליות (אפשר להוסיף טווח – אופציונלי)
+export async function getAdminStats(params) {
   try {
-    const res = await axios.get("http://localhost:5000/api/admin/stats");
+    const res = await axios.get(`${BASE}/stats`, { params: qp(params) });
     return res.data;
   } catch (err) {
     console.error("שגיאה בסטטיסטיקות:", err);
@@ -12,12 +22,10 @@ export async function getAdminStats() {
   }
 }
 
-
-// שליפה כמות נרשמים לפי חודש ושנה 
+// הרשמות לפי חודש/שנה – נשאר כמו אצלך
 export async function getRegistrationsByMonth(year, month) {
-  console.log(`Fetching registrations for year ${year} and month ${month}`);
   try {
-    const response = await axios.get(`/api/admin/stats/registrations`, {
+    const response = await axios.get(`${BASE}/stats/registrations`, {
       params: { year, month },
     });
     return response.data;
@@ -27,21 +35,64 @@ export async function getRegistrationsByMonth(year, month) {
   }
 }
 
-//שליפת כמות מוצרים לפי קטגוריה 
-export async function getProductsByCategory() {
+// מכירות (Revenue) לפי טווח/קיבוץ/מוכר
+export async function getRevenue({ from, to, group = "month", seller_id_number }) {
   try {
-    const res = await axios.get("/api/admin/stats/products-by-category");
+    const res = await axios.get(`${BASE}/stats/revenue`, {
+      params: qp({ from, to, group, seller_id_number }),
+    });
     return res.data;
   } catch (err) {
-    console.error("שגיאה בשליפת מוצרים לפי קטגוריה:", err);
+    console.error("שגיאה ב-revenue:", err);
     return [];
   }
 }
 
-//סכום מכירות לפי חודש
-export async function getSalesByMonth() {
+// פעילות בידים
+export async function getBidsActivity({ from, to, group = "day", seller_id_number }) {
   try {
-    const res = await axios.get("/api/admin/stats/sales-by-month");
+    const res = await axios.get(`${BASE}/stats/bids-activity`, {
+      params: qp({ from, to, group, seller_id_number }),
+    });
+    return res.data;
+  } catch (err) {
+    console.error("שגיאה ב-bids-activity:", err);
+    return [];
+  }
+}
+
+// מכירות לפי קטגוריה – בטווח/מוכר
+export async function getSalesByCategory({ from, to, seller_id_number }) {
+  try {
+    const res = await axios.get(`${BASE}/stats/sales-by-category`, {
+      params: qp({ from, to, seller_id_number }),
+    });
+    return res.data;
+  } catch (err) {
+    console.error("שגיאה במכירות לפי קטגוריה:", err);
+    return [];
+  }
+}
+
+// מוכרים מובילים (אפשר גם לסנן לפי מוכר יחיד — יחזיר שורה אחת)
+export async function getTopSellers({ from, to, limit = 10, seller_id_number }) {
+  try {
+    const res = await axios.get(`${BASE}/stats/top-sellers`, {
+      params: qp({ from, to, limit, seller_id_number }),
+    });
+    return res.data;
+  } catch (err) {
+    console.error("שגיאה במוכרים מובילים:", err);
+    return [];
+  }
+}
+
+// מכירות לפי חודש עם טווח/מוכר
+export async function getSalesByMonth({ from, to, seller_id_number }) {
+  try {
+    const res = await axios.get(`${BASE}/stats/sales-by-month`, {
+      params: qp({ from, to, seller_id_number }),
+    });
     return res.data;
   } catch (err) {
     console.error("שגיאה בגרף מכירות:", err);
@@ -49,3 +100,48 @@ export async function getSalesByMonth() {
   }
 }
 
+// משפך מכירות: התחילו / נמכרו / לא נמכרו + המרה
+export async function getAuctionFunnel({ from, to, seller_id_number }) {
+  try {
+    const res = await axios.get(`${BASE}/stats/auction-funnel`, {
+      params: qp({ from, to, seller_id_number }),
+    });
+    return res.data; // { started, sold, not_sold, conversion }
+  } catch (err) {
+    console.error("שגיאה ב-auction funnel:", err);
+    return { started: 0, sold: 0, not_sold: 0, conversion: 0 };
+  }
+}
+
+// -------- חדש: רשימת מוכרים לקומבובוקס --------
+export async function getSellersList() {
+  try {
+    // יש כבר /users שמחזיר את כולם — נסנן בצד לקוח
+    const res = await axios.get(`${BASE}/users`);
+    const all = res.data || [];
+    return all
+      .filter((u) => u.role === "seller" && u.id_number)
+      .map((u) => ({
+        id_number: u.id_number,
+        first_name: u.first_name,
+        last_name: u.last_name,
+      }));
+  } catch (err) {
+    console.error("שגיאה בשליפת מוכרים:", err);
+    return [];
+  }
+}
+
+
+// 👇 חדש: הרשמות לפי טווח וקיבוץ
+export async function getRegistrationsRange({ from, to, group = "day" }) {
+  try {
+    const res = await axios.get(`${BASE}/stats/registrations-range`, {
+      params: { from, to, group },
+    });
+    return res.data; // [{ bucket: "2025-08-01" | "2025-08", count: 12 }, ...]
+  } catch (err) {
+    console.error("שגיאה בהרשמות בטווח:", err);
+    return [];
+  }
+}

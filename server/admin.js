@@ -73,7 +73,9 @@ router.get("/stats", async (req, res) => {
     const [[{ blockedUsers }]] = await conn.query(
       "SELECT COUNT(*) AS blockedUsers FROM users WHERE status = 'blocked' "
     );
-
+const [[{ soldProducts }]] = await conn.query(
+  "SELECT COUNT(*) AS soldProducts FROM product WHERE product_status = 'sale'"
+);
     res.json({
       totalSellers,
       totalUsers,
@@ -82,6 +84,7 @@ router.get("/stats", async (req, res) => {
       upcomingProducts,
       unsoldProducts,
       blockedUsers,
+      soldProducts,
       
     });
   } catch (error) {
@@ -132,10 +135,267 @@ router.get("/stats/sales-by-month", async (req, res) => {
   }
 });
 
+//מכירות לפי טווח וקיבוץ
+// /api/admin/stats/revenue?from=2025-08-01&to=2025-08-31&group=day|month
+router.get("/stats/revenue", async (req, res) => {
+  const { from, to, group = "month", seller_id_number } = req.query;
+  try {
+    const conn = await db.getConnection();
+
+    const groupSelect =
+      group === "day"
+        ? "DATE(s.end_date) AS bucket"
+        : "CONCAT(YEAR(s.end_date), '-', LPAD(MONTH(s.end_date),2,'0')) AS bucket";
+
+    let sql = `
+      SELECT
+        ${groupSelect},
+        SUM(s.final_price) AS total_sales,
+        COUNT(*) AS orders_count,
+        AVG(s.final_price) AS avg_order_value
+      FROM sale s
+      JOIN product p ON p.product_id = s.product_id
+      WHERE s.end_date BETWEEN ? AND ?
+    `;
+    const params = [from, to];
+
+    if (seller_id_number) {
+      sql += " AND p.seller_id_number = ? ";
+      params.push(seller_id_number);
+    }
+
+    sql += " GROUP BY bucket ORDER BY bucket ASC";
+
+    const [rows] = await conn.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("שגיאה בשליפת הכנסות:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+//פעילות בידים לפי טווח וקיבוץ
+// /api/admin/stats/bids-activity?from=2025-08-01&to=2025-08-31&group=day|month
+router.get("/stats/bids-activity", async (req, res) => {
+  const { from, to, group = "day", seller_id_number } = req.query;
+  try {
+    const conn = await db.getConnection();
+
+    const groupSelect =
+      group === "month"
+        ? "CONCAT(YEAR(q.bid_time), '-', LPAD(MONTH(q.bid_time),2,'0'))"
+        : "DATE(q.bid_time)";
+
+    let sql = `
+      SELECT
+        ${groupSelect} AS bucket,
+        COUNT(*) AS total_bids,
+        COUNT(DISTINCT q.buyer_id_number) AS unique_bidders,
+        AVG(q.price) AS avg_bid_price,
+        MAX(q.price) AS max_bid_price
+      FROM quotation q
+      JOIN product p ON p.product_id = q.product_id
+      WHERE q.bid_time BETWEEN ? AND ?
+    `;
+    const params = [from, to];
+
+    if (seller_id_number) {
+      sql += " AND p.seller_id_number = ? ";
+      params.push(seller_id_number);
+    }
+
+    sql += " GROUP BY bucket ORDER BY bucket ASC";
+
+    const [rows] = await conn.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("שגיאה בשליפת פעילות בידים:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+//מכירות לםי קטגוריה בטווח
+// /api/admin/stats/sales-by-category?from=2025-08-01&to=2025-08-31
+router.get("/stats/sales-by-category", async (req, res) => {
+  const { from, to, seller_id_number } = req.query;
+  try {
+    const conn = await db.getConnection();
+
+    let sql = `
+      SELECT
+        c.name AS category,
+        COUNT(s.sale_id) AS sold_count,
+        SUM(s.final_price) AS total_sales
+      FROM sale s
+      JOIN product p ON p.product_id = s.product_id
+      JOIN categories c ON c.id = p.category_id
+      WHERE s.end_date BETWEEN ? AND ?
+    `;
+    const params = [from, to];
+
+    if (seller_id_number) {
+      sql += " AND p.seller_id_number = ? ";
+      params.push(seller_id_number);
+    }
+
+    sql += " GROUP BY c.name ORDER BY total_sales DESC";
+
+    const [rows] = await conn.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("שגיאה בשליפת מכירות לפי קטגוריה:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
 
 
+//מוכרים מובילים בטווח
+// /api/admin/stats/top-sellers?from=2025-08-01&to=2025-08-31&limit=10
+router.get("/stats/top-sellers", async (req, res) => {
+  const { from, to, limit = 10, seller_id_number } = req.query;
+  try {
+    const conn = await db.getConnection();
+
+    let sql = `
+      SELECT
+        u.id_number AS seller_id_number,
+        CONCAT(u.first_name, ' ', u.last_name) AS seller_name,
+        COUNT(s.sale_id) AS items_sold,
+        SUM(s.final_price) AS total_sales
+      FROM sale s
+      JOIN product p ON p.product_id = s.product_id
+      LEFT JOIN users u ON u.id_number = p.seller_id_number
+      WHERE s.end_date BETWEEN ? AND ?
+    `;
+    const params = [from, to];
+
+    if (seller_id_number) {
+      sql += " AND p.seller_id_number = ? ";
+      params.push(seller_id_number);
+    }
+
+    sql += " GROUP BY u.id_number, seller_name ORDER BY total_sales DESC LIMIT ?";
+
+    params.push(Number(limit));
+
+    const [rows] = await conn.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("שגיאה בשליפת מוכרים מובילים:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+//משפך מכירות – התחילו / נמכרו / לא נמכרו בטווח
+// /api/admin/stats/auction-funnel?from=2025-08-01&to=2025-08-31
+router.get("/stats/auction-funnel", async (req, res) => {
+  const { from, to, seller_id_number } = req.query;
+  try {
+    const conn = await db.getConnection();
+
+    let whereSeller = "";
+    const params = [from, to];
+
+    if (seller_id_number) {
+      whereSeller = " AND seller_id_number = ? ";
+      params.push(seller_id_number);
+    }
+
+    const [[{ started }]] = await conn.execute(
+      `SELECT COUNT(*) AS started
+       FROM product
+       WHERE start_date BETWEEN ? AND ? ${whereSeller}`,
+      params
+    );
+
+    const [[{ sold }]] = await conn.execute(
+      `SELECT COUNT(*) AS sold
+       FROM product
+       WHERE product_status = 'sale'
+         AND start_date BETWEEN ? AND ? ${whereSeller}`,
+      params
+    );
+
+    const [[{ not_sold }]] = await conn.execute(
+      `SELECT COUNT(*) AS not_sold
+       FROM product
+       WHERE product_status = 'not sold'
+         AND start_date BETWEEN ? AND ? ${whereSeller}`,
+      params
+    );
+
+    const conversion = started > 0 ? Math.round((sold / started) * 100) : 0;
+
+    res.json({ started, sold, not_sold, conversion });
+  } catch (err) {
+    console.error("שגיאה במשפך מכירות:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
 
 
+//מכירות לפי חודש
+router.get("/stats/sales-by-month", async (req, res) => {
+  const { from, to, seller_id_number } = req.query;
+  try {
+    const conn = await db.getConnection();
+
+    let sql = `
+      SELECT 
+        YEAR(p.start_date) AS year,
+        MONTH(p.start_date) AS month,
+        SUM(p.current_price) AS total_sales
+      FROM product p
+      WHERE p.product_status = 'sale'
+        AND p.start_date BETWEEN ? AND ?
+    `;
+    const params = [from, to];
+
+    if (seller_id_number) {
+      sql += " AND p.seller_id_number = ? ";
+      params.push(seller_id_number);
+    }
+
+    sql += " GROUP BY YEAR(p.start_date), MONTH(p.start_date) ORDER BY year ASC, month ASC";
+
+    const [rows] = await conn.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("שגיאה בשליפת מכירות לפי חודש:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+// /api/admin/stats/registrations-range?from=YYYY-MM-DD&to=YYYY-MM-DD&group=day|month
+router.get("/stats/registrations-range", async (req, res) => {
+  const { from, to, group = "day" } = req.query;
+  try {
+    const conn = await db.getConnection();
+
+    const groupSelect =
+      group === "month"
+        ? "CONCAT(YEAR(u.registered), '-', LPAD(MONTH(u.registered),2,'0'))"
+        : "DATE(u.registered)";
+
+    const [rows] = await conn.execute(
+      `
+      SELECT
+        ${groupSelect} AS bucket,
+        COUNT(*) AS count
+      FROM users u
+      WHERE u.registered BETWEEN ? AND ?
+      GROUP BY bucket
+      ORDER BY bucket ASC
+      `,
+      [from, to]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("שגיאה בשליפת הרשמות בטווח:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
 
 
 

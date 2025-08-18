@@ -25,7 +25,7 @@
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(2, 150px);
+  grid-template-columns: repeat(6, 150px);
   gap: 20px;
   justify-content: center;
   margin-top: 30px;
