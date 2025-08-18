@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: אוגוסט 05, 2025 בזמן 01:42 PM
+-- Generation Time: אוגוסט 11, 2025 בזמן 12:40 PM
 -- גרסת שרת: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -90,7 +90,7 @@ CREATE TABLE `product` (
   `product_id` int(11) NOT NULL,
   `product_name` varchar(100) NOT NULL,
   `start_date` datetime DEFAULT NULL,
-  `end_date` date NOT NULL,
+  `end_time` time NOT NULL DEFAULT '00:10:00',
   `is_live` tinyint(1) DEFAULT 0,
   `current_price` decimal(10,2) DEFAULT 0.00,
   `last_bid_time` datetime DEFAULT NULL,
@@ -98,9 +98,7 @@ CREATE TABLE `product` (
   `price` decimal(10,2) NOT NULL,
   `description` text DEFAULT NULL,
   `seller_id_number` varchar(20) NOT NULL,
-  `product_status` enum('for sale','sale') NOT NULL,
-  `second_place_id` varchar(20) DEFAULT NULL,
-  `third_place_id` varchar(20) DEFAULT NULL,
+  `product_status` enum('for sale','sale','Not sold') NOT NULL,
   `bid_increment` int(11) NOT NULL DEFAULT 10,
   `category_id` int(11) NOT NULL,
   `subcategory_id` int(11) NOT NULL,
@@ -111,24 +109,24 @@ CREATE TABLE `product` (
 -- הוצאת מידע עבור טבלה `product`
 --
 
-INSERT INTO `product` (`product_id`, `product_name`, `start_date`, `end_date`, `is_live`, `current_price`, `last_bid_time`, `winner_id_number`, `price`, `description`, `seller_id_number`, `product_status`, `second_place_id`, `third_place_id`, `bid_increment`, `category_id`, `subcategory_id`, `price_before_vat`) VALUES
-(37, 'אייפון 16 פרו מקס', '2025-08-06 14:00:00', '2027-03-11', 0, 4500.00, NULL, NULL, 4500.00, '16 פרו מקס', '208083469', 'for sale', NULL, NULL, 10, 1, 25, NULL),
-(38, ' BYD אטו 3', '2025-08-06 14:00:00', '2027-03-11', 0, 250000.00, NULL, NULL, 250000.00, 'רכב חשמלי BYD ', '208083469', 'for sale', NULL, NULL, 10, 9, 27, NULL),
-(39, 'אופניים חשמליים', '2025-08-06 14:00:00', '2027-03-11', 1, 3520.00, '2025-07-17 14:05:26', NULL, 3520.00, 'אופניים חשמליים במצב חדש למכירה ', '208083469', 'for sale', NULL, NULL, 10, 4, 9, NULL),
-(40, 'מחשב נייד', '2025-08-06 14:00:00', '2027-03-11', 1, 5100.00, '2025-07-24 12:34:03', '201234234', 5020.00, 'מחשב נייד גיימינג Lenovo IdeaPad LOQ 15.6\" FHD 144Hz i7-13650HX/16GB/512GB NVME/NVIDIA® GeForce RTX™ 4050 6GB/WIN 11 HOME/3Y 83DV00CKIV', '208083469', 'sale', '208083469', NULL, 10, 1, 33, NULL),
-(42, 'מיקסר חשמלי', '2025-08-06 14:00:00', '2027-03-11', 1, 3080.00, '2025-07-24 12:38:10', '201234234', 3020.00, 'מיקסר חשמלי למטבח', '208083469', 'sale', '208083469', NULL, 10, 6, 13, NULL),
-(43, ' ספה מודולרית מבד אריג רחיץ דוחה כתמים דגם פלאנט', '2025-08-06 14:00:00', '2027-03-11', 0, 6000.00, NULL, NULL, 6000.00, 'ספה מודולרית דגם פלאנט היא פתרון מושלם עבור מי שמעוניין בנוחות, גמישות ועיצוב מודרני. הספה מאפשרת לכם למקם את צד השזלונג באיזה צד שתרצו, והמעבר מתבצע בקלות רבה, הודות להחלפת הכריות וההדום.\r\n\r\nהבסיס עשוי מעץ מלא וחזק, מה שמבטיח יציבות ועמידות לאורך זמן. רגלי הספה עשויות PVC יצוק קשיח, העמידות לנזקי מים ומגנות על הרצפה מפני שריטות.', '208083469', 'for sale', NULL, NULL, 10, 3, 7, NULL),
-(44, 'ספה פינתית 300 ס\"מ ימין בד כחול ג\'ינס דגם בוקסי', '2025-08-06 14:00:00', '2027-03-11', 0, 4000.00, NULL, NULL, 4000.00, 'ספה פינתית דגם בוקסי מעוצבת בקו רך ונקי בעלת מסעדי ידיים רחבים שלא תרצו לקום ממנה.\r\nגוף הספה בנוי מעץ אורן מלא מהוקצע בשילוב רצועות גומי אלסטיות וגמישות בצורת שתי וערב לתמיכה מלאה למושבים. הספה מיוצרת בישראל. ריפוד נעים למגע בגוון כחול הנותן לספה מראה יוקרתי ועשיר.', '208083469', 'for sale', NULL, NULL, 10, 3, 7, NULL),
-(45, 'קרייזלר ראם מודל 2021', '2025-08-06 14:00:00', '2027-03-11', 0, 60000.00, NULL, NULL, 60000.00, '\r\n195,960 ק\"מ, יד נוכחית: ראשונה, בעלות נוכחית: חברה בע\"מ. תיבת הילוכים: אוטומטי צבע: שחור, מנוע: דיזל, נפח מנוע: 6,690 סמ\"ק, הנעה: 4x4, תוספות: ראה פירוט ברישיון, מפתח: יש.', '208083469', 'for sale', NULL, NULL, 10, 6, 13, NULL),
-(47, 'מכשיר סודהסטרים', '2025-08-06 14:00:00', '2027-03-11', 0, 2000.00, NULL, NULL, 2000.00, 'מתאים להגזה בבקבוקי סודהסטרים הבאים: בקבוק 1 ליטר - כמות מים להגזה עד קו המילוי כ-0.84 ליטר | בקבוק 0.5 ליטר - כמות מים להגזה עד קו מילוי 0.45 ליטר', '208083469', 'for sale', NULL, NULL, 10, 3, 14, NULL),
-(48, 'ג\'קוזי', '2025-08-06 14:00:00', '2027-03-11', 0, 7000.00, NULL, NULL, 7000.00, '-480\r\nמידות: 239 ס\"מ אורך, 239 ס\"מ רוחב, 99-112 ס\"מ גובה | מתאים ל- 6 אנשים.', '208083469', 'for sale', NULL, NULL, 10, 3, 14, NULL),
-(49, 'גלאקסי S20', '2025-08-06 14:00:00', '2027-03-11', 0, 1000.00, NULL, NULL, 1000.00, 'גלאקסי כמו חדש', '208083469', 'for sale', NULL, NULL, 10, 1, 25, NULL),
-(51, 'מחשב', '2025-08-06 14:00:00', '2027-03-11', 0, 4000.00, NULL, NULL, 4000.00, 'מחשב חדש', '208083469', 'for sale', NULL, NULL, 10, 1, 33, NULL),
-(53, 'אייפון 14 פרו מקס', '2025-08-06 14:00:00', '2027-03-11', 0, 3000.00, NULL, NULL, 3000.00, 'אייפון 14 חדש', '208083469', 'for sale', NULL, NULL, 10, 1, 19, NULL),
-(54, 'מיקסר חשמלי', '2025-08-06 14:00:00', '2027-03-11', 0, 1500.00, NULL, NULL, 1500.00, 'מיקסר חשמלי חדש', '208083469', 'for sale', NULL, NULL, 10, 3, 14, NULL),
-(58, 'קונסולה Sony PlayStation 5 Slim', '2025-08-06 14:00:00', '2027-03-11', 0, 2899.99, '2025-07-18 18:57:13', NULL, 2899.99, 'עם PS5 במהדורה דיגיטאלית, השחקנים מקבלים טכנולוגיית משחק עוצמתית, בתוך קונסולה חדשה SLIM בעיצוב קומפקטי ואלגנטי.\r\nשמרו את המשחקים האהובים עליכם מוכנים לשליפה עם כונן אחסון SSD בנפח 1TB מובנה.\r\nהתנסו בטעינה במהירות האור עם כונן SSD אולטרה-מהיר, תחושת אפיפות, משחקיות עמוקה יותר, בקר משחק אלחוטי DualSense‎ עם תמיכה במשוב הפטי, הדקים אדפטיביים ושמע תלת מימד, וכן בדור חדש לחלוטין של משחקי PlayStation מדהימים.', '208083469', 'for sale', NULL, NULL, 100, 5, 12, NULL),
-(59, 'samsung TV', '2025-08-07 16:00:00', '2025-07-31', 1, 2400.00, NULL, NULL, 2400.00, 'טלוויזיה SAMSUNG סמסונג 65\" 4K דגם UE65DU7100 /7000 *אחריות ע\"י היבואן****', '208083469', 'for sale', NULL, NULL, 50, 1, 32, NULL),
-(60, 'סט שולחן וארון', '2025-08-05 13:30:00', '2025-08-19', 1, 2500.00, '2025-08-05 13:30:57', '208083469', 2000.00, 'פריטי אספנות -שולחן וארון משנת 1980 במצב חדש', '208083469', 'sale', '12345423', NULL, 50, 8, 26, 1709.40);
+INSERT INTO `product` (`product_id`, `product_name`, `start_date`, `end_time`, `is_live`, `current_price`, `last_bid_time`, `winner_id_number`, `price`, `description`, `seller_id_number`, `product_status`, `bid_increment`, `category_id`, `subcategory_id`, `price_before_vat`) VALUES
+(37, 'אייפון 16 פרו מקס', '2025-09-10 13:00:00', '00:15:00', 0, 4500.00, NULL, NULL, 4500.00, '16 פרו מקס', '208083469', 'for sale', 10, 1, 25, 3735.00),
+(38, ' BYD אטו 3', '2025-09-10 13:00:00', '00:15:00', 0, 250000.00, NULL, NULL, 250000.00, 'רכב חשמלי BYD ', '208083469', 'for sale', 10, 9, 27, 207500.00),
+(39, 'אופניים חשמליים', '2025-08-11 13:37:00', '00:15:00', 1, 3740.00, '2025-08-11 13:37:50', '123454231', 3520.00, 'אופניים חשמליים במצב חדש למכירה ', '208083469', 'sale', 10, 4, 9, 2921.60),
+(40, 'מחשב נייד', '2025-09-10 13:00:00', '00:15:00', 0, 5020.00, NULL, NULL, 5020.00, 'מחשב נייד גיימינג Lenovo IdeaPad LOQ 15.6\" FHD 144Hz i7-13650HX/16GB/512GB NVME/NVIDIA® GeForce RTX™ 4050 6GB/WIN 11 HOME/3Y 83DV00CKIV', '208083469', 'for sale', 10, 1, 33, 4166.60),
+(42, 'מיקסר חשמלי', '2025-09-10 13:00:00', '00:15:00', 0, 3020.00, NULL, NULL, 3020.00, 'מיקסר חשמלי למטבח', '208083469', 'for sale', 10, 6, 13, 2506.60),
+(43, ' ספה מודולרית מבד אריג רחיץ דוחה כתמים דגם פלאנט', '2025-09-10 13:00:00', '00:15:00', 0, 6000.00, NULL, NULL, 6000.00, 'ספה מודולרית דגם פלאנט היא פתרון מושלם עבור מי שמעוניין בנוחות, גמישות ועיצוב מודרני. הספה מאפשרת לכם למקם את צד השזלונג באיזה צד שתרצו, והמעבר מתבצע בקלות רבה, הודות להחלפת הכריות וההדום.\r\n\r\nהבסיס עשוי מעץ מלא וחזק, מה שמבטיח יציבות ועמידות לאורך זמן. רגלי הספה עשויות PVC יצוק קשיח, העמידות לנזקי מים ומגנות על הרצפה מפני שריטות.', '208083469', 'for sale', 10, 3, 7, 4980.00),
+(44, 'ספה פינתית 300 ס\"מ ימין בד כחול ג\'ינס דגם בוקסי', '2025-09-10 13:00:00', '00:15:00', 0, 4000.00, NULL, NULL, 4000.00, 'ספה פינתית דגם בוקסי מעוצבת בקו רך ונקי בעלת מסעדי ידיים רחבים שלא תרצו לקום ממנה.\r\nגוף הספה בנוי מעץ אורן מלא מהוקצע בשילוב רצועות גומי אלסטיות וגמישות בצורת שתי וערב לתמיכה מלאה למושבים. הספה מיוצרת בישראל. ריפוד נעים למגע בגוון כחול הנותן לספה מראה יוקרתי ועשיר.', '208083469', 'for sale', 10, 3, 7, 3320.00),
+(45, 'קרייזלר ראם מודל 2021', '2025-09-10 13:00:00', '00:15:00', 0, 60000.00, NULL, NULL, 60000.00, '\r\n195,960 ק\"מ, יד נוכחית: ראשונה, בעלות נוכחית: חברה בע\"מ. תיבת הילוכים: אוטומטי צבע: שחור, מנוע: דיזל, נפח מנוע: 6,690 סמ\"ק, הנעה: 4x4, תוספות: ראה פירוט ברישיון, מפתח: יש.', '208083469', 'for sale', 10, 6, 13, 49800.00),
+(47, 'מכשיר סודהסטרים', '2025-09-10 13:00:00', '00:15:00', 0, 2000.00, NULL, NULL, 2000.00, 'מתאים להגזה בבקבוקי סודהסטרים הבאים: בקבוק 1 ליטר - כמות מים להגזה עד קו המילוי כ-0.84 ליטר | בקבוק 0.5 ליטר - כמות מים להגזה עד קו מילוי 0.45 ליטר', '208083469', 'for sale', 10, 3, 14, 1660.00),
+(48, 'ג\'קוזי', '2025-09-10 13:00:00', '00:15:00', 0, 7000.00, NULL, NULL, 7000.00, '-480\r\nמידות: 239 ס\"מ אורך, 239 ס\"מ רוחב, 99-112 ס\"מ גובה | מתאים ל- 6 אנשים.', '208083469', 'for sale', 10, 3, 14, 5810.00),
+(49, 'גלאקסי S20', '2025-09-10 13:00:00', '00:15:00', 0, 1000.00, NULL, NULL, 1000.00, 'גלאקסי כמו חדש', '208083469', 'for sale', 10, 1, 25, 830.00),
+(51, 'מחשב', '2025-09-10 13:00:00', '00:15:00', 0, 4000.00, NULL, NULL, 4000.00, 'מחשב חדש', '208083469', 'for sale', 10, 1, 33, 3320.00),
+(53, 'אייפון 14 פרו מקס', '2025-09-10 13:00:00', '00:15:00', 0, 3000.00, NULL, NULL, 3000.00, 'אייפון 14 חדש', '208083469', 'for sale', 10, 1, 19, 2490.00),
+(58, 'קונסולה Sony PlayStation 5 Slim', '2025-09-10 13:00:00', '00:15:00', 0, 2899.99, NULL, NULL, 2899.99, 'עם PS5 במהדורה דיגיטאלית, השחקנים מקבלים טכנולוגיית משחק עוצמתית, בתוך קונסולה חדשה SLIM בעיצוב קומפקטי ואלגנטי.\r\nשמרו את המשחקים האהובים עליכם מוכנים לשליפה עם כונן אחסון SSD בנפח 1TB מובנה.\r\nהתנסו בטעינה במהירות האור עם כונן SSD אולטרה-מהיר, תחושת אפיפות, משחקיות עמוקה יותר, בקר משחק אלחוטי DualSense‎ עם תמיכה במשוב הפטי, הדקים אדפטיביים ושמע תלת מימד, וכן בדור חדש לחלוטין של משחקי PlayStation מדהימים.', '208083469', 'for sale', 100, 5, 12, 2406.99),
+(59, 'samsung TV', '2025-09-10 13:00:00', '00:15:00', 0, 2400.00, NULL, NULL, 2400.00, 'טלוויזיה SAMSUNG סמסונג 65\" 4K דגם UE65DU7100 /7000 *אחריות ע\"י היבואן****', '208083469', 'for sale', 50, 1, 32, 1992.00),
+(60, 'סט שולחן וארון', '2025-09-10 13:00:00', '00:15:00', 0, 2000.00, NULL, NULL, 2000.00, 'פריטי אספנות -שולחן וארון משנת 1980 במצב חדש', '208083469', 'for sale', 50, 8, 26, 1660.00),
+(61, 'סכין אספנות', '2025-09-10 13:00:00', '00:01:00', 0, 500.00, NULL, NULL, 500.00, 'פריטי אספנות: סכיני אספנות | אולרי אספנות - סכינים למבינים\r\n', '208083469', 'for sale', 10, 8, 26, 415.00);
 
 -- --------------------------------------------------------
 
@@ -182,14 +180,14 @@ INSERT INTO `product_images` (`image_id`, `product_id`, `image_url`) VALUES
 (35, 49, '/uploads/1750087341629_×××¨××.webp'),
 (37, 51, '/uploads/1750347508758_83DV00CKIV_30042024094618_large.jpg'),
 (38, 53, '/uploads/1750354691258_9831af1b0fa7bb4ed0dd83ebbe465771.webp'),
-(39, 54, '/uploads/1750405576968_Electra_1.avif'),
 (46, 58, '/uploads/1752853800273_p1.jpg'),
 (47, 58, '/uploads/1752853800277_P2.jpg'),
 (48, 58, '/uploads/1752853800277_P3.jpg'),
 (50, 59, '/uploads/1753275011451_TV2.jpg'),
 (52, 59, '/uploads/1753693214677_TV3.jpg'),
 (53, 60, '/uploads/1754388628061_46794687946789.jpg'),
-(54, 60, '/uploads/1754388628062_d1.jpg');
+(54, 60, '/uploads/1754388628062_d1.jpg'),
+(55, 61, '/uploads/1754649660394_scatola-regalo_original-c-copia_0x180.png');
 
 -- --------------------------------------------------------
 
@@ -202,7 +200,7 @@ CREATE TABLE `quotation` (
   `product_id` int(11) NOT NULL,
   `buyer_id_number` varchar(20) NOT NULL,
   `price` decimal(10,2) NOT NULL,
-  `is_delivered` tinyint(1) NOT NULL DEFAULT 0,
+  `is_paid` enum('yes','no') NOT NULL DEFAULT 'no',
   `bid_time` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -210,16 +208,11 @@ CREATE TABLE `quotation` (
 -- הוצאת מידע עבור טבלה `quotation`
 --
 
-INSERT INTO `quotation` (`quotation_id`, `product_id`, `buyer_id_number`, `price`, `is_delivered`, `bid_time`) VALUES
-(199, 39, '201234234', 0.00, 0, '2025-07-24 12:32:04'),
-(200, 40, '201234234', 5100.00, 0, '2025-07-24 12:34:03'),
-(201, 42, '201234234', 3080.00, 0, '2025-07-24 12:38:10'),
-(202, 40, '208083469', 5090.00, 0, '2025-07-24 12:34:01'),
-(203, 42, '208083469', 3070.00, 0, '2025-07-24 12:38:08'),
-(204, 37, '208083469', 0.00, 0, '2025-08-04 23:30:10'),
-(205, 60, '208083469', 2500.00, 0, '2025-08-05 13:30:57'),
-(206, 60, '12345423', 2450.00, 0, '2025-08-05 13:30:53'),
-(207, 38, '208083469', 0.00, 0, '2025-08-05 13:36:19');
+INSERT INTO `quotation` (`quotation_id`, `product_id`, `buyer_id_number`, `price`, `is_paid`, `bid_time`) VALUES
+(236, 39, '204534569', 0.00, 'no', '2025-08-11 13:19:36'),
+(237, 38, '204534569', 0.00, 'no', '2025-08-11 13:23:15'),
+(238, 39, '123454231', 3740.00, 'yes', '2025-08-11 13:37:50'),
+(239, 39, '208083469', 3730.00, 'no', '2025-08-11 13:37:48');
 
 -- --------------------------------------------------------
 
@@ -229,7 +222,7 @@ INSERT INTO `quotation` (`quotation_id`, `product_id`, `buyer_id_number`, `price
 
 CREATE TABLE `sale` (
   `sale_id` int(11) NOT NULL,
-  `end_date` date NOT NULL,
+  `end_date` datetime NOT NULL,
   `final_price` decimal(10,2) NOT NULL,
   `product_name` varchar(100) NOT NULL,
   `product_id` int(11) NOT NULL,
@@ -253,9 +246,7 @@ CREATE TABLE `sale` (
 --
 
 INSERT INTO `sale` (`sale_id`, `end_date`, `final_price`, `product_name`, `product_id`, `rating`, `is_delivered`, `buyer_id_number`, `country`, `zip`, `city`, `street`, `house_number`, `apartment_number`, `notes`, `phone`, `delivery_method`, `sent`) VALUES
-(74, '0000-00-00', 0.00, 'מחשב נייד', 40, NULL, 1, '201234234', 'ישראל', '2343223', 'קרית אתא ', 'לילינבלום', '10', '13', 'להתקשר לפני שמגיע ', NULL, 'delivery', 'yes'),
-(75, '0000-00-00', 0.00, 'מיקסר חשמלי', 42, NULL, 0, '201234234', 'ישראל', '2343223', 'קרית אתא ', 'לילינבלום', '10', '13', 'להתקשר לפני שמגיע 3', NULL, 'delivery', 'no'),
-(76, '0000-00-00', 0.00, 'סט שולחן וארון', 60, NULL, 0, '208083469', 'ישראל', '234544', 'שלומי ', 'חורשת האקליפטוס', '213', '213', 'אודה שיגיע עד שבוע הבא ', NULL, 'delivery', 'no');
+(90, '2025-08-11 13:39:23', 3740.00, 'אופניים חשמליים', 39, NULL, 0, '123454231', 'ישראל', '3456445', 'נשר ', 'יעל', '10', '5', 'להתקשר כשהשליח בחוץ', '+972521234567', 'delivery', 'no');
 
 -- --------------------------------------------------------
 
@@ -328,18 +319,18 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `id_number`, `password`, `first_name`, `last_name`, `phone`, `role`, `id_card_photo`, `rating`, `country`, `zip`, `city`, `street`, `house_number`, `apartment_number`, `profile_photo`, `status`, `registered`) VALUES
-(1, 'Lian.va.1995@gmail.com', '205960495', '$2b$10$vM4y2yqsbNpDCOpifcxVOOdjiZQ2clgPjUo79JNq7q.WbhiyqVjoG', 'לילי', 'ויינר', '+9724532345', 'seller', '1747765765446_WhatsApp Image 2024-11-24 at 14.33.04_400065d0.jpg', 3.3, NULL, '12345', 'כפר ביאליק', 'מיכאל', '19', '1', '1747765765448_WhatsApp Image 2024-11-24 at 14.33.04_400065d0.jpg', 'active', '2025-07-22 14:11:25'),
+(1, 'Lian.va.1995@gmail.com', '205960495', '$2b$10$vM4y2yqsbNpDCOpifcxVOOdjiZQ2clgPjUo79JNq7q.WbhiyqVjoG', 'לילי', 'ויינר', '+9724532345', 'seller', '1747765765446_WhatsApp Image 2024-11-24 at 14.33.04_400065d0.jpg', 3.3, NULL, '12345', 'כפר ביאליק', 'מיכאל', '19', '1', '1747765765448_WhatsApp Image 2024-11-24 at 14.33.04_400065d0.jpg', 'blocked', '2025-07-22 14:11:25'),
 (2, 'lian1234@gmail.com', NULL, '$2b$10$myL4S9/D4CMEZuozUfIWVuZE8fV61BU64qlqzpQg8H8UdZVbeUnHC', 'ליאן', 'וינר', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
-(3, 'liel1234@gmail.com', NULL, '$2b$10$T16Hz6UFdVKyust2Xk9gSekBOtQBZVpeo.JyVd8Jn9mhq/ls9tg4.', 'ליאל', 'טובול', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'blocked', '2025-07-22 14:11:25'),
+(3, 'liel1234@gmail.com', '204534569', '$2b$10$T16Hz6UFdVKyust2Xk9gSekBOtQBZVpeo.JyVd8Jn9mhq/ls9tg4.', 'ליאל', 'טובול', '', 'buyer', '1754907576516_46794687946789.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (6, 'loren123@gmail.com', '208067956', '$2b$10$xLwg0qEjUKAqaBI4JxmQ1.jiUTzHqKj8V3QeC.pTQklVPQujSR9sy', 'loren', 'taboll', '+972525353456', 'seller', NULL, 3, NULL, NULL, NULL, NULL, NULL, NULL, '', 'active', '2025-07-22 14:11:25'),
 (7, 'mai123@gmail.com', '204534565', '$2b$10$qg5A8hEYm.pW8ELHx12GZ.GZ7rtxgAcYuAUN6tL0OVlQtSBJvKjLu', 'מאי', 'גלילי', '', 'seller', 'ba35640a50358462e9ee62b892f27a8d', NULL, 'ישראל', '12345', 'כפר ביאליק', 'מיכאל', '19', '1', NULL, 'active', '2025-07-22 14:11:25'),
-(8, 'mori123@gmail.com', '12345423', '$2b$10$hZ8VAx3Q1.I2ObfPvTZ2HeemaPPtNujiQOe6DLQqFNhWqCms3Q/lG', 'מורי', 'וסרמן', '0525353869', 'seller', '1750613043307_1-17-1024x611 (1).jpeg', 4.2, NULL, NULL, NULL, NULL, NULL, NULL, '', 'active', '2025-07-22 14:11:25'),
-(9, 'niv12345@gmail.com', '12345232', '$2b$10$w598euryn2F33blL.UhcK.Bec1Qk98ZvWvDtACu/b527LKEZO22.O', 'niv', 'bra', '', 'buyer', '1750594498421__339410_11__1_1.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
+(8, 'mori123@gmail.com', '123454231', '$2b$10$hZ8VAx3Q1.I2ObfPvTZ2HeemaPPtNujiQOe6DLQqFNhWqCms3Q/lG', 'מורי', 'וסרמן', '+972521234567', 'seller', '1750613043307_1-17-1024x611 (1).jpeg', 4.2, 'ישראל', '3456445', 'נשר ', 'יעל', '10', '5', '', 'active', '2025-07-22 14:11:25'),
+(9, 'niv12345@gmail.com', '12345232', '$2b$10$w598euryn2F33blL.UhcK.Bec1Qk98ZvWvDtACu/b527LKEZO22.O', 'niv', 'bra', '', 'buyer', '1750594498421__339410_11__1_1.jpg', NULL, NULL, '1232334', 'קרית אתא ', 'מוצקין', '10', '5', NULL, 'active', '2025-07-22 14:11:25'),
 (10, 'ofir123@gmail.com', NULL, '$2b$10$qlKMaopQZ1ehg8GIXeyw/e7rGPBVNnGLMbpTemn7xP8bycG5iIwQG', 'אופיר', 'יצחק', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (11, 'orel123@gmail.com', NULL, '$2b$10$1PxDyDcqFTkz1TpskTajYOvSmWDeSi90V4PUK8QKp3oytVjGyoKfW', 'orel', 'hadad', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-08-01 14:11:25'),
 (12, 'rivka123@gmail.com', NULL, '$2b$10$hSqMMG/UP0CHYbg0lpL3p.GDcsiKYJdxWUtdEZGGT5ofJ9l1L.nua', 'rivka', 'amar', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (13, 'roei123@gmail.com', '234545342', '$2b$10$O3B.Y4745Wh582gpDSLaM.BVAJOhq/8HgTG1hn25CEZeZ4LkeuB/O', 'roei', 'gruber', '', 'buyer', '1749375562006_1-17-1024x611 (1).jpeg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
-(14, 'tubul65431@gmail.com', '208083469', '$2b$10$kABMWX7xS5PJkZStU6byuO2gEsWZMPiu1HYXMcAc4bphfXzzm0ULK', 'לידור', 'טובול', '+972525353869', 'seller', '1750346749045_16740352ef9e87889dee6621d96a5ee7.webp', NULL, 'ישראל', '234544', 'שלומי ', 'חורשת האקליפטוס', '213', '213', NULL, 'active', '2025-07-22 14:11:25'),
+(14, 'tubul65431@gmail.com', '208083469', '$2b$10$kABMWX7xS5PJkZStU6byuO2gEsWZMPiu1HYXMcAc4bphfXzzm0ULK', 'לידור', 'טובול', '+972525353869', 'seller', '1750346749045_16740352ef9e87889dee6621d96a5ee7.webp', NULL, 'ישראל', '234544', 'שלומי ', 'חורשת האקליפטוס', '213', '1111', NULL, 'active', '2025-07-22 14:11:25'),
 (15, 'yael123@gmail.com', '123456789', '$2b$10$lo7C.yteGNZoOjmmaBgiouPGOwQwf7MnnjjvBLmIACm1ufHMvIhlq', 'yael', 'golan', '', 'admin', '1750612570903_1-17-1024x611 (1).jpeg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (16, 'yarin123@gmail.com', NULL, '$2b$10$NvAHIXpj7gIl/ue/NLO2zuxG6y5hwoy19/BxOCtCL4KvzQXs0Qeda', 'ירין', 'זקס', '', 'buyer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-07-22 14:11:25'),
 (17, 'nor@segev-net.co.il', '201234234', '$2b$10$JXojIHpM6FyvwdC2HDM2VeBnWQWhraneS0Ba2VZsfjWUBTi7liE4i', 'ניב', 'בראונשטיין', '', 'seller', '1753349183088_BidSmartLogo.jpg', NULL, NULL, '2343223', 'קרית אתא ', 'לילינבלום', '10', '13', NULL, 'blocked', '2025-07-24 12:26:06');
@@ -428,25 +419,25 @@ ALTER TABLE `contact_messages`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `product_images`
 --
 ALTER TABLE `product_images`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `quotation`
 --
 ALTER TABLE `quotation`
-  MODIFY `quotation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=208;
+  MODIFY `quotation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=240;
 
 --
 -- AUTO_INCREMENT for table `sale`
 --
 ALTER TABLE `sale`
-  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
 
 --
 -- AUTO_INCREMENT for table `subcategories`
