@@ -342,6 +342,167 @@ async function assertEditable(req, res, next) {
 }
 
 
+// פרסום מחדש (Relist) של מוצר שלא נמכר – יוצר מוצר חדש עם אותם פרטים ותמונות
+// נתיב לקוח: POST /api/product/product/:id/relist
+// פרסום מחדש (Relist) של מוצר שלא נמכר – יוצר מוצר חדש עם אותם פרטים ותמונות
+// נתיב לקוח: POST /api/product/product/:id/relist
+router.post("/product/:id/relist", ensureOwnerOrAdmin, async (req, res) => {
+  const originalId = Number(req.params.id);
+  if (!originalId) {
+    return res.status(400).json({ success: false, message: "מזהה מוצר מקורי חסר/לא תקין" });
+  }
+
+  // שדות נכנסים (JSON) – כמו הוספה רגילה
+  const {
+    product_name,
+    start_date,      // "YYYY-MM-DDTHH:MM"
+    end_time,        // "HH:MM" או "HH:MM:SS"
+    price,
+    description,
+    category_id,
+    subcategory_id,
+    bid_increment,
+    vat_included,    // "true"/"false"
+    copy_images = "true", // "true"/"false"
+  } = req.body || {};
+
+  // ולידציה בסיסית (דומה להוספה)
+  if (!product_name || product_name.trim() === "") {
+    return res.status(400).json({ success: false, message: "שם המוצר הוא שדה חובה" });
+  }
+  if (!start_date) {
+    return res.status(400).json({ success: false, message: "תאריך התחלה הוא שדה חובה" });
+  }
+  const startDateObj = new Date(start_date);
+  if (isNaN(startDateObj.getTime())) {
+    return res.status(400).json({ success: false, message: "תאריך/שעת התחלה לא תקין" });
+  }
+  if (startDateObj < new Date()) {
+    return res.status(400).json({
+      success: false,
+      message: "תאריך ההתחלה חייב להיות מתאריך ושעה נוכחיים ואילך",
+    });
+  }
+  if (!end_time) {
+    return res.status(400).json({ success: false, message: "זמן מכירה לא מלא" });
+  }
+  if (!price || isNaN(price)) {
+    return res.status(400).json({ success: false, message: "מחיר הוא שדה חובה וצריך להיות מספר" });
+  }
+  if (!bid_increment || isNaN(bid_increment)) {
+    return res.status(400).json({ success: false, message: "יש לבחור סכום עליית הצעה תקין" });
+  }
+  // צעדי הצעה מותרים בלבד
+  const ALLOWED_BID_STEPS = [10, 20, 50, 100, 500, 1000];
+  if (!ALLOWED_BID_STEPS.includes(Number(bid_increment))) {
+    return res.status(400).json({
+      success: false,
+      message: `סכום עליית הצעה חייב להיות אחד מהבאים: ${ALLOWED_BID_STEPS.join("/")}`,
+    });
+  }
+
+  // חישובי מע"מ – כמו בהוספה
+  let finalPrice = parseFloat(price);
+  let priceBeforeVat = null;
+  const isVatIncluded = String(vat_included) === "true";
+  if (!isVatIncluded) {
+    priceBeforeVat = finalPrice;
+    finalPrice = priceBeforeVat * 1.17;
+  } else {
+    priceBeforeVat = finalPrice / 1.17;
+  }
+  finalPrice = Number(finalPrice.toFixed(2));
+  priceBeforeVat = Number(priceBeforeVat.toFixed(2));
+
+  let conn;
+  try {
+    conn = await db.getConnection();             // ✅ בתוך try
+    await conn.beginTransaction();
+
+    // שליפת המוצר המקורי + נעילה
+    const [origRows] = await conn.execute(
+      "SELECT * FROM product WHERE product_id = ? FOR UPDATE",
+      [originalId]
+    );
+    if (!origRows.length) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: "מוצר מקורי לא נמצא" });
+    }
+    const original = origRows[0];
+
+    // Relist אפשרי רק מ-not sold
+    const status = String(original.product_status || "").trim().toLowerCase();
+    if (status !== "not sold" && status !== "not_sold") {
+      await conn.rollback();
+      return res.status(409).json({ success: false, message: "ניתן לפרסם מחדש רק מוצר במצב Not sold" });
+    }
+
+    // נירמול זמן לסקונדות
+    const normalizedEnd = end_time.length === 5 ? `${end_time}:00` : end_time;
+
+    // יצירה של מוצר חדש (אותו מוכר; סטטוס התחלתי 'for sale'; איפוסי ריצה)
+    const [insertRes] = await conn.execute(
+      `INSERT INTO product (
+        product_name,
+        start_date,
+        end_time,
+        price,
+        current_price,
+        price_before_vat,
+        description,
+        seller_id_number,
+        product_status,
+        category_id,
+        subcategory_id,
+        bid_increment,
+        is_live,
+        winner_id_number,
+        last_bid_time
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        product_name,
+        start_date,                     // נשמר בפורמט ISO שהגיע מהלקוח
+        normalizedEnd,                  // "HH:MM:SS"
+        finalPrice,
+        finalPrice,
+        priceBeforeVat,
+        description || null,
+        original.seller_id_number,      // מוכר זהה למקורי
+        "for sale",                     // Relist מתחיל כ-for sale
+        category_id || null,
+        subcategory_id || null,
+        parseInt(bid_increment) || 10,
+        0,                              // is_live
+        null,                           // winner_id_number
+        null                            // last_bid_time
+      ]
+    );
+
+    const newProductId = insertRes.insertId;
+
+    // העתקת תמונות קיימות (ברירת מחדל: כן)
+    const shouldCopy = String(copy_images).toLowerCase() !== "false";
+    if (shouldCopy) {
+      await conn.execute(
+        `INSERT INTO product_images (product_id, image_url)
+         SELECT ?, image_url FROM product_images WHERE product_id = ?`,
+        [newProductId, originalId]
+      );
+    }
+
+    await conn.commit();
+    return res.json({ success: true, new_product_id: newProductId });
+  } catch (e) {
+    if (conn) { try { await conn.rollback(); } catch {} }
+    console.error("שגיאה ב-Relist:", e);
+    return res.status(500).json({ success: false, message: "שגיאה בפרסום מחדש" });
+  } finally {
+    if (conn && typeof conn.release === "function") {
+      try { conn.release(); } catch {}
+    }
+  }
+});
+
 
 
 
@@ -446,6 +607,72 @@ router.delete("/product/:id/images", ensureOwnerOrAdmin, assertEditable, async (
   }
 });
 
+// מסמן מוצר כ-Not sold אם עברו 24 שעות מאז הזכייה והזוכה לא שילם
+router.post("/expire-unpaid", async (req, res) => {
+  try {
+    const { product_id } = req.body;
+    if (!product_id) {
+      return res.status(400).json({ success: false, message: "חסר product_id" });
+    }
+
+    const conn = await db.getConnection();
+
+    // שולפים product עם last_bid_time & winner_id_number
+    const [pRows] = await conn.query(
+      `SELECT product_id, winner_id_number, last_bid_time, product_status
+       FROM product WHERE product_id = ? LIMIT 1`,
+      [product_id]
+    );
+    if (!pRows.length) {
+      return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
+    }
+    const p = pRows[0];
+
+    if (!p.winner_id_number || !p.last_bid_time) {
+      return res.json({ success: true, updated: false, reason: "אין זוכה/אין last_bid_time" });
+    }
+
+    const lastBidMs  = new Date(p.last_bid_time).getTime();
+    const deadlineMs = lastBidMs + 24 * 60 * 60 * 1000;
+
+    if (Date.now() < deadlineMs) {
+      return res.json({ success: true, updated: false, reason: "טרם עברו 24 שעות" });
+    }
+
+    // בודקים ב-quotation שהזוכה עדיין 'לא שילם'
+    const [qRows] = await conn.query(
+      `SELECT is_paid 
+         FROM quotation 
+        WHERE product_id = ? AND buyer_id_number = ? 
+        ORDER BY quotation_id DESC
+        LIMIT 1`,
+      [product_id, p.winner_id_number]
+    );
+
+    const unpaid = qRows.length &&
+      (String(qRows[0].is_paid).toLowerCase() === "no" ||
+       String(qRows[0].is_paid) === "0" ||
+       qRows[0].is_paid === 0 ||
+       qRows[0].is_paid === false);
+
+    if (!unpaid) {
+      return res.json({ success: true, updated: false, reason: "שולם / לא נמצא unpaid" });
+    }
+
+    // הגיע המועד והזוכה לא שילם → מסמנים Not sold
+    await conn.query(
+      `UPDATE product 
+          SET product_status = 'Not sold'
+        WHERE product_id = ?`,
+      [product_id]
+    );
+
+    return res.json({ success: true, updated: true, product_status: "Not sold" });
+  } catch (err) {
+    console.error("❌ expire-unpaid error:", err.message);
+    return res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
 
 
 // ──────────────────────────────────────────────

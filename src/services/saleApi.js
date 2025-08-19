@@ -84,3 +84,14 @@ export async function getSellerDeliveryOptions(productId) {
   // { option: 'delivery' | 'delivery+pickup', pickupAddress?: { city, street, house_number, zip, name?, notes? } }
   return data;
 }
+
+
+
+// דירוג מוכר לאחר קבלת המוצר
+export async function rateSeller(productId, stars) {
+  const response = await axios.post(`/api/sale/rate-seller`, {
+    product_id: productId,
+    rating: stars, // 1..5 (יישמר כ- X.0 בשרת)
+  });
+  return response.data;
+}

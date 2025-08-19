@@ -183,7 +183,7 @@ const openDetails = (kind, raw) => {
       }
 
       case "funnel": {
-        openModal("משפך מכירות", (
+        openModal("נתוני מכירות", (
           <div>
             <p><b>שלב:</b> {p?.name}</p>
             <p><b>כמות:</b> {fmtInt(p?.value)}</p>
@@ -538,7 +538,7 @@ Edit
 
           {/* משפך מכירות */}
           <div className={styles.card}>
-            <h4 className={styles.cardTitle}>משפך מכירות</h4>
+            <h4 className={styles.cardTitle}>נתוני מכירות</h4>
             <div className={styles.chart}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart

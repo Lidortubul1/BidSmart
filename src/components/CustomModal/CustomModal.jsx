@@ -1,3 +1,4 @@
+// src/components/CustomModal/CustomModal.jsx
 import { createPortal } from "react-dom";
 import { useEffect } from "react";
 import styles from "./CustomModal.module.css";
@@ -14,8 +15,9 @@ export default function CustomModal({
   onExtra,
   onSkip,
   onClose,
-  hideClose = false,            // ברירת מחדל
-  disableBackdropClose = false, // ברירת מחדל
+  hideClose = false,
+  disableBackdropClose = false,
+  children, // 👈 הוספה
 }) {
   const handleBackgroundClick = (e) => {
     if (e.target === e.currentTarget && !disableBackdropClose) {
@@ -23,7 +25,6 @@ export default function CustomModal({
     }
   };
 
-  // סגירה ב-ESC רק אם לא חסום
   useEffect(() => {
     const onKey = (ev) => {
       if (ev.key === "Escape" && !disableBackdropClose) onClose?.();
@@ -33,21 +34,10 @@ export default function CustomModal({
   }, [disableBackdropClose, onClose]);
 
   return createPortal(
-    <div
-      className={styles.modalOverlay}
-      onClick={handleBackgroundClick}
-      role="dialog"
-      aria-modal="true"
-      dir="rtl"
-    >
+    <div className={styles.modalOverlay} onClick={handleBackgroundClick} role="dialog" aria-modal="true" dir="rtl">
       <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
-        {/* כפתור X יוצג רק אם לא ביקשת להסתיר */}
         {!hideClose && (
-          <button
-            className={styles.modalClose}
-            onClick={() => onClose?.()}
-            aria-label="Close"
-          >
+          <button className={styles.modalClose} onClick={() => onClose?.()} aria-label="Close">
             &times;
           </button>
         )}
@@ -55,7 +45,9 @@ export default function CustomModal({
         <h2 className={styles.modalTitle}>{title}</h2>
 
         <div className={styles.modalMessage}>
-          {typeof message === "string"
+          {children
+            ? children                                           // 👈 מציג children אם קיימים
+            : typeof message === "string"
             ? message.split("\n").map((line, i) => (
                 <span key={i}>
                   {line}
@@ -71,19 +63,16 @@ export default function CustomModal({
               {cancelText}
             </button>
           )}
-
           {extraButtonText && onExtra && (
             <button className={`${styles.modalButton} ${styles.modalExtra}`} onClick={onExtra}>
               {extraButtonText}
             </button>
           )}
-
           {skipText && onSkip && (
             <button className={`${styles.modalButton} ${styles.modalSkip}`} onClick={onSkip}>
               {skipText}
             </button>
           )}
-
           {confirmText && onConfirm && (
             <button className={`${styles.modalButton} ${styles.modalConfirm}`} onClick={onConfirm}>
               {confirmText}

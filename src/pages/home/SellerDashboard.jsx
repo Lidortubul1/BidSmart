@@ -26,7 +26,7 @@ const [searchQuery, setSearchQuery] = useState("");
             נהל מכירות בצורה חכמה, הוסף מוצרים וצפה בדוחות בלחיצת כפתור
           </p>
           <p>
-            המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה
+            המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת 
           </p>
           <div className={styles.actions}>
             <Link to="/add-product" className={styles.actionButton}>

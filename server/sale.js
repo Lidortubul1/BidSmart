@@ -72,6 +72,7 @@ if (!phone) {
         delivery_method === "delivery" ? apartment_number : null,
         delivery_method === "delivery" ? zip : null,
         delivery_method === "delivery" ? "ישראל" : null,
+        
         delivery_method,
         notes || null,
         winnerId,
@@ -338,7 +339,7 @@ router.put("/mark-delivered", async (req, res) => {
   try {
     const conn = await db.getConnection();
     const [result] = await conn.execute(
-      "UPDATE sale SET is_delivered = 1 WHERE product_id = ?",
+      "UPDATE sale SET is_delivered = 1, sent= 'yes' WHERE product_id = ?",
       [product_id]
     );
 
@@ -489,9 +490,6 @@ router.put("/mark-as-sent/:productId", async (req, res) => {
 
 
 
-
-// בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי
-// routes/sale.js (או כל ראוטר מתאים)
 // בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי
 router.get("/seller-delivery-options/:productId", async (req, res) => {
   try {
@@ -544,6 +542,87 @@ router.get("/seller-delivery-options/:productId", async (req, res) => {
     res.status(500).json({ option: "delivery", pickupAddress: null });
   }
 });
+
+
+// דירוג מוכר עבור מוצר (הקונה מדרג אחרי קבלה)
+// מעדכן גם את ממוצע הדירוג של המוכר בטבלת users
+// דירוג מוכר עבור מוצר (הקונה מדרג אחרי קבלה)
+// מעדכן גם את ממוצע הדירוג של המוכר בטבלת users
+router.post("/rate-seller", async (req, res) => {
+  try {
+    const { product_id, rating } = req.body;
+    if (!product_id || typeof rating === "undefined") {
+      return res.status(400).json({ success: false, message: "חסר product_id או rating" });
+    }
+
+    // נרמול דירוג לטווח 1..5
+    let val = Number(rating);
+    if (Number.isNaN(val)) val = 0;
+    if (val < 1) val = 1;
+    if (val > 5) val = 5;
+    const ratingToSave = Number(val.toFixed(1));
+
+    const conn = await db.getConnection();
+
+    // 1) לוודא שקיימת מכירה למוצר
+    const [saleRows] = await conn.query(
+      "SELECT sale_id FROM sale WHERE product_id = ? LIMIT 1",
+      [product_id]
+    );
+    if (!saleRows.length) {
+      return res.status(404).json({ success: false, message: "לא נמצאה רשומת מכירה לעדכון" });
+    }
+
+    // 2) עדכון הדירוג ברשומת המכירה
+    const [upd] = await conn.query(
+      "UPDATE sale SET rating = ? WHERE product_id = ?",
+      [ratingToSave, product_id]
+    );
+    if (upd.affectedRows === 0) {
+      return res.status(500).json({ success: false, message: "עדכון הדירוג נכשל" });
+    }
+
+    // 3) חישוב ממוצע דירוגים עדכני למוכר (ללא NULL)
+    const [avgRows] = await conn.query(
+      `
+      SELECT ROUND(AVG(s.rating), 1) AS avg_rating
+      FROM sale s
+      JOIN product p ON p.product_id = s.product_id
+      WHERE s.rating IS NOT NULL
+        AND p.seller_id_number = (
+              SELECT seller_id_number
+              FROM product
+              WHERE product_id = ? LIMIT 1
+        )
+      `,
+      [product_id]
+    );
+    const sellerAvg = avgRows?.[0]?.avg_rating ?? null; // אם אין עדיין דירוגים → NULL
+
+    // 4) עדכון שדה הדירוג של המוכר בטבלת users
+    await conn.query(
+      `
+      UPDATE users u
+      JOIN product p ON p.seller_id_number = u.id_number
+      SET u.rating = ?
+      WHERE p.product_id = ?
+        AND u.role = 'seller'
+      `,
+      [sellerAvg, product_id]
+    );
+
+    return res.json({
+      success: true,
+      message: "הדירוג נשמר",
+      rating: ratingToSave,
+      seller_avg: sellerAvg,
+    });
+  } catch (err) {
+    console.error("❌ rate-seller error:", err.message || err);
+    return res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
+
 
 
 

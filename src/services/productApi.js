@@ -145,3 +145,24 @@ export async function uploadProductImage(productId, file) {
   });
 }
 
+export async function expireUnpaidProduct(productId) {
+  const { data } = await axios.post("/api/product/expire-unpaid", {
+    product_id: productId,
+  });
+  return data;
+}
+
+
+
+// פרסום מחדש (Relist) – יצירת מוצר חדש עם אותם פרטים ותמונות
+export async function peRelistProduct(originalProductId, payload = {}) {
+  const body = { copy_images: true, ...payload };
+  const { data } = await axios.post(
+    `/api/product/product/${originalProductId}/relist`,
+    body,
+    { withCredentials: true }
+  );
+  return data;
+}
+
+

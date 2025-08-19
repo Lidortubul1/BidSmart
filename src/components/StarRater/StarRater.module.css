@@ -1,0 +1,28 @@
+/* src/components/StarRater/StarRater.module.css */
+
+
+.wrap {
+  display: flex;
+  gap: var(--gap, 8px);
+  font-size: var(--size, 28px);
+  line-height: 1;
+}
+
+.starBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;              /* אין שינוי פונט לא צפוי */
+  padding: 0;                 /* אין ריווח פנימי של כפתור דפדפן */
+  color: #c5c5c5;             /* כוכב “כבוי” */
+  transition: transform .1s ease, color .15s ease;
+}
+
+.starBtn[data-filled="true"] {
+  color: #f5b301;             /* כוכב “דולק” */
+}
+
+.starBtn:hover {
+  transform: scale(1.06);
+}
+

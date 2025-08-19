@@ -31,6 +31,7 @@ function formatDateAndTime(dateStr) {
     hour: "2-digit",
     minute: "2-digit",
   });
+  
   return `${formattedDate} בשעה ${formattedTime}`;
 }
 
@@ -63,7 +64,7 @@ function LiveAuction() {
   // קאונטדאונים
   const [startCountdown, setStartCountdown] = useState(null); // עד התחלה (שניות)
   const [auctionTimeLeft, setAuctionTimeLeft] = useState(null); // עד סוף (שניות)
-  const [roundTimeLeft, setRoundTimeLeft] = useState(15); // טיימר סבב של 15 שניות
+  const [roundTimeLeft, setRoundTimeLeft] = useState(null); // טיימר סבב של 15 שניות
 
   // מצב הצעות
   const [currentPrice, setCurrentPrice] = useState(0);
@@ -73,6 +74,10 @@ function LiveAuction() {
   // לוג צ'אט (אופציונלי)
   const [chatLog, setChatLog] = useState([]);
   const anonymizedUsers = useRef({});
+// בתוך הקומפוננטה LiveAuction, אחרי ש יש product/currentPrice/lastBidder:
+const openingPrice = Number(product?.price) || 0;
+const hasFirstBid  = (Number(currentPrice) > openingPrice) || !!lastBidder;
+
 
   // מודאל
   const [modalVisible, setModalVisible] = useState(false);
@@ -115,7 +120,19 @@ setAuctionEnded(ended);
 setWinnerId(data.winner_id_number || null);
 
 setCurrentPrice(Number(data.current_price) || 0);
-setLastBidder(ended ? data.winner_id_number : null); // <— ככה
+setLastBidder(ended ? data.winner_id_number : null);
+
+// לאפשר הצעות כברירת מחדל
+setCanBid(true);
+
+// אם המכירה בלייב אבל טרם הייתה הצעה – לא מפעילים טיימר סבב
+if ((data.is_live === 1) && !ended) {
+  const opening = Number(data.price) || 0;
+  const curr = Number(data.current_price) || 0;
+  if (curr <= opening) {
+    setRoundTimeLeft(null);
+  }
+}
 
 // טיימרים
 setAuctionTimeLeft(Math.max(Math.floor((endMs - now) / 1000), 0));
@@ -142,11 +159,14 @@ if (!live && !ended && now < startMs) {
     socket.emit("joinAuction", { productId });
 
 // כשהשרת מודיע שהמכירה התחילה
+// היה: setRoundTimeLeft(15);
 const onAuctionStarted = () => {
   setIsLive(true);
   setAuctionEnded(false);
-  setRoundTimeLeft(15);
   setStartCountdown(null);
+
+  // ⛔️ לא מפעילים 15ש׳ לפני הצעה ראשונה
+  setRoundTimeLeft(null);
 
   setAuctionTimeLeft((prev) => {
     if (!product) return prev;
@@ -156,10 +176,11 @@ const onAuctionStarted = () => {
   });
 };
 
+
  // כשהשרת מודיע שהמכירה הסתיימה
 const onAuctionEnded = ({ winnerId, finalPrice }) => {
   setAuctionEnded(true);
-  setIsLive(false); // חשוב כדי לא ליפול למסך "עוד לא התחילה"
+  setIsLive(false);
   setWinnerId(winnerId || null);
   setCurrentPrice(Number(finalPrice) || 0);
 };
@@ -191,17 +212,22 @@ const onAuctionEnded = ({ winnerId, finalPrice }) => {
     return () => socket.off("newBid", onNewBid);
   }, [buyerId]);
 
-  // טיימר סבב 15 שניות
-  useEffect(() => {
-    if (!isLive || auctionEnded) return;
-    if (roundTimeLeft <= 0) {
-      // סבב נגמר בלי הצעה – נסיים מכירה
-      finishAuctionOnServer();
-      return;
-    }
-    const t = setInterval(() => setRoundTimeLeft((v) => v - 1), 1000);
-    return () => clearInterval(t);
-  }, [isLive, auctionEnded, roundTimeLeft]);
+// טיימר סבב 15 שניות
+useEffect(() => {
+  // לא מריצים לפני הצעה ראשונה
+  if (!isLive || auctionEnded || !hasFirstBid) return;
+
+  if (roundTimeLeft == null) return; // עדיין לא הופעל
+  if (roundTimeLeft <= 0) {
+    finishAuctionOnServer();
+    return;
+  }
+  const t = setInterval(() => setRoundTimeLeft((v) => v - 1), 1000);
+  return () => clearInterval(t);
+}, [isLive, auctionEnded, hasFirstBid, roundTimeLeft]);
+
+
+
 
   // קאונטדאון לתחילת מכירה
   useEffect(() => {
@@ -216,7 +242,7 @@ const onAuctionEnded = ({ winnerId, finalPrice }) => {
       const t = setTimeout(() => {
         setIsLive(true);
         setAuctionEnded(false);
-        setRoundTimeLeft(15);
+        setRoundTimeLeft(null);
         if (product) {
           const startMs = new Date(product.start_date).getTime();
           const endMs = startMs + timeToSeconds(product.end_time) * 1000;
@@ -424,39 +450,55 @@ const onAuctionEnded = ({ winnerId, finalPrice }) => {
             </div>
           </div>
 
-          <div className={styles.centerPanel}>
-            <p className={styles.currentPrice}>מחיר נוכחי: {currentPrice} ₪</p>
-            <p className={styles.lastBidInfo}>
-              {lastBidder === buyerId
-                ? "נתת את ההצעה האחרונה!"
-                : "ניתנה הצעה ממשתמש! לחץ הגש הצעה כדי לזכות!"}
-            </p>
+     <div className={styles.centerPanel}>
+  <p className={styles.currentPrice}>
+    מחיר נוכחי: {currentPrice} ₪
+  </p>
 
-            {/* טיימר סבב 15ש׳ */}
-            <div className={styles.timerBar}>
-              <div
-                className={styles.timerFill}
-                style={{ width: `${(roundTimeLeft / 15) * 100}%` }}
-              ></div>
-            </div>
-            <p className={styles.timeText}>⌛ זמן להגשת הצעה: {roundTimeLeft} שניות</p>
+  {/* הודעת סטטוס על ההצעות */}
+  <p className={styles.lastBidInfo}>
+    {!hasFirstBid
+      ? "טרם הוגשה הצעה. היה/י הראשון/ה להגיש!"
+      : (lastBidder === buyerId
+          ? "נתת את ההצעה האחרונה!"
+          : "ניתנה הצעה ממשתמש! לחץ הגש הצעה כדי לזכות!")}
+  </p>
 
-            <button
-              className={styles.bidButton}
-              disabled={!canBid}
-              onClick={() => handleBid(Number(product.bid_increment))}
-            >
-              הגש הצעה של +{product.bid_increment} ₪
-            </button>
+  {/* טיימר 15ש׳ – רק אחרי הצעה ראשונה */}
+  {hasFirstBid && roundTimeLeft != null && (
+    <>
+      <div className={styles.timerBar}>
+        <div
+          className={styles.timerFill}
+          style={{ width: `${(roundTimeLeft / 15) * 100}%` }}
+        />
+      </div>
+      <p className={styles.timeText}>
+        ⌛ זמן להגשת הצעה: {roundTimeLeft} שניות
+      </p>
+    </>
+  )}
 
-            {/* טיימר כללי של המכירה */}
-            {auctionTimeLeft != null && auctionTimeLeft > 0 && (
-              <p className={styles.timeRemaining}>
-                המכירה תסתיים בעוד {String(minutesLeft).padStart(2, "0")}:
-                {String(secondsLeft).padStart(2, "0")} דקות
-              </p>
-            )}
-          </div>
+  {/* כפתור הגשה – טקסט משתנה לפני/אחרי ההצעה הראשונה */}
+  <button
+    className={styles.bidButton}
+    disabled={!canBid}
+    onClick={() => handleBid(Number(product.bid_increment))}
+  >
+    {hasFirstBid
+      ? `הגש הצעה של +${product.bid_increment} ₪`
+      : "הגש הצעה הראשונה"}
+  </button>
+
+  {/* טיימר כללי של המכירה */}
+  {auctionTimeLeft != null && auctionTimeLeft > 0 && (
+    <p className={styles.timeRemaining}>
+      המכירה תסתיים בעוד {String(minutesLeft).padStart(2, "0")}:
+      {String(secondsLeft).padStart(2, "0")} דקות
+    </p>
+  )}
+</div>
+
 
           <div className={styles.chatPanel}>
             <h4>הצעות בזמן אמת:</h4>

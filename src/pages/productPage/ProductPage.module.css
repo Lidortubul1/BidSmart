@@ -287,9 +287,22 @@
   box-shadow: 0 6px 18px rgba(0,0,0,0.04);
 }
 .orderTitle { margin: 0 0 10px; font-size: 1.1rem; font-weight: 700; }
-.orderRow { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed #eef2f7; }
 .orderRow:last-child { border-bottom: 0; }
-.orderLabel { min-width: 140px; color: #64748b; }
+.orderRow {
+  display: flex;
+  justify-content: flex-end; /* מיישר את כל התוכן לימין */
+  text-align: right;
+}
+
+.orderLabel {
+  font-weight: bold;
+  margin-left: 0.5rem;
+  text-align: right;
+}
+
+.orderRow span {
+  text-align: right;
+}
 
 .badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
 .toneGreen { background: #ecfdf5; color: #047857; }

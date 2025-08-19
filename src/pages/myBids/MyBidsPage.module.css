@@ -125,7 +125,10 @@
   gap: 16px;
   align-items: stretch;
 }
-.gridItem > * { height: 100%; display: flex; }
+.gridItem > * {   display: flex;
+  flex-direction: column;
+  height: 100%;
+ }
 
 .empty {
   background: #ffffff;
@@ -150,6 +153,8 @@
 .cardHead {
   display: grid; grid-template-columns: 110px 1fr;
   gap: 12px; padding: 12px; align-items: center; cursor: pointer;
+    min-height: 110px; /* תואם לגובה התמונה */
+
 }
 .cardImg { width: 110px; height: 110px; object-fit: cover; border-radius: 12px; }
 .noImg {
@@ -157,7 +162,10 @@
   display: grid; place-items: center; background:#f1f5f9; color:#94a3b8; font-size: .9rem;
 }
 .cardTitleWrap { display: flex; flex-direction: column; gap: 8px; }
-.cardTitle { margin: 0; font-size: 1.05rem; font-weight: 600; }
+.cardTitle { margin: 0; font-size: 1.05rem; font-weight: 600; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;}
 .cardBody { padding: 8px 12px 0; }
 .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: .95rem; }
 .label { color:#64748b; }
@@ -179,6 +187,7 @@
 .viewButton {
   background: #0f172a; color: #fff; padding: 10px 16px;
   border-radius: 999px; font-size: .9rem; border: none; cursor: pointer; transition: .2s ease;
+  
 }
 .viewButton:hover { background: #1f2937; }
 .primaryBtn {
