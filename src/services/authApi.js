@@ -70,11 +70,14 @@ export async function sendResetPasswordEmail(email) {
 }
 
 // שדרוג לתפקיד מוכר
+// services/authApi.js
 export function upgradeUserRole(formData) {
   return axios.put(`${BASE_URL}/upgrade-role`, formData, {
+    withCredentials: true,                      // <<< חשוב
     headers: { "Content-Type": "multipart/form-data" },
   });
 }
+
 
 // שינוי סיסמה לחשבון מחובר
 export async function changePassword(email, currentPassword, newPassword) {

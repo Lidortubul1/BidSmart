@@ -83,25 +83,25 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    await upgradeUserRole(formData);
+  const { data } = await upgradeUserRole(formData);
 
-    const updatedUser = {
-      ...user,
-      role: "seller",
-      delivery_options: deliveryOption,
-      phone: fullPhone,
-      ...(deliveryOption === "delivery+pickup" && {
-        city, street, house_number: houseNumber, apartment_number: apartmentNumber, zip, country: "ישראל",
-      }),
-      ...(!hasKyc && { id_number: idNumber }),
-    };
+ const updatedUser = data?.user ?? {
+    ...user,
+    role: "seller",
+    delivery_options: deliveryOption,
+    phone: `${phonePrefix}${phone7}`,
+    ...(deliveryOption === "delivery+pickup" && {
+      city, street, house_number: houseNumber, apartment_number: apartmentNumber, zip, country: "ישראל",
+    }),
+    ...(!hasKyc && { id_number: idNumber }),
+  };
 
-    setUser(updatedUser);
-    localStorage.setItem("user", JSON.stringify(updatedUser));
+  setUser(updatedUser);
+  localStorage.setItem("user", JSON.stringify(updatedUser));
 
-    openModal({ title: "הצלחה!", message: "הפכת למוכר! תועבר לדף הוספת מוצר" });
-    setTimeout(() => { setShowModal(false); navigate("/add-product"); }, 2000);
-  } catch (err) {
+  openModal({ title: "הצלחה!", message: "הפכת למוכר! תועבר לדף הוספת מוצר" });
+  setTimeout(() => { setShowModal(false); navigate("/add-product"); }, 2000);
+} catch (err) {
     console.error("שגיאה:", err);
     openModal({ title: "שגיאה", message: "שגיאה בעדכון. נסה שוב מאוחר יותר" });
   }
@@ -234,6 +234,7 @@ useEffect(() => {
           {/* טופס כתובת – רק כשיש איסוף עצמי */}
           {deliveryOption === "delivery+pickup" && (
             <>
+            <p>*הכתובת שתבחר תתעדכן בפרופיל שלך והקונים יראו אותה במודעות שלך</p>
               <div className={styles.inputGroup}>
                 <label>עיר:</label>
                 <input className={styles.input} value={city} onChange={(e)=>setCity(e.target.value)} />

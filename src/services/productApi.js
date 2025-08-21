@@ -152,8 +152,6 @@ export async function expireUnpaidProduct(productId) {
   return data;
 }
 
-
-
 // פרסום מחדש (Relist) – יצירת מוצר חדש עם אותם פרטים ותמונות
 export async function peRelistProduct(originalProductId, payload = {}) {
   const body = { copy_images: true, ...payload };
@@ -163,6 +161,29 @@ export async function peRelistProduct(originalProductId, payload = {}) {
     { withCredentials: true }
   );
   return data;
+}
+
+// --- Admin only: product moderation panel ---
+
+
+/** שליפת נתוני מוצר + מוכר (למנהל) */
+export async function adminFetchProduct(productId) {
+  const { data } = await axios.get(`/api/product/admin/${productId}`, {
+    withCredentials: true,
+  });
+  if (data?.success === false) throw new Error(data.message || "Failed to fetch admin product");
+  return data; // { success:true, product, seller }
+}
+
+/** עדכון סטטוס מוצר (blocked | report | (optional) for sale) */
+export async function adminUpdateProductStatus(productId, status, reason = "") {
+  const { data } = await axios.put(
+    `/api/product/admin/${productId}/status`,
+    { status, reason },
+    { withCredentials: true }
+  );
+  if (data?.success === false) throw new Error(data.message || "Failed to update product status");
+  return data; // { success:true, product_status }
 }
 
 

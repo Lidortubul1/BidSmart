@@ -12,6 +12,7 @@ const quotationRoutes = require("./quotation");
 const categoryRoutes = require("./categories.js");
 const saleRoutes = require("./sale.js");
 const userRoutes = require("./users");
+require("dotenv").config();
 const paymentRoutes = require("./payment");
 const adminRoutes = require("./admin.js");
 const acutionRoutes= require("./auction.js")

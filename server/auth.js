@@ -324,79 +324,88 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
     phone,
   } = req.body;
 
-  // אל תשתמש ב-undefined כשולחים ל-DB
+  // קובץ ת"ז (אם נשלח)
   const idCardPath = req.file ? req.file.filename : null;
 
   if (!email) {
-    return res.status(400).json({ message: "חסר אימייל" });
+    return res.status(400).json({ success: false, message: "חסר אימייל" });
   }
 
   const allowed = ["delivery", "delivery+pickup"];
-  const deliveryValue = allowed.includes(delivery_options) ? delivery_options : "delivery";
+  const deliveryValue = allowed.includes(delivery_options)
+    ? delivery_options
+    : "delivery";
 
-  // נרמול טלפון לספרות בלבד; אם אין – הפוך ל-null (לא undefined)
+  // נרמול טלפון לספרות בלבד
   const phoneValueRaw = typeof phone === "string" ? phone.replace(/\D/g, "") : "";
   const phoneValue = phoneValueRaw.length > 0 ? phoneValueRaw : null;
-
-  // אם טלפון חובה:
   if (phoneValue === null) {
-    return res.status(400).json({ message: "חסר טלפון" });
+    return res.status(400).json({ success: false, message: "חסר טלפון" });
   }
 
-  // נרמול ת"ז ל-null אם לא נשלחה
-  const idNumberNorm = typeof id_number === "string" && id_number.trim()
-    ? id_number.trim()
-    : null;
+  // נרמול ת"ז
+  const idNumberNorm =
+    typeof id_number === "string" && id_number.trim() ? id_number.trim() : null;
 
   try {
     const conn = await db.getConnection();
 
+    // קיום משתמש + בדיקת KYC קיים
     const [rows] = await conn.execute(
       "SELECT id, id_number, id_card_photo FROM users WHERE email = ?",
       [email]
     );
     if (rows.length === 0) {
-      return res.status(404).json({ message: "משתמש לא נמצא" });
+      return res.status(404).json({ success: false, message: "משתמש לא נמצא" });
     }
     const hasKycAlready = !!(rows[0].id_number && rows[0].id_card_photo);
 
+    // אם אין KYC במערכת – חובה לשלוח ת"ז + קובץ
     if (!hasKycAlready) {
       if (!idNumberNorm || !idCardPath) {
-        return res.status(400).json({ message: "נא למלא תעודת זהות ולצרף קובץ" });
+        return res
+          .status(400)
+          .json({ success: false, message: "נא למלא תעודת זהות ולצרף קובץ" });
       }
     }
 
-    // שים לב: אין כאן undefined. רק ערכים בוליאניים/מחרוזות/NULL.
+    // עדכון תפקיד ושדות בסיס (ללא undefined)
     await conn.execute(
       `
       UPDATE users
       SET
         role = 'seller',
         delivery_options = ?,
-        id_number = IF(?, ?, id_number),
-        id_card_photo = IF(?, ?, id_card_photo),
-        phone = IF(?, ?, phone)
+        id_number      = IF(?, ?, id_number),
+        id_card_photo  = IF(?, ?, id_card_photo),
+        phone          = IF(?, ?, phone)
       WHERE email = ?
       `,
       [
         deliveryValue,
 
         // id_number
-        idNumberNorm !== null, idNumberNorm,
+        idNumberNorm !== null,
+        idNumberNorm,
 
         // id_card_photo
-        idCardPath !== null, idCardPath,
+        idCardPath !== null,
+        idCardPath,
 
         // phone
-        phoneValue !== null, phoneValue,
+        phoneValue !== null,
+        phoneValue,
 
         email,
       ]
     );
 
+    // עדכון/ניקוי כתובת חנות לפי האפשרות
     if (deliveryValue === "delivery+pickup") {
       if (!city || !street || !house_number || !apartment_number || !zip) {
-        return res.status(400).json({ message: "נא למלא כתובת חנות לאיסוף עצמי" });
+        return res
+          .status(400)
+          .json({ success: false, message: "נא למלא כתובת חנות לאיסוף עצמי" });
       }
       const countryValue =
         typeof country === "string" && country.trim() ? country.trim() : "ישראל";
@@ -421,10 +430,51 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
       );
     }
 
-    return res.json({ message: "המשתמש עודכן בהצלחה", delivery_options: deliveryValue });
+    // --- שליפה לאחר עדכון + רענון ה-session ---
+    const [updatedRows] = await conn.execute(
+      `SELECT email, role, id_number, id_card_photo, profile_photo,
+              first_name, last_name, phone, country, zip, city, street,
+              house_number, apartment_number, status, delivery_options
+       FROM users
+       WHERE email = ?
+       LIMIT 1`,
+      [email]
+    );
+    const u = updatedRows[0];
+
+    // שמירה ב-session כדי שההרשאות יעבדו מיד
+    req.session.user = {
+      email: u.email,
+      role: u.role,
+      id_number: u.id_number,
+      id_card_photo: u.id_card_photo,
+      profile_photo: u.profile_photo,
+      first_name: u.first_name,
+      last_name: u.last_name,
+      phone: u.phone,
+      country: u.country,
+      zip: u.zip,
+      city: u.city,
+      street: u.street,
+      house_number: u.house_number,
+      apartment_number: u.apartment_number,
+      status: u.status,
+      delivery_options: u.delivery_options,
+    };
+
+    // שמירה מפורשת (אופציונלי; מועיל ב-dev)
+    req.session.save((err) => {
+      if (err) console.error("session save error:", err);
+    });
+
+    return res.json({
+      success: true,
+      message: "המשתמש עודכן בהצלחה",
+      user: req.session.user,
+    });
   } catch (err) {
     console.error("שגיאה בעדכון משתמש:", err);
-    return res.status(500).json({ message: "שגיאה בשרת" });
+    return res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
 

@@ -1,126 +1,68 @@
-.container {
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+/* פריסה כללית לדף */
+.page {
   direction: rtl;
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
+
+/* כותרת עליונה */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.headerText { display: grid; gap: 4px; }
 
 .title {
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #333;
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.3;
+  color: #0f172a; /* slate-900 */
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #fafafa;
+.subtitle {
+  margin: 0;
+  color: #475569;  /* slate-600 */
+  font-size: 14px;
 }
 
-.table th,
-.table td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.table th {
-  background-color: #f0f4f8;
-}
-
-.status {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-weight: bold;
-  display: block;
-}
-
-.status.new {
-  background-color: #ffbcbc;
-  color: #d70000;
-}
-
-.status.in_progress {
-  background-color: #fff3cd;
-  color: #8a6d3b;
-}
-
-.status.resolved {
-  background-color: #d4edda;
-  color: #2e7d32;
-}
-
-.viewBtn {
-  padding: 6px 14px;
-  border: none;
-  background-color: #1a89ff;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.viewBtn:hover {
-  background-color: #006fe0;
-}
-/* כפתורי מיון  */
-.filters {
+/* פעולות בכותרת (עתידי) */
+.headerActions {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-    justify-content: center;
-
+  gap: 8px;
 }
 
-.filters button {
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  background-color: #f5f5f5;
-  cursor: pointer;
-  width: 200px;
-  color: #000000;
-  margin-right: 10px;;
-  font-weight: 500;
-  transition: 0.3s;
+/* כרטיס התוכן שמכיל את הלוח */
+.contentCard {
+  background: #ffffff;
+  border: 1px solid #e7ebf0;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgb(15 23 42 / 6%);
 }
 
-.filters button:hover {
-  background-color: #6bb2fe;
-    color: white;
-
+/* דף ללא הרשאה */
+.noAccess {
+  direction: rtl;
+  padding: 48px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  color: #334155; /* slate-700 */
 }
 
-.filters .active {
-  background-color: #1a89ff;
-  color: white;
-  border-color: #1a89ff;
+.noAccess h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  color: #0f172a;
 }
 
-
-/* כפתור של שלח הודעה חדשה */
-.newMessageBtn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 25px;
-  background-color: #000000; /* רקע שחור */
-  color: #ffffff; /* טקסט לבן */
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-bottom: 1rem;
-  display: block;
-width: 250px;
-  align-self: center;
-  margin: 1rem auto; /* מרכז את הכפתור */
-
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.newMessageBtn:hover {
-  background-color: #333333;
+.noAccess p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
 }

@@ -9,7 +9,7 @@ const upload = multer({ storage });
 const sendMail = require("../server/sendMail");
 
 router.use((req, res, next) => {
-  console.log("API CALL", req.method, req.originalUrl);
+  // console.log("API CALL", req.method, req.originalUrl);
   next();
 });
 

@@ -1,6 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import axios from "axios";
+import {  Routes, Route } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 // דפים
@@ -23,7 +21,7 @@ import ResetPasswordPage from "../pages/ResetPassword/ResetPasswordPage";
 import AdminUsers from "../pages/AdminUsers/AdminUsers.jsx";
 import AdminCategories from "../pages/AdminCategories/AdminCategories.jsx";
 import AdminProductsPage from "../pages/AdminProductsPage/AdminProductsPage.jsx";
-import AdminMessages from "../pages/AdminMessages/AdminMessages.jsx";
+import AdminMessages from "../pages/AdminMessages/AdminMessages.jsx"
 import AdminStatistics from "../pages/AdminStatistics/AdminStatistics.jsx";
 
 // קומפוננטות
@@ -43,8 +41,10 @@ import "./App.css";
 
 function App() {
 
-
-
+  const { user } = useAuth();
+const isAdmin = user && user.role === "admin";
+// const isSeller = user && user.role === "seller";
+// const isBuyer = user && user.role === "buyer";
   return (
     <div className="App">
       <header>
@@ -105,8 +105,7 @@ function App() {
       </div>
 
       <AIChat />
-
-      <Footer />
+      { !isAdmin && <Footer />}
     </div>
   );
 }

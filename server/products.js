@@ -285,12 +285,96 @@ async function withConn(run) {
     return await run(conn);
   } finally {
     // אם זה חיבור שהגיע מ-POOL יש מתחתיו connection.release
-    if (conn?.connection && typeof conn.connection.release === "function") {
-      try { conn.release(); } catch {}
-    }
+     safeRelease(conn);
     // אם זה חיבור גלובלי (createConnection) – אל תסגרי אותו כאן! (אל תקראי end)
   }
 }
+
+
+// --- הוסיפו פעם אחת בקובץ (ליד withConn) ---
+function safeRelease(_conn) {
+  try {
+    if (!conn) return;
+    // חיבור מ־POOL: יש חיבור תחתון עם release
+    if (conn.connection && typeof conn.connection.release === "function") {
+      // גם conn.release וגם conn.connection.release יעבדו כאן
+      conn.release();
+      return;
+    }
+    // חיבור בודד (createConnection): סוגרים עם end()
+    if (typeof conn.end === "function") {
+      conn.end();
+    }
+  } catch (e) {
+    // שקט
+  }
+}
+
+
+// ---- מנהל בלבד ----
+function ensureAdmin(req, res, next) {
+  const u = req.session?.user;
+  if (!u || u.role !== "admin") {
+    return res.status(403).json({ success: false, message: "Admin only" });
+  }
+  next();
+}
+
+// GET /api/product/admin/:id
+router.get("/admin/:id", ensureAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const conn = await db.getConnection();
+
+    const [rows] = await conn.execute(
+      `SELECT 
+         p.*,
+         u.id_number         AS seller_id_number,
+         u.first_name        AS seller_first_name,
+         u.last_name         AS seller_last_name,
+         u.email             AS seller_email,
+         u.phone             AS seller_phone,
+         u.status            AS seller_status,
+         u.rating            AS seller_rating
+       FROM product p
+       JOIN users u ON u.id_number = p.seller_id_number
+       WHERE p.product_id = ?
+       LIMIT 1`,
+      [id]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
+    }
+
+    const product = rows[0];
+
+    // תמונות
+    const [images] = await conn.execute(
+      "SELECT image_url FROM product_images WHERE product_id = ?",
+      [id]
+    );
+    product.images = images.map(i => i.image_url);
+
+    // אריזה נוחה לפרונט
+    const seller = {
+      id_number: product.seller_id_number,
+      first_name: product.seller_first_name,
+      last_name: product.seller_last_name,
+      email: product.seller_email,
+      phone: product.seller_phone,
+      status: product.seller_status,
+      rating: product.seller_rating ?? 0,
+    };
+
+    return res.json({ success: true, product, seller });
+  } catch (e) {
+    console.error("GET /api/product/admin/:id error:", e);
+    return res.status(500).json({ success: false, message: "DB error" });
+  }
+});
+
 
 
 // ---- הרשאה: רק אדמין או המוכר של המוצר ----
@@ -494,9 +578,8 @@ router.post("/product/:id/relist", ensureOwnerOrAdmin, async (req, res) => {
     console.error("שגיאה ב-Relist:", e);
     return res.status(500).json({ success: false, message: "שגיאה בפרסום מחדש" });
   } finally {
-    if (conn && typeof conn.release === "function") {
-      try { conn.release(); } catch {}
-    }
+     safeRelease(conn);
+
   }
 });
 
@@ -678,14 +761,18 @@ router.post("/expire-unpaid", async (req, res) => {
 // מחיקת כל ההצעות, ושליחת מייל לכל הנרשמים/מציעים
 // נתיב בצד-לקוח: POST /api/product/product/:id/cancel
 // ──────────────────────────────────────────────
+// server/routes/product.js  (באותו ראוטר שלך)
 router.post("/product/:id/cancel", ensureOwnerOrAdmin, async (req, res) => {
   const { id } = req.params;
+  const { reason = "" } = req.body || {};
+  const user = req.session?.user;           // ← מי יזם
+  const initiator = user?.role === "admin" ? "admin" : "seller";
+
   const conn = await db.getConnection();
 
   try {
     await conn.beginTransaction();
 
-    // ודא שהמוצר קיים
     const [prodRows] = await conn.execute(
       "SELECT product_id, product_name, product_status, start_date FROM product WHERE product_id = ? FOR UPDATE",
       [id]
@@ -695,9 +782,9 @@ router.post("/product/:id/cancel", ensureOwnerOrAdmin, async (req, res) => {
       return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
     }
     const product = prodRows[0];
-const niceStart = formatHebDateTime(product.start_date);
+    const niceStart = formatHebDateTime(product.start_date);
 
-    // שלוף את כל המיילים של מי שנרשם/הגיש הצעה
+    // כל מי שהגיש/נרשם להצעות
     const [mailRows] = await conn.execute(
       `SELECT DISTINCT u.email
          FROM quotation q
@@ -707,35 +794,39 @@ const niceStart = formatHebDateTime(product.start_date);
     );
     const emails = mailRows.map(r => r.email).filter(Boolean);
 
-    // עדכן סטטוס ל-blocked ומחק את כל ההצעות
-    await conn.execute(
-      "UPDATE product SET product_status = 'blocked' WHERE product_id = ?",
-      [id]
-    );
+    // חסימה ומחיקת הצעות
+    await conn.execute("UPDATE product SET product_status = 'blocked' WHERE product_id = ?", [id]);
     await conn.execute("DELETE FROM quotation WHERE product_id = ?", [id]);
 
     await conn.commit();
 
-    // שליחת מיילים - באותה צורה שבה אתה שולח בהרשמה (Gmail service)
+    // --- שליחת מיילים לקונים שנרשמו/הציעו ---
     if (emails.length > 0) {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
           user: "bidsmart2025@gmail.com",
-          pass: "zjkkgwzmwjjtcylr", // כמו בקוד הקיים שלך
+          pass: "zjkkgwzmwjjtcylr",
         },
       });
 
+      const subject =
+        initiator === "admin"
+          ? "עדכון: המוצר אינו זמין למכירה"
+          : "עדכון: המכירה הפומבית בוטלה";
+
+      const text =
+        initiator === "admin"
+          ? `שלום,\nהמוצר "${product.product_name}" נחסם על ידי הנהלת BidSmart ולכן אינו זמין למכירה. כל ההרשמות וההצעות בוטלו.\n${reason ? `\nהערת הנהלה: ${reason}\n` : ""}\nצוות BidSmart`
+          : `שלום,\nהמכירה הפומבית של המוצר "${product.product_name}" שהייתה אמורה להתקיים בתאריך ${niceStart} בוטלה על ידי בעל המוצר.\nאנו מתנצלים על חוסר הנוחות.\n\nצוות BidSmart`;
+
       const mailOptions = {
-  from: "BidSmart <bidsmart2025@gmail.com>",
-  bcc: emails.join(","), // כדי לא לחשוף כתובות
-  subject: "עדכון: המכירה הפומבית בוטלה",
-  text:
-    `שלום,\n` +
-    `המכירה הפומבית של המוצר "${product.product_name}" שהייתה אמורה להתקיים בתאריך ${niceStart} בוטלה על ידי בעל המוצר.\n` +
-    `אנו מתנצלים על חוסר הנוחות.\n\n` +
-    `צוות BidSmart`,
-};
+        from: "BidSmart <bidsmart2025@gmail.com>",
+        bcc: emails.join(","),
+        subject,
+        text,
+      };
+
       transporter.sendMail(mailOptions, (err, info) => {
         if (err) console.error("שגיאה בשליחת מיילי ביטול:", err);
         else console.log("מייל ביטול נשלח:", info.response);
@@ -744,19 +835,23 @@ const niceStart = formatHebDateTime(product.start_date);
 
     return res.json({
       success: true,
-      message: "המכירה בוטלה, ההצעות נמחקו ונשלחו מיילים למשתתפים (אם היו).",
+      message:
+        initiator === "admin"
+          ? "המוצר נחסם, ההצעות נמחקו ונשלחה הודעה לנרשמים."
+          : "המכירה בוטלה, ההצעות נמחקו ונשלחו מיילים למשתתפים.",
       notified: emails.length,
+      initiator,
     });
   } catch (e) {
-    console.error("שגיאה בביטול מכירה:", e);
+    console.error("שגיאה בביטול/חסימה:", e);
     try { await conn.rollback(); } catch {}
     return res.status(500).json({ success: false, message: "שגיאה בביטול מכירה" });
-  } finally {
-    // שחרור החיבור לפי סוגו (pool/plain)
-    if (typeof conn.release === "function") conn.release();
-    else if (typeof conn.end === "function") conn.end();
-  }
+ } finally {
+  safeRelease(conn);
+}
+
 });
+
 
 
 

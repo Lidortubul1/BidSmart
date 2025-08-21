@@ -1,0 +1,51 @@
+/* TicketsBoard.module.css */
+
+/* פריסת הדף הכללית */
+.board {
+  direction: rtl;
+  display: grid;
+  gap: 16px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.field { display:flex; flex-direction: column; gap:6px; }
+
+.label { font-size: 12px; color:#666; }
+
+.select, .search {
+  height: 36px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 0 10px;
+  font: inherit;
+  background: #fff;
+}
+
+.search { height: 36px; }
+
+.refreshWrap { display:flex; align-items: end; }
+.refreshBtn {
+  background:#111; color:#fff; border:none; border-radius:30px;
+  padding: 10px 16px; cursor: pointer;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.loading, .error, .empty {
+  padding: 16px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background:#fff;
+}
+
+.error { color:#c80000; }
