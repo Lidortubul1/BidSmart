@@ -18,6 +18,8 @@ const acutionRoutes= require("./auction.js")
 //מנהל ה (Real-time) עם המשתמשים דרך socket.io
 const { setupSocket } = require("./socketManager.js");
 const sellerRoutes = require("./seller.js");
+const ContactsRoutes = require("./contacts.js");
+
 const db = require("./database.js");
 //פונקציות שרצות באופן קבוע אוטומטית
 const { checkIsLiveProducts, notifyUpcomingAuctions,closeExpiredAuctions } = require("./liveChecker.js");
@@ -83,7 +85,7 @@ app.use("/api/admin", adminRoutes); // ניהול מוצרים
 app.use("/api/payment", paymentRoutes); // תשלומים דרך PayPal
 app.use("/api/users", userRoutes); // משתמשים ופרופילים
 app.use("/api/auction",acutionRoutes); // מכירה פומבית
-
+app.use("/api/contacts", ContactsRoutes); // צור קשר
 
 app.use("/api/ai-chat", aiChatRoutes);//נציגת AI
 // בדיקת חיבור למסד הנתונים והדפסת שם הדאטהבייס

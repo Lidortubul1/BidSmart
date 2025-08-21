@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { createOrder } from "../../services/paymentApi";
+import Contacts from "../../components/contacts/contacts"
 
 import styles from "./ProductPage.module.css";
 
@@ -209,6 +210,9 @@ function ProductPage() {
   const [saleForProduct, setSaleForProduct] = useState(null); // רשומת sale של המוצר (ללא קשר למשתמש)
   const [isWinnerFromProduct, setIsWinnerFromProduct] = useState(false); // האם המשתמש זכה לפי product
   const [isUnpaidWinner, setIsUnpaidWinner] = useState(false);           // האם הזוכה טרם שילם
+const [showReportForm, setShowReportForm] = useState(false);//הצגת טופס דיווח
+const [loginIntent, setLoginIntent] = useState(null); // "register" | "report" | null
+const [reportSent, setReportSent] = useState(false);
 
   /* ----- הרשמה/זהות ----- */
   const [isRegistered, setIsRegistered] = useState(false);
@@ -216,8 +220,8 @@ function ProductPage() {
   const [idPhotoFile, setIdPhotoFile] = useState(null);
   const [showIdForm, setShowIdForm] = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
-  const [shouldContinueRegistration, setShouldContinueRegistration] = useState(false);
 
+  
   /* ----- גלריה ----- */
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -484,41 +488,59 @@ function ProductPage() {
       });
     }
   };
+function handleToggleReport() {
+  if (reportSent) return; // כבר נשלח
+  if (!user || !user.email) {
+    setLoginIntent("report");
+    openModal({
+      title: "התחברות נדרשת",
+      message: "כדי לדווח על מוצר יש להתחבר",
+      confirmText: "התחברות",
+      onConfirm: () => {
+        setShowModal(false);
+        setShowLoginPopup(true);
+      },
+      extraButtonText: "הרשמה",
+      onExtra: () => navigate("/register"),
+    });
+    return;
+  }
+  setShowReportForm((v) => !v);
+}
 
-  const handleRegisterToSale = useCallback(() => {
-    // דרישת התחברות
-    if (!user || !user.email) {
-      openModal({
-        title: "התחברות נדרשת",
-        message: "כדי להירשם למוצר זה, עליך להתחבר או להירשם לאתר",
-        confirmText: "התחברות",
-        onConfirm: () => {
-          setShowModal(false);
-          setShowLoginPopup(true);
-        },
-        extraButtonText: "הרשמה",
-        onExtra: () => navigate("/register"),
-      });
-      return;
-    }
 
-    // דרישת ת״ז + צילום תעודה
-    if (!user.id_number || !user.id_card_photo) {
-      setShowIdForm(true);
-      return;
-    }
 
-    // כבר יש ת״ז + צילום
-    completeRegistration(user.id_number);
-  }, [user, navigate]);
+const handleRegisterToSale = useCallback((currentUser) => {
+  const u = currentUser ?? user;
 
-  // המשך הרשמה אוטומטי לאחר התחברות
-  useEffect(() => {
-    if (user && shouldContinueRegistration) {
-      handleRegisterToSale();
-      setShouldContinueRegistration(false);
-    }
-  }, [user, shouldContinueRegistration, handleRegisterToSale]);
+  // דרישת התחברות
+  if (!u || !u.email) {
+    setLoginIntent("register");
+    openModal({
+      title: "התחברות נדרשת",
+      message: "כדי להירשם למוצר זה, עליך להתחבר או להירשם לאתר",
+      confirmText: "התחברות",
+      onConfirm: () => {
+        setShowModal(false);
+        setShowLoginPopup(true);
+      },
+      extraButtonText: "הרשמה",
+      onExtra: () => navigate("/register"),
+    });
+    return;
+  }
+
+  // דרישת ת״ז + צילום תעודה
+  if (!u.id_number || !u.id_card_photo) {
+    setShowIdForm(true);
+    return;
+  }
+
+  // כבר יש ת״ז + צילום
+  completeRegistration(u.id_number);
+}, [user, navigate]);
+
+
 
   // קביעת זכייה לפי product.winner_id_number
   useEffect(() => {
@@ -937,6 +959,44 @@ function ProductPage() {
                 {renderStars(sellerRating)}
                 <span>({sellerRating})</span>
               </div>
+
+{/* פתיחת טופס דיווח בלחיצה */}
+<div className={styles.infoNote} style={{ marginTop: 16 }}>
+  {reportSent ? (
+    <div className={styles.success}>
+      הודעה נשלחה להנהלה — תודה רבה על הדיווח! 🙏
+    </div>
+  ) : (
+    <>
+      <button
+        type="button"
+        className={styles.linkLikeButton}
+        onClick={handleToggleReport}
+      >
+        נתקלת בבעיה במוצר?
+      </button>
+
+      {showReportForm && (
+        <div style={{ marginTop: 12 }}>
+          <Contacts
+            variant="compact"
+            mode="report"
+            productId={product.product_id}
+            title="דיווח על מוצר זה"
+            readOnlyUserFields={true}
+            onDone={() => {
+              setShowReportForm(false);
+              setReportSent(true); // ← כאן אנו מחליפים את הכפתור בהודעת תודה
+            }}
+          />
+        </div>
+      )}
+    </>
+  )}
+</div>
+
+
+
             </>
           )}
         </div>
@@ -972,14 +1032,24 @@ function ProductPage() {
       {showLoginPopup && (
         <CustomModal
           message={
-            <LoginForm
-              onSuccess={(userFromLogin) => {
-                setUser(userFromLogin);
-                setShowLoginPopup(false);
-                setShowModal(false);
-                setShouldContinueRegistration(true);
-              }}
-            />
+       <LoginForm
+  onSuccess={(userFromLogin) => {
+    setUser(userFromLogin);
+    setShowLoginPopup(false);
+    setShowModal(false);
+
+    if (loginIntent === "register") {
+      // משתמש שזה עתה התחבר — מעבירים אותו ישירות כדי לא ליפול לסטייט ישן
+      handleRegisterToSale(userFromLogin);
+    } else if (loginIntent === "report") {
+      setShowReportForm(true); // רק לפתוח טופס דיווח, בלי רישום למכרז
+    }
+
+    setLoginIntent(null);
+  }}
+/>
+
+
           }
           onClose={() => setShowLoginPopup(false)}
           hideClose={false}

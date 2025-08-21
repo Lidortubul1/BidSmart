@@ -36,9 +36,6 @@ router.get("/", async (req, res) => {
 
 
 
-
-
-
 // בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי
 // בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי (כולל דירוג המוכר)
 router.get("/seller-delivery-options/:productId", async (req, res) => {
@@ -675,6 +672,7 @@ router.post("/expire-unpaid", async (req, res) => {
 });
 
 
+
 // ──────────────────────────────────────────────
 // ביטול מכירה: product_status => 'blocked',
 // מחיקת כל ההצעות, ושליחת מייל לכל הנרשמים/מציעים
@@ -759,6 +757,8 @@ const niceStart = formatHebDateTime(product.start_date);
     else if (typeof conn.end === "function") conn.end();
   }
 });
+
+
 
 
 function formatHebDateTime(dt, tz = "Asia/Jerusalem") {

@@ -31,10 +31,8 @@
 }
 
 label {
-  font-weight: bold;
   display: flex;
   flex-direction: column;
-  font-size: 0.95rem;
 }
 
 input,

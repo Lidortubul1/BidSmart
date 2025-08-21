@@ -1,11 +1,11 @@
 .footer {
-  background-color: #f0f0f0; /* רקע לבן-אפור כמו hero */
+  background-color: #EAE7DC; /* רקע לבן-אפור כמו hero */
   color: #222;               /* טקסט שחור כהה */
   text-align: center;
   padding: 20px 0;
   width: 100%;
   margin-top: auto;
+  position: relative;
   font-size: 0.9rem;
-  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05); /* פס עדין */
   font-family: "Heebo", sans-serif;
 }

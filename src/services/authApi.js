@@ -8,7 +8,6 @@ axios.defaults.withCredentials = true;
 const BASE_URL = "/api/auth";
 
 // פונקציית התחברות
-
 export async function loginUser(email, password) {
   try {
     const response = await axios.post(`${BASE_URL}/login`, { email, password });

@@ -23,11 +23,6 @@ h2 {
   margin-bottom: 19px;
 }
 
-label {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #21243d;
-}
 
 input, select, textarea {
   border: 1.5px solid #e5eaf2;

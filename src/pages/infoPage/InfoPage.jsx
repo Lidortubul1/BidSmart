@@ -1,6 +1,7 @@
 // InfoPage.jsx
 import React, { useState } from "react";
 import styles from "./infoPage.module.css"
+import Contacts from "../../components/contacts/contacts";
 
 function InfoPage() {
   const [formData, setFormData] = useState({
@@ -72,41 +73,8 @@ function InfoPage() {
             <li>JWT לאימות והרשאות</li>
           </ul>
         </section>
+    
 
-        <section className={styles.section}>
-          <h2>צור קשר</h2>
-          <p>יש לכם שאלה? בעיה? כתבו לנו:</p>
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <input
-              type="text"
-              name="name"
-              placeholder="שם מלא"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="אימייל"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-            <textarea
-              name="message"
-              placeholder="הודעה"
-              rows="5"
-              value={formData.message}
-              onChange={handleChange}
-              required
-            />
-            <button type="submit">שלח</button>
-            {submitted && (
-              <p className={styles.success}>✅ ההודעה נשלחה בהצלחה!</p>
-            )}
-          </form>
-        </section>
       </div>
     </div>
   );

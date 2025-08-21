@@ -2,7 +2,7 @@
   width: 100%;
   background-color: transparent;
   direction: rtl;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .categoryBar {
@@ -10,7 +10,7 @@
   justify-content: flex-start;
   align-items: center;
   gap: 12px;
-  padding: 12px 24px;
+  padding: 30px 24px;
   background-color: transparent;
   overflow-x: auto;
   border-bottom: 1px solid #ccc;
