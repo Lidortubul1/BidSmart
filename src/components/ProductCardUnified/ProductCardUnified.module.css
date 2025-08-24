@@ -59,7 +59,6 @@
 
 
 
-
 /* באדג'ים וצבעים – ללא שינוי */
 .badge {
   --tone-bg: #eef2ff;
@@ -86,6 +85,8 @@
 .toneGreen { --tone-bg: #e8f9f0; --tone-br: #b6eccd; --tone-fg: #0a7a43; }
 .toneGray  { --tone-bg: #f3f6fb; --tone-br: #e5ecf7; --tone-fg: #475569; }
 .toneAmber { --tone-bg: #fff5e7; --tone-br: #ffe2b8; --tone-fg: #a36200; }
+.toneRed   { --tone-bg: #ffffff; --tone-br: #c94e47; --tone-fg: #991b1b; }
+
 
 .actions {
   order: 2;
@@ -97,6 +98,7 @@
 /* כפתור */
 .viewButton {
   padding: 10px 14px;
+  width: 100%;
   border-radius: 12px;
   border: 1px solid #5d5d5d;
   background: linear-gradient(90deg, #000000 0%, #0e0e0e 100%);

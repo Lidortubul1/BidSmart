@@ -33,10 +33,9 @@ function todayStr() {
   return `${y}-${m}-${day}`;
 }
 
-/** שעה נוכחית מעוגלת לדקה הקרובה HH:MM (ל־min בשדה time כשנבחר היום) */
+/** שעה נוכחית HH:MM (ל־min בשדה time כשנבחר היום) */
 function nowTimeStr() {
   const d = new Date();
-  // עיגול למעלה לדקה הקרובה
   d.setSeconds(0);
   d.setMilliseconds(0);
   const h = String(d.getHours()).padStart(2, "0");
@@ -55,23 +54,23 @@ export default function ProductEditor({ productId, onSaved, onCancel }) {
   const [cats, setCats] = useState([]);
   const [images, setImages] = useState([]);
   const [cancelling, setCancelling] = useState(false);
-// למעלה עם הסטייטים
-// ערכי עליית הצעה מותרים בלבד
-const BID_STEPS = [10, 20, 50, 100, 500, 1000];
 
-// סטייט לסכום עליית הצעה (עם ברירת מחדל בטוחה)
-const [bidIncrement, setBidIncrement] = useState(() => {
-  const initial = Number(product?.bid_increment ?? 10);
-  return BID_STEPS.includes(initial) ? initial : 10;
-});
-useEffect(() => {
-  if (!product) return;
-  const initial = Number(product.bid_increment ?? 10);
-  setBidIncrement(BID_STEPS.includes(initial) ? initial : 10);
-}, [product]);
+  // ערכי עליית הצעה מותרים בלבד
+  const BID_STEPS = [10, 20, 50, 100, 500, 1000];
 
-  // מצב: האם אנו במצב "פרסום מחדש" (יצירת מוצר חדש) או עריכה רגילה
-  const [relistMode, setRelistMode] = useState(false); // 🆕
+  // סטייט לסכום עליית הצעה
+  const [bidIncrement, setBidIncrement] = useState(() => {
+    const initial = Number(product?.bid_increment ?? 10);
+    return BID_STEPS.includes(initial) ? initial : 10;
+  });
+  useEffect(() => {
+    if (!product) return;
+    const initial = Number(product.bid_increment ?? 10);
+    setBidIncrement(BID_STEPS.includes(initial) ? initial : 10);
+  }, [product]);
+
+  // מצב רליסט (פרסום מחדש)
+  const [relistMode, setRelistMode] = useState(false);
 
   // ——— ערכי טופס ———
   const [product_name, setName] = useState("");
@@ -86,9 +85,9 @@ useEffect(() => {
   const [priceMode, setPriceMode] = useState("gross"); // 'gross' | 'net'
   const [priceGross, setPriceGross] = useState("");    // כולל מע״מ
   const [priceNet, setPriceNet] = useState("");        // לפני מע״מ
-//העלאת תמונה 
 
-const [pendingImages, setPendingImages] = useState([]); // File[]
+  // תמונות שמחכות ל־Relist
+  const [pendingImages, setPendingImages] = useState([]); // File[]
 
   // נגזרות
   const subs = useMemo(
@@ -142,11 +141,11 @@ const [pendingImages, setPendingImages] = useState([]); // File[]
         throw new Error("אין הרשאה לערוך מוצר זה");
       }
 
-      // קביעה אם זה מצב רליסט (not sold) — הממשק יתנהג כהוספה עם נתונים קיימים
-      const status = String(prod.product_status || "").trim().toLowerCase();
-      setRelistMode(status === "not sold" || status === "not_sold"); // 🆕
+      // קביעה אם זה מצב רליסט (not sold)
+      const st = String(prod.product_status || "").trim().toLowerCase();
+      setRelistMode(st === "not sold" || st === "not_sold");
 
-      // איפוס טופס מהנתונים הקיימים
+      // איפוס טופס
       setName(prod.product_name || "");
       setDesc(prod.description || "");
       setCat(prod.category_id || "");
@@ -163,7 +162,6 @@ const [pendingImages, setPendingImages] = useState([]); // File[]
         setDatePart(`${y}-${m}-${day}`);
         setTimePart(`${hh}:${mm}`);
       } else {
-        // אם אין start_date קיים, נתחיל מהיום/עכשיו כברירת מחדל
         setDatePart(todayStr());
         setTimePart(nowTimeStr());
       }
@@ -207,12 +205,28 @@ const [pendingImages, setPendingImages] = useState([]); // File[]
   const status = String(product.product_status || "").trim().toLowerCase();
   const winnerExists = !!product?.winner_id_number;
 
-  // אם כבר נמכר סופית — אין עריכה
+  // ✅ הודעה כללית כשהמוצר חסום (בלי להבחין מי חסם/מה הסיבה)
+  if (status === "blocked") {
+    return (
+      <Box
+        msg={
+          <>
+            <div>המוצר נחסם – לא ניתן לערוך.</div>
+            <div style={{ marginTop: 6 }}>
+              .אם לא חסמת את המוצר, סיבת החסימה נשלחה למייל שאיתו נרשמת לאתר
+            </div>
+          </>
+        }
+      />
+    );
+  }
+
+  // נמכר סופית — אין עריכה
   if (status === "sale") {
     return <Box msg="המוצר נמכר – לא ניתן לערוך." />;
   }
 
-  // אם יש זוכה והמוצר עדיין for_sale — הזוכה טרם שילם
+  // יש זוכה והמוצר עדיין for_sale — הזוכה טרם שילם
   if ((status === "for sale" || status === "for_sale") && winnerExists) {
     const lastTs = product?.last_bid_time ? new Date(product.last_bid_time).getTime() : null;
     const deadlineTs = lastTs ? lastTs + 24 * 60 * 60 * 1000 : null;
@@ -227,8 +241,7 @@ const [pendingImages, setPendingImages] = useState([]); // File[]
               באפשרותו להשלים תשלום עד: <b>{deadlineText}</b>.
             </div>
             <div>
-              אם לא ישלם עד מועד זה, המוצר ייחשב כ<strong>לא נמכר</strong> ותוכל/י לפרסם
-              מחדש.
+              אם לא ישלם עד מועד זה, המוצר ייחשב כ<strong>לא נמכר</strong> ותוכל/י לפרסם מחדש.
             </div>
           </>
         }
@@ -238,38 +251,37 @@ const [pendingImages, setPendingImages] = useState([]); // File[]
 
   /* ======================= העלאה/מחיקה של תמונות ======================= */
 
-async function onAddImage(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
+  async function onAddImage(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  // במצב Relist – לא מעלים עכשיו ל-ID הישן!
-  if (relistMode) {
-    setPendingImages((prev) => [...prev, file]);   // שומרים להעלאה אחרי ה-Relist
-    e.target.value = "";
-    return;
+    // במצב Relist – לא מעלים עכשיו ל-ID הישן!
+    if (relistMode) {
+      setPendingImages((prev) => [...prev, file]);
+      e.target.value = "";
+      return;
+    }
+
+    // עריכה רגילה (for sale)
+    try {
+      await uploadProductImage(productId, file);
+      const refreshed = await getProductById(productId);
+      setProduct(refreshed);
+      setImages(refreshed.images || []);
+      e.target.value = "";
+    } catch (err) {
+      console.error(err);
+      showModal({
+        title: "שגיאה",
+        message: "שגיאה בהעלאת תמונה",
+        confirmText: "סגור",
+        onConfirm: () => closeModal(),
+      });
+    }
   }
-
-  // עריכה רגילה (for sale) – ממשיכים כמו שהיה
-  try {
-    await uploadProductImage(productId, file);
-    const refreshed = await getProductById(productId);
-    setProduct(refreshed);
-    setImages(refreshed.images || []);
-    e.target.value = "";
-  } catch (err) {
-    console.error(err);
-    showModal({
-      title: "שגיאה",
-      message: "שגיאה בהעלאת תמונה",
-      confirmText: "סגור",
-      onConfirm: () => closeModal(),
-    });
+  function removePendingImage(idx) {
+    setPendingImages(prev => prev.filter((_, i) => i !== idx));
   }
-}
-function removePendingImage(idx) {
-  setPendingImages(prev => prev.filter((_, i) => i !== idx));
-}
-
 
   async function onDeleteImage(imageUrl) {
     showModal({
@@ -301,40 +313,37 @@ function removePendingImage(idx) {
 
   /* ======================= שמירה / פרסום מחדש ======================= */
 
-function buildPayload() {
-  const payload = {
-    product_name,
-    description,
-    category_id,
-    subcategory_id,
-    start_date: `${datePart}T${timePart}`, // "YYYY-MM-DDTHH:MM"
-    end_time: `${endTime}:00`,             // "HH:MM:SS"
-  };
+  function buildPayload() {
+    const payload = {
+      product_name,
+      description,
+      category_id,
+      subcategory_id,
+      start_date: `${datePart}T${timePart}`,
+      end_time: `${endTime}:00`,
+    };
 
-  // המחיר כפי שיש לך
-if (priceMode === "gross") {
-    const inc = Number(priceGross);
-    const pre = +(inc / 1.17).toFixed(2);
-    payload.price = inc;
-    payload.current_price = inc;
-    payload.price_before_vat = pre;
-    payload.vat_included = "true";
-  } else {
-    const pre = Number(priceNet);
-    const inc = +(pre * 1.17).toFixed(2);
-    payload.price_before_vat = pre;
-    payload.price = inc;
-    payload.current_price = inc;
-    payload.vat_included = "false";
+    if (priceMode === "gross") {
+      const inc = Number(priceGross);
+      const pre = +(inc / 1.17).toFixed(2);
+      payload.price = inc;
+      payload.current_price = inc;
+      payload.price_before_vat = pre;
+      payload.vat_included = "true";
+    } else {
+      const pre = Number(priceNet);
+      const inc = +(pre * 1.17).toFixed(2);
+      payload.price_before_vat = pre;
+      payload.price = inc;
+      payload.current_price = inc;
+      payload.vat_included = "false";
+    }
+
+    payload.vat_included = (priceMode === "gross") ? "true" : "false";
+    payload.bid_increment = Number(bidIncrement) || 10;
+
+    return payload;
   }
-
-  // ✨ חשוב לרליסט:
-  payload.vat_included = (priceMode === "gross") ? "true" : "false";
-  payload.bid_increment = Number(bidIncrement) || 10;
-
-  return payload;
-}
-
 
   function validateRequired() {
     if (!product_name.trim()) return "שם מוצר חובה";
@@ -352,11 +361,10 @@ if (priceMode === "gross") {
       if (!priceNet) return "יש להזין מחיר לפני מע״מ";
       if (Number(priceNet) <= 0) return "מחיר לפני מע״מ חייב להיות גדול מאפס";
     }
-if (!BID_STEPS.includes(Number(bidIncrement))) {
-  return `סכום עליית הצעה חייב להיות אחד מהבאים: ${BID_STEPS.join("/")}`;
-}
+    if (!BID_STEPS.includes(Number(bidIncrement))) {
+      return `סכום עליית הצעה חייב להיות אחד מהבאים: ${BID_STEPS.join("/")}`;
+    }
 
-    // ולא לאפשר עבר: start_date חייב להיות >= עכשיו
     const startIso = `${datePart}T${timePart}:00`;
     const startMs = new Date(startIso).getTime();
     const nowMs = Date.now();
@@ -379,30 +387,24 @@ if (!BID_STEPS.includes(Number(bidIncrement))) {
     try {
       const payload = buildPayload();
 
-if (relistMode) {
-  const res = await peRelistProduct(productId, {
-    ...buildPayload(),
-    copy_images: true, // מעתיק תמונות קיימות מהמוצר הישן
-  });
+      if (relistMode) {
+        const res = await peRelistProduct(productId, {
+          ...payload,
+          copy_images: true,
+        });
 
-  const newId = res?.new_product_id;
-  if (!newId) throw new Error("Relist succeeded but new_product_id is missing");
+        const newId = res?.new_product_id;
+        if (!newId) throw new Error("Relist succeeded but new_product_id is missing");
 
-  // העלאת התמונות שנוספו בזמן רליסט, למוצר החדש
-  if (pendingImages.length) {
-    for (const f of pendingImages) {
-      await uploadProductImage(newId, f);
-    }
-  }
+        if (pendingImages.length) {
+          for (const f of pendingImages) {
+            await uploadProductImage(newId, f);
+          }
+        }
+      } else {
+        await peUpdateProduct(productId, payload);
+      }
 
-  // אפשר לרענן/לנתב לעריכת המוצר החדש
-  // navigate(`/admin/product/${newId}`) או onSaved?.()
-}
-
-
-
-
-      // מודאל הצלחה (נעול) ונסגר לבד
       showModal({
         title: "בוצע",
         message: relistMode ? "המוצר פורסם מחדש בהצלחה" : "השינויים נשמרו בהצלחה",
@@ -471,7 +473,6 @@ if (relistMode) {
 
   /* ======================= UI ======================= */
 
-  // לקביעת min בשדות
   const minDate = todayStr();
   const minTime = datePart === todayStr() ? nowTimeStr() : undefined;
 
@@ -535,7 +536,7 @@ if (relistMode) {
             type="date"
             value={datePart}
             onChange={(e) => setDatePart(e.target.value)}
-            min={minDate}             // 🆕 לא מאפשר תאריך עבר
+            min={minDate}
           />
         </Row>
 
@@ -545,7 +546,7 @@ if (relistMode) {
             type="time"
             value={timePart}
             onChange={(e) => setTimePart(e.target.value)}
-            min={minTime}             // 🆕 אם היום נבחר – לא מאפשר שעה שכבר חלפה
+            min={minTime}
           />
         </Row>
 
@@ -609,17 +610,18 @@ if (relistMode) {
             </div>
           </Row>
         )}
-<Row label="סכום עליית הצעה">
-  <select
-    required
-    value={bidIncrement}
-    onChange={(e) => setBidIncrement(Number(e.target.value))}
-  >
-    {BID_STEPS.map((v) => (
-      <option key={v} value={v}>{v}</option>
-    ))}
-  </select>
-</Row>
+
+        <Row label="סכום עליית הצעה">
+          <select
+            required
+            value={bidIncrement}
+            onChange={(e) => setBidIncrement(Number(e.target.value))}
+          >
+            {BID_STEPS.map((v) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </Row>
 
         {/* תמונות */}
         <div style={{ margin: "20px 0 8px", fontWeight: 600 }}>תמונות מוצר</div>
@@ -659,31 +661,32 @@ if (relistMode) {
         ) : (
           <div style={{ color: "#888" }}>אין תמונות</div>
         )}
-{relistMode && pendingImages.length > 0 && (
-  <>
-    <div style={{ marginTop: 12, fontWeight: 600 }}>
-      תמונות חדשות (יתווספו אחרי פרסום מחדש)
-    </div>
-    <div className={styles.imagesGrid}>
-      {pendingImages.map((file, i) => {
-        const url = URL.createObjectURL(file);
-        return (
-          <div key={i} className={styles.imageItem}>
-            <img src={url} alt="" onLoad={() => URL.revokeObjectURL(url)} />
-            <button
-              type="button"
-              className={styles.deleteImgBtn}
-              onClick={() => removePendingImage(i)}
-              title="מחק"
-            >
-              🗑️
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  </>
-)}
+
+        {relistMode && pendingImages.length > 0 && (
+          <>
+            <div style={{ marginTop: 12, fontWeight: 600 }}>
+              תמונות חדשות (יתווספו אחרי פרסום מחדש)
+            </div>
+            <div className={styles.imagesGrid}>
+              {pendingImages.map((file, i) => {
+                const url = URL.createObjectURL(file);
+                return (
+                  <div key={i} className={styles.imageItem}>
+                    <img src={url} alt="" onLoad={() => URL.revokeObjectURL(url)} />
+                    <button
+                      type="button"
+                      className={styles.deleteImgBtn}
+                      onClick={() => removePendingImage(i)}
+                      title="מחק"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         <div className={styles.actions}>
           <button type="submit" className={styles.primaryBtn} disabled={saving}>
@@ -720,7 +723,7 @@ if (relistMode) {
           onConfirm={modalCfg.onConfirm}
           onCancel={modalCfg.onCancel || (() => closeModal())}
           onExtra={modalCfg.onExtra}
-          onClose={() => closeModal()} // סגירת מודאל בלבד
+          onClose={() => closeModal()}
           hideClose={modalCfg.hideClose}
           disableBackdropClose={modalCfg.disableBackdropClose}
         />

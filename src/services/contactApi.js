@@ -102,3 +102,14 @@ export async function sendAdminMessage(ticketId, body) {
 
 
 
+// admin – הערת מנהל לפי מוצר (על האב)
+export async function adminAddInternalNoteByProduct(productId, body) {
+  const { data } = await axios.post(`/api/contacts/product/${productId}/internal-note`, { body }, { withCredentials: true });
+  return data;
+}
+
+// admin – הערת מנהל לפי טיקט (כללי/ילד)
+export async function adminAddInternalNoteByTicket(ticketId, body) {
+  const { data } = await axios.post(`/api/contacts/${ticketId}/internal-note`, { body }, { withCredentials: true });
+  return data;
+}

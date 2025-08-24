@@ -1,226 +1,140 @@
-import { useEffect, useState } from "react";
-import {fetchAllProducts , deleteProduct,} from "../../services/adminProductsApi";
-import CustomModal from "../../components/CustomModal/CustomModal";
+// src/pages/adminProducts/AdminProductsPage.jsx
+import { useEffect, useMemo, useRef, useState } from "react";
+import ProductCardUnified from "../../components/ProductCardUnified/ProductCardUnified.jsx";
 import styles from "./AdminProductsPage.module.css";
 import { useNavigate } from "react-router-dom";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
+import { getSellerProducts } from "../../services/ManagementApi.js";
+import { exportProductsToExcel } from "../../utils/exportProductsToExcel.jsx";
+
 const FILTERS = [
-  { key: "all", label: "כל המוצרים" },
-  { key: "not_started", label: "מוצרים שטרם התחילה המכירה" },
-  { key: "unsold", label: "מוצרים שלא נמכרו" },
-  { key: "sold", label: "מוצרים שנמכרו" },
+  { value: "all",     label: "כל המוצרים" },
+  { value: "sold",    label: "נמכרו" },
+  { value: "toShip",  label: "מיועדים לשליחה" },
+  { value: "sent",    label: "נשלחו/נמסרו" },
+  { value: "pending", label: "טרם התחיל" },
+  { value: "unsold",  label: "לא נמכרו" },
+  { value: "blocked", label: "חסומים" },
 ];
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState([]);
-  const [modalConfig, setModalConfig] = useState(null);
-  const [search, setSearch] = useState("");
+  const [rows, setRows] = useState([]);
   const [filter, setFilter] = useState("all");
-  const [sortByDate, setSortByDate] = useState(false); // חדש!
+  const [q, setQ] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pickerRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAllProducts().then(setProducts);
+    (async () => {
+      const data = await getSellerProducts(filter);
+      setRows(Array.isArray(data) ? data : []);
+    })();
+  }, [filter]);
+
+  useEffect(() => {
+    const onDoc = (e) => { if (pickerRef.current && !pickerRef.current.contains(e.target)) setIsMenuOpen(false); };
+    const onEsc = (e) => e.key === "Escape" && setIsMenuOpen(false);
+    document.addEventListener("click", onDoc);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("click", onDoc);
+      document.removeEventListener("keydown", onEsc);
+    };
   }, []);
 
-
-  function formatDate(dateStr) {
-  if (!dateStr) return "-";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("he-IL", { year: "numeric", month: "2-digit", day: "2-digit" });
-}
-function formatTime(dateStr) {
-  if (!dateStr) return "-";
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
-}
-
-
-  function handleDelete(id) {
-    setModalConfig({
-      title: "אישור מחיקה",
-      message: "למחוק מוצר זה?",
-      confirmText: "מחק",
-      onConfirm: async () => {
-        await deleteProduct(id);
-        setProducts((prev) => prev.filter((p) => p.product_id !== id));
-        setModalConfig(null);
-      },
-      cancelText: "ביטול",
-      onCancel: () => setModalConfig(null),
-    });
-  }
-
-  // --- סינון לפי פילטר נבחר ---
-  const filteredByStatus = products.filter((p) => {
-    if (filter === "all") return true;
-    if (filter === "not_started") return p.is_live === 0;
-    if (filter === "unsold")
-      return (
-        p.product_status === "for sale" &&
-        p.winner_id_number == null &&
-        p.is_live === 1
-      );
-    if (filter === "sold")
-      return (
-        p.winner_id_number != null &&
-        p.product_status === "sale" &&
-        p.is_live === 1
-      );
-    return true;
-  });
-
-  // --- סינון לפי חיפוש ---
-  let filteredProducts = filteredByStatus.filter((p) => {
-    const val = search.trim().toLowerCase();
-    if (!val) return true;
-    return (
-      (p.product_name?.toLowerCase() || "").includes(val) ||
-      (p.category_name?.toLowerCase() || "").includes(val) ||
-      (p.seller_name?.toLowerCase() || "").includes(val)
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return rows;
+    return rows.filter((p) =>
+      (p.product_name || "").toLowerCase().includes(s) ||
+      (p.seller_name || "").toLowerCase().includes(s) ||
+      (p.category_name || "").toLowerCase().includes(s) ||
+      (p.subcategory_name || "").toLowerCase().includes(s) ||
+      String(p.seller_id_number || "").toLowerCase().includes(s)
     );
-  });
+  }, [rows, q]);
 
-  // --- מיון לפי תאריך התחלה ---
-  if (sortByDate) {
-    filteredProducts = [...filteredProducts].sort((a, b) => {
-      // שמירה שתאריך מוגדר בפורמט YYYY-MM-DD
-      if (!a.start_date && !b.start_date) return 0;
-      if (!a.start_date) return 1;
-      if (!b.start_date) return -1;
-      return new Date(a.start_date) - new Date(b.start_date);
-    });
+  function exportToExcel() {
+    const currentFilterLabel = FILTERS.find(f => f.value === filter)?.label || "";
+    exportProductsToExcel(filtered, { viewer: "admin", filterLabel: currentFilterLabel });
   }
 
+  const currentFilterLabel = FILTERS.find(f => f.value === filter)?.label || "";
 
-  //פונקציה לייצוא לאקסל
-
-  // בתוך הפונקציה הראשית AdminProductsPage:
-  function handleExportToExcel() {
-    // יוצרים עותק רק עם העמודות שתרצה
- const dataToExport = filteredProducts.map((p) => ({
-  "מזהה מוצר": p.product_id,
-  "שם מוצר": p.product_name,
-  קטגוריה: p.category_name,
-  "תת קטגוריה": p.subcategory_name,
-  "תאריך התחלה": formatDate(p.start_date),
-  "שעת התחלה": formatTime(p.start_date),
-  סטטוס: p.product_status,
-  מוכר: p.seller_name,
-  "מחיר נוכחי": p.current_price,
-}));
-
-
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "מוצרים");
-
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
-    saveAs(blob, "products.xlsx");
-  }
   return (
     <div className={styles.page}>
-      {/* כפתורי פילטר */}
+      <div className={styles.hero}>
+        <div className={styles.heroText}>
+          <h1>ניהול כל המוצרים (מנהל)</h1>
+          <p className={styles.subText}>צפייה בכל המוצרים של כל המוכרים</p>
 
-      <h2>ניהול כל המוצרים</h2>
-      <div className={styles.filtersRow}>
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            className={`${styles.filterBtn} ${
-              filter === f.key ? styles.activeFilter : ""
-            }`}
-            onClick={() => setFilter(f.key)}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-      <button onClick={handleExportToExcel} className={styles.exportBtn}>
-        📤 ייצא לאקסל
-      </button>
-      {/* טופס חיפוש */}
-      <div className={styles.searchBox}>
-        <input
-          type="text"
-          placeholder="חפש מוצר..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={styles.searchInput}
-        />
-      </div>
-      {/* כפתור מיון */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "18px",
-          margin: "16px 0",
-        }}
-      >
-        <button
-          className={`${styles.sortBtn} ${sortByDate ? styles.activeSort : ""}`}
-          onClick={() => setSortByDate((prev) => !prev)}
-        >
-          מיון לפי תאריך התחלה
-        </button>
-      </div>
-      <table className={styles.productsTable}>
-        <thead>
-          <tr>
-            <th>שם מוצר</th>
-            <th>קטגוריה</th>
-            <th>תת קטגוריה</th>
-            <th>תאריך התחלה</th>
-            <th>שעת התחלה</th>
-            <th>סטטוס</th>
-            <th>מוכר</th>
-            <th>מחיר נוכחי</th>
-            <th>פעולות</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredProducts.length === 0 ? (
-            <tr>
-              <td colSpan={9} style={{ color: "#888" }}>
-                לא נמצאו מוצרים מתאימים.
-              </td>
-            </tr>
-          ) : (
-            filteredProducts.map((p) => (
-              <tr key={p.product_id}>
-                <td>{p.product_name}</td>
-                <td>{p.category_name}</td>
-                <td>{p.subcategory_name}</td>
-               <td>{formatDate(p.start_date)}</td>
-              <td>{formatTime(p.start_date)}</td>
+          <div className={styles.filterBar} ref={pickerRef}>
+            <button
+              type="button"
+              className={styles.filterTrigger}
+              onClick={() => setIsMenuOpen(v => !v)}
+              aria-expanded={isMenuOpen}
+              aria-haspopup="listbox"
+            >
+              {currentFilterLabel}
+              <svg className={styles.chevron} width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </button>
+            {isMenuOpen && (
+              <ul className={styles.filterMenu} role="listbox">
+                {FILTERS.map((opt, i) => (
+                  <li key={opt.value}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={filter === opt.value}
+                      className={`${styles.filterOption} ${filter === opt.value ? styles.activeOption : ""}`}
+                      style={{ "--i": i }}
+                      onClick={() => { setFilter(opt.value); setIsMenuOpen(false); }}
+                    >
+                      {opt.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-                <td>{p.product_status}</td>
-                <td>{p.seller_name}</td>
-                <td>{p.current_price}</td>
-                <td>
-                  <button onClick={() => handleDelete(p.product_id)}>🗑️</button>
-                  <button
-                    onClick={() => navigate(`/admin/products/${p.product_id}`)}
-                  >
-                    👁️
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+          <div className={styles.searchContainer} style={{ marginTop: 12 }}>
+            <input
+              type="text"
+              placeholder="חפש לפי שם מוצר או שם מוכר…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
 
-      {modalConfig && <CustomModal {...modalConfig} />}
+          <div style={{ marginTop: 12 }}>
+            <button onClick={exportToExcel} className={styles.exportBtn}>📤 ייצא לאקסל</button>
+          </div>
+        </div>
+      </div>
+
+      <section className={styles.productsSection}>
+        {filtered.length === 0 ? (
+          <p className={styles.empty}>לא נמצאו מוצרים תואמים.</p>
+        ) : (
+          <div className={styles.grid}>
+            {filtered.map((p) => (
+              <div className={styles.gridItem} key={p.product_id}>
+                <ProductCardUnified
+                  viewer="admin"
+                  product={{ ...p, status: p.status || p.product_status }}
+                  onOpenDetails={(prod) => navigate(`/product/${prod.product_id}`)}
+                  // ❌ לא מעבירים onDelete => כפתור מחיקה לא יוצג
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

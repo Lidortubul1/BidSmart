@@ -1,0 +1,9 @@
+.section { margin: 24px auto; max-width: 1100px; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.title { margin: 0; font-size: 1.25rem; }
+.link { color: #2563eb; text-decoration: none; }
+.link:hover { text-decoration: underline; }
+.list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.cardWrap { border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+.loading, .empty { padding: 12px; color: #555; }
+.error { padding: 12px; color: #b91c1c; }

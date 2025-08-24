@@ -3,9 +3,15 @@
   min-height: 100vh;
   padding: 60px 20px;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;   /* ⬅️ חשוב: מסדר את הילדים בעמודה */
+  align-items: center;      /* מרכז אופקית את הבלוקים */
+  justify-content: flex-start;
+  gap: 16px;                /* רווח אנכי בין תיבת המוצר לפאנל המנהל */
   font-family: "Heebo", sans-serif;
+}
+.adminSection {
+  width: 100%;
+  max-width: 1000px;  /* תיאום לרוחב המקסימלי של .content */
 }
 
 .content {

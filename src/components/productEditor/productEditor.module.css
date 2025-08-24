@@ -190,6 +190,14 @@
   object-fit: cover;
   border-radius: 10px;
 }
+.blockReason {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px dashed #f59e0b; /* amber */
+  background: #fffbeb;
+  border-radius: 10px;
+  direction: rtl;
+}
 
 /* כפתור מחיקה צף על התמונה */
 .deleteImgBtn {

@@ -1,135 +1,259 @@
-.productsTable {
-  width: 100%;
-  border-collapse: collapse;
-  background: #f6f9fc;
-  border-radius: 16px;
-  overflow: hidden;
-}
-.productsTable th, .productsTable td {
-  padding: 10px;
-  border-bottom: 1px solid #e4e9ef;
-  text-align: center;
-}
-.productsTable th {
-  background: #e9f1fd;
-  font-weight: 600;
-}
-.productsTable tr:hover {
-  background: #f2f7ff;
-}
-.productsTable td button {
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-.productsTable td img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 10px;
-}
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
 
-
-.searchBox {
-  display: flex;
-  justify-content: center;   /* מרכז אופקית */
-  align-items: center;       /* מרכז אנכית אם צריך */
-  margin-bottom: 22px;
-  width: 100%;
-}
-.searchInput {
+/* בסיס */
+.page {
   direction: rtl;
-  border: 1.6px solid #c2dafc;
-  border-radius: 22px;
-  padding: 10px 16px;
-  font-size: 1.08em;
-  width: 540px;
-  background: #f7fafc;
-  outline: none;
-  transition: border 0.2s, background 0.18s;
-}
-.searchInput:focus {
-  border: 2px solid #2b90ec;
-  background: #eaf6ff;
-}
-
-
-.filtersRow {
+  background: linear-gradient(to bottom, #fbfdff, #ffffff);
+  font-family: "Heebo", sans-serif;
+  color: #0f172a;
+  min-height: 100vh;
   display: flex;
-  
+  flex-direction: column;
+}
+
+/* ===== Hero עליון ===== */
+.hero {
+  display: flex;
   justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 96px 5% 56px;
+  background: linear-gradient(145deg, #eef5ff, #ffffff);
+  position: relative;
+  overflow: visible; /* חשוב: לא לחתוך את התפריט הנפתח */
+  z-index: 1;
+}
+
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.28;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero::before {
+  width: 300px;
+  height: 300px;
+  background: #7cc4ff;
+  top: -100px;
+  right: -100px;
+}
+
+.hero::after {
+  width: 420px;
+  height: 420px;
+  background: #c2ffd2;
+  bottom: -160px;
+  left: -160px;
+}
+
+.heroText {
+  max-width: 680px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  padding: 36px;
+  border-radius: 22px;
+  box-shadow: 0 12px 40px rgba(16, 24, 40, 0.12);
+  position: relative;
+  z-index: 1;
+}
+
+.heroText h1 {
+  font-size: 2.4rem;
+  margin: 0 0 10px;
+  line-height: 1.25;
+}
+
+.subText {
+  font-size: 1.05rem;
+  color: #56637a;
+  margin: 0 0 18px;
+}
+
+/* ===== בחירת פילטר (Picker) ===== */
+.filterBar {
+  position: relative;
+  display: inline-block;
+  z-index: 5; /* מעל רקעי ה-hero */
+}
+
+.filterTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  box-shadow: 0 6px 18px rgba(2, 32, 71, 0.08);
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.06s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.filterTrigger:hover {
+  transform: translateY(-1px);
+  border-color: #bcd7ff;
+    color: #0f172a;
+  box-shadow: 0 10px 26px rgba(2, 32, 71, 0.12);
+}
+
+.filterTrigger:focus-visible {
+  outline: none;
+    color: #0f172a;
+  box-shadow: 0 0 0 4px rgba(26, 137, 255, 0.2);
+  border-color: #1a89ff;
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+}
+
+.filterTrigger[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+
+}
+
+
+
+.filterMenu {
+    list-style: none;   /* אין bullets */
+  position: absolute; /* יושב בתוך ה-hero ולכן צריך overflow:visible */
+  inset-inline-start: 0;
+  inset-block-start: calc(100% + 10px);
+  min-width: 280px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+
+  box-shadow: 0 20px 50px rgba(2, 32, 71, 0.15);
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  z-index: 20;
+}
+
+.filterOption {
+  width: 100%;
+  text-align: start;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+    color: #0f172a;
+
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.06s ease;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  animation: popIn 0.22s ease forwards;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+.filterOption:hover {
+  background: #f2f7ff;
+  border-color: #cfe4ff;
+  transform: translateY(-1px);
+}
+
+.activeOption {
+  background: #e8f2ff;
+  border-color: #bcd7ff;
+}
+
+@keyframes popIn {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ===== אזור המוצרים ===== */
+.productsSection {
+  padding: 28px 5% 60px;
+}
+
+/* כותרת + חיפוש */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 40px;
-}
-
-.filterBtn {
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  background-color: #f5f5f5;
-  cursor: pointer;
-  width: 400px;
-  color: #000000;
-  margin-right: 10px;;
-  font-weight: 500;
-  transition: 0.3s;
-}
-.filterBtn:hover {
-  background: #b2d6ff;
-  color: #123871;
-}
-.activeFilter {
-  background: #1a89ff;
-  color: #fff;
-  box-shadow: 0 2px 8px #4096ff33;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 
-.sortBtn {
-  background: #edf4ff;
-  color: #1656c7;
-  border: none;
-  border-radius: 20px;
-  padding: 8px 20px;
-  font-size: 1em;
-  margin-bottom: 0.8em;
-  cursor: pointer;
-  transition: background 0.17s, color 0.17s;
-  font-weight: 600;
-  box-shadow: 0 2px 8px #4096ff11;
-    width: 240px;
+
+.searchContainer {
+  display: flex;
+  justify-content: center; /* מרכז אופקית */
+  margin: 16px 0;          /* רווחים עדינים מלמעלה/למטה */
 }
 
-.sortBtn:hover {
-  background: #c2deff;
-  color: #123871;
+.searchInput {
+  width: min(520px, 92vw); /* רוחב נוח ורספונסיבי */
+  padding: 12px 14px;
+  font-size: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  outline: none;
+  transition: box-shadow .2s ease, border-color .2s ease;
 }
-.activeSort {
-  background: #1a89ff;
-  color: #fff;
-  box-shadow: 0 2px 8px #4096ff33;
 
+.searchInput:focus {
+  box-shadow: 0 0 0 4px rgba(156, 156, 156, 0.12);
 }
 
 
-/* עיצוב כפתור ייצוא לאקסל  */
-.exportBtn {
-  display: block;            /* נדרש בשביל margin auto */
-  margin: 12px auto;         /* מרכז אופקית */
-
-  background-color: #000000;
-  color: white;
-  padding: 8px 20px;         /* ריווח פנימי קטן יותר */
-  font-size: 1rem;          /* שומר על גודל טקסט רגיל */
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 600;
-  box-shadow: 0 2px 8px #4096ff11;
-    width: 240px;
-  transition: background-color 0.3s;
-
+/* הגריד צריך למתוח את כל האייטמים לגובה זהה */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: stretch;   /* ← חשוב */
 }
-.exportBtn:hover {
-  background-color: #0e9387;
+
+/* כל כרטיס בתוך התא צריך למלא 100% מהגובה */
+.gridItem > * {
+  height: 100%;
+  display: flex;
 }
+
+
+/* אין תוצאות */
+.empty {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 22px;
+  text-align: center;
+  color: #64748b;
+  margin-top: 12px;
+}
+
+/* ===== מובייל/רספונסיביות ===== */
+@media (max-width: 600px) {
+  .heroText {
+    padding: 24px;
+  }
+  .heroText h1 {
+    font-size: 1.9rem;
+  }
+  .searchInput {
+    min-width: 0;
+    width: 100%;
+  }
+  .filterMenu {
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    width: min(92vw, 420px);
+  }
+}
+

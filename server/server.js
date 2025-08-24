@@ -18,7 +18,7 @@ const adminRoutes = require("./admin.js");
 const acutionRoutes= require("./auction.js")
 //מנהל ה (Real-time) עם המשתמשים דרך socket.io
 const { setupSocket } = require("./socketManager.js");
-const sellerRoutes = require("./seller.js");
+const ManagementRoutes = require("./Management.js");
 const ContactsRoutes = require("./contacts.js");
 
 const db = require("./database.js");
@@ -75,7 +75,7 @@ setupSocket(io);
 //שימוש בstatic
 // חשיפת תיקיית התמונות לצפייה בדפדפן דרך /uploads
 app.use("/uploads", express.static("uploads"));
-app.use("/api/seller", sellerRoutes);//ניהול מוצרים של מוכר
+app.use("/api/Management", ManagementRoutes);//ניהול מוצרים של מוכר
 // רישום כל הנתיבים (ראוטים) עם prefix מתאים לפי נושא
 app.use("/api/product", productRoutes); // מוצר
 app.use("/api/categories", categoryRoutes); // קטגוריות

@@ -54,7 +54,7 @@ if (process.env.SMTP_HOST) {
   transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
-    secure: String(process.env.SMTP_SECURE || "").toLowerCase() === "true", // true אם 465
+    secure: String(process.env.SMTP_SECURE || "").toLowerCase() === "true",
     auth: process.env.SMTP_USER
       ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
       : undefined,
@@ -120,13 +120,14 @@ async function getOrCreateReportParent(conn, productId) {
    API למסכי אדמין / עזר
 ======================================================================= */
 
-// כל הדיווחים של מוצר (ל-drilldown, למשל ברשימת המוצר)
+// כל הדיווחים של מוצר (ילדים בלבד)
 router.get("/by-product/:pid", async (req, res) => {
   const pid = String(req.params.pid || "");
   try {
     const conn = await db.getConnection();
     const [rows] = await conn.execute(
-      `SELECT ticket_id, type_message, subject, email, first_name, last_name, status, created_at, updated_at, related_ticket_id
+      `SELECT ticket_id, type_message, subject, email, first_name, last_name, status,
+              created_at, updated_at, related_ticket_id
          FROM tickets
         WHERE product_id = ? AND type_message = 'report' AND related_ticket_id IS NOT NULL
         ORDER BY updated_at DESC`,
@@ -145,7 +146,6 @@ router.get("/by-product/:pid", async (req, res) => {
  * ?type=general|report|admin_seller
  * ?status=unread|progress|read
  * ?q=טקסט חופשי
- * הערה: עבור type=report אפשר להציג רק הורים ולצרף מונה דיווחים
  */
 router.get("/", async (req, res) => {
   const { type, status, q } = req.query;
@@ -153,7 +153,6 @@ router.get("/", async (req, res) => {
   try {
     const conn = await db.getConnection();
 
-    // אם מבקשים דיווחים – נחזיר רק "הורים" + מונה
     if (type === "report") {
       const where = ["t.type_message='report'", "t.related_ticket_id IS NULL"];
       const vals = [];
@@ -169,6 +168,7 @@ router.get("/", async (req, res) => {
            t.ticket_id, t.type_message, t.product_id, t.subject, t.email,
            t.first_name, t.last_name, t.status, t.created_at, t.updated_at,
            (SELECT COUNT(*) FROM tickets c WHERE c.related_ticket_id = t.ticket_id) AS reports_count
+         FROM tickets t
          WHERE ${where.join(" AND ")}
          ORDER BY t.updated_at DESC
          LIMIT 300`,
@@ -177,7 +177,6 @@ router.get("/", async (req, res) => {
       return res.json({ success: true, tickets: rows });
     }
 
-    // ברירת מחדל – סינון רגיל
     const where = [];
     const vals = [];
     if (type && TYPE_VALUES.has(type)) { where.push("type_message = ?"); vals.push(type); }
@@ -206,11 +205,10 @@ router.get("/", async (req, res) => {
 
 /**
  * GET /api/contacts/:ticketId/messages
- * אם זה טיקט דיווח:
- *  - מאתרים הורה (related_ticket_id או self)
- *  - מחזירים כל המסרים של ההורה וכל הילדים (רציף כרונולוגית)
+ * scope=self → הודעות הטיקט עצמו בלבד (לילדים)
  * אחרת:
- *  - מחזירים את המסרים של אותו טיקט בלבד
+ *  - אם זה דיווח: כל הודעות האב + הילדים (כולל is_internal)
+ *  - אם כללי: כל הודעות הטיקט (כולל is_internal)
  */
 router.get("/:ticketId/messages", async (req, res) => {
   const ticketId = String(req.params.ticketId || "");
@@ -228,10 +226,9 @@ router.get("/:ticketId/messages", async (req, res) => {
 
     let messages;
     if (row.type_message === "report" && !childOnly) {
-      // ברירת מחדל: שרשור מלא (אב + כל הילדים)
       const parentId = row.parent_id;
       const [msgs] = await conn.execute(
-        `SELECT m.message_id, m.ticket_id, m.sender_role, m.body, m.created_at
+        `SELECT m.message_id, m.ticket_id, m.sender_role, m.body, m.created_at, m.is_internal
            FROM ticket_messages m
           WHERE m.ticket_id IN (SELECT ticket_id FROM tickets WHERE ticket_id=? OR related_ticket_id=?)
           ORDER BY m.created_at ASC`,
@@ -239,9 +236,8 @@ router.get("/:ticketId/messages", async (req, res) => {
       );
       messages = msgs;
     } else {
-      // scope=self  →  רק ההודעות של הטיקט עצמו (הילד)
       const [msgs] = await conn.execute(
-        `SELECT message_id, ticket_id, sender_role, body, created_at
+        `SELECT message_id, ticket_id, sender_role, body, created_at, is_internal
            FROM ticket_messages
           WHERE ticket_id = ?
           ORDER BY created_at ASC`,
@@ -256,7 +252,6 @@ router.get("/:ticketId/messages", async (req, res) => {
     res.status(500).json({ success:false, message:"DB error" });
   }
 });
-
 
 /**
  * PUT /api/contacts/:ticketId/status
@@ -288,10 +283,6 @@ router.put("/:ticketId/status", adminGuard, async (req, res) => {
 /* =======================================================================
    יצירת טיקט כללי/דיווח (אורח/משתמש לא מחובר)
 ======================================================================= */
-/*
- POST /api/contacts
- body: { type_message, product_id?, subject, email, first_name, last_name }
-*/
 router.post("/", async (req, res) => {
   const {
     type_message,
@@ -302,7 +293,6 @@ router.post("/", async (req, res) => {
     last_name,
   } = req.body || {};
 
-  // ולידציות בסיס
   if (!TYPE_VALUES.has(type_message) || type_message === "admin_seller") {
     return res.status(400).json({ success: false, message: "type_message must be 'general' or 'report'" });
   }
@@ -349,10 +339,6 @@ router.post("/", async (req, res) => {
 /* =======================================================================
    הוספת הודעה לטיקט (משתמש/מנהל)
 ======================================================================= */
-/*
- POST /api/contacts/:ticketId/message
- body: { sender_role: 'user' | 'system', body }
-*/
 router.post("/:ticketId/message", async (req, res) => {
   const ticketId = String(req.params.ticketId || "");
   const { sender_role, body } = req.body || {};
@@ -378,7 +364,7 @@ router.post("/:ticketId/message", async (req, res) => {
     const [[{ uuid: messageId }]] = await conn.query("SELECT UUID() AS uuid");
 
     await conn.execute(
-      "INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
+      "INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at, is_internal) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 0)",
       [messageId, ticketId, sender_role, body.trim()]
     );
 
@@ -447,10 +433,6 @@ router.post("/:ticketId/message", async (req, res) => {
 /* =======================================================================
    יצירת טיקט "report" ממשתמש מחובר (session) + מייל אישור
 ======================================================================= */
-/*
- POST /api/contacts/report
- body: { product_id, subject, body }
-*/
 router.post("/report", async (req, res) => {
   const u = req.session.user;
   if (!u || !u.email) {
@@ -495,8 +477,8 @@ router.post("/report", async (req, res) => {
     // הודעה ראשונה בתוך הטיקט (מהמשתמש)
     const [[{ uuid: messageId }]] = await conn.query("SELECT UUID() AS uuid");
     await conn.execute(
-      `INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at)
-       VALUES (?, ?, 'user', ?, CURRENT_TIMESTAMP)`,
+      `INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at, is_internal)
+       VALUES (?, ?, 'user', ?, CURRENT_TIMESTAMP, 0)`,
       [messageId, ticketId, String(body).trim()]
     );
 
@@ -549,15 +531,8 @@ router.post("/report", async (req, res) => {
 });
 
 /* =======================================================================
-   הודעה למוכר לגבי מוצר (נרשמת בשרשור הדיווחים) + מייל
+   הודעה למוכר לגבי מוצר (שרשור האב) + מייל
 ======================================================================= */
-/*
- POST /api/contacts/product/:pid/message-to-seller  (admin only)
- body: { body, related_ticket_id? }
- אם related_ticket_id סופק – נוודא שהוא שייך למוצר ונדביק לשם;
- אחרת – נרשום את ההודעה כהודעת מערכת ב"שרשור האב" של הדיווחים עבור המוצר.
- בנוסף נשלח מייל למוכר.
-*/
 router.post("/product/:pid/message-to-seller", adminGuard, async (req, res) => {
   const pid = String(req.params.pid || "");
   const { body, related_ticket_id } = req.body || {};
@@ -580,7 +555,7 @@ router.post("/product/:pid/message-to-seller", adminGuard, async (req, res) => {
     );
     if (!p) return res.status(404).json({ success: false, message: "product not found" });
 
-    // קביעת טיקט יעד
+    // יעד: טיקט קשור או אב של המוצר
     let targetTicketId = null;
 
     if (related_ticket_id) {
@@ -594,15 +569,14 @@ router.post("/product/:pid/message-to-seller", adminGuard, async (req, res) => {
       }
       targetTicketId = String(related_ticket_id);
     } else {
-      // נרשום בשרשור-האב של הדיווחים למוצר
       targetTicketId = await getOrCreateReportParent(conn, pid);
     }
 
-    // הוספת הודעת מערכת
+    // הודעת מערכת (לא פנימית)
     const [[{ uuid: messageId }]] = await conn.query("SELECT UUID() AS uuid");
     await conn.execute(
-      `INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at)
-       VALUES (?, ?, 'system', ?, CURRENT_TIMESTAMP)`,
+      `INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at, is_internal)
+       VALUES (?, ?, 'system', ?, CURRENT_TIMESTAMP, 0)`,
       [messageId, targetTicketId, body.trim()]
     );
     await conn.execute(
@@ -610,7 +584,7 @@ router.post("/product/:pid/message-to-seller", adminGuard, async (req, res) => {
       [targetTicketId]
     );
 
-    // שליחת מייל למוכר
+    // מייל למוכר
     const productUrl =
       (process.env.FRONTEND_ORIGIN || "http://localhost:3000") +
       `/product/${p.product_id}`;
@@ -633,6 +607,83 @@ router.post("/product/:pid/message-to-seller", adminGuard, async (req, res) => {
   } catch (err) {
     console.error("message-to-seller error:", err);
     return res.status(500).json({ success: false, message: "server error" });
+  }
+});
+
+/* =======================================================================
+   ↓↓↓ חדש: הערות מנהל פנימיות (לא נשלחות באימייל) ↓↓↓
+======================================================================= */
+
+/**
+ * POST /api/contacts/product/:pid/internal-note
+ * גוף: { body }
+ * יוצר (או מאתר) את שרשור האב של דיווחי המוצר – ומוסיף אליו הודעה is_internal=1
+ */
+router.post("/product/:pid/internal-note", adminGuard, async (req, res) => {
+  const pid = String(req.params.pid || "");
+  const { body } = req.body || {};
+  if (!nonEmpty(body)) {
+    return res.status(400).json({ success:false, message:"note body is required" });
+  }
+
+  try {
+    const conn = await db.getConnection();
+    const parentId = await getOrCreateReportParent(conn, pid);
+
+    const [[{ uuid: messageId }]] = await conn.query("SELECT UUID() AS uuid");
+    await conn.execute(
+      `INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at, is_internal)
+       VALUES (?, ?, 'system', ?, CURRENT_TIMESTAMP, 1)`,
+      [messageId, parentId, body.trim()]
+    );
+    await conn.execute(
+      "UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE ticket_id = ?",
+      [parentId]
+    );
+
+    return res.status(201).json({ success:true, ticket_id: parentId, message_id: messageId });
+  } catch (e) {
+    console.error("POST /product/:pid/internal-note error:", e);
+    return res.status(500).json({ success:false, message:"DB error saving note" });
+  }
+});
+
+/**
+ * POST /api/contacts/:ticketId/internal-note
+ * גוף: { body }
+ * מוסיף הערה פנימית (is_internal=1) לטיקט בודד (כללי או דיווח-בן). לא שולח מייל.
+ */
+router.post("/:ticketId/internal-note", adminGuard, async (req, res) => {
+  const ticketId = String(req.params.ticketId || "");
+  const { body } = req.body || {};
+  if (!nonEmpty(body)) {
+    return res.status(400).json({ success:false, message:"note body is required" });
+  }
+
+  try {
+    const conn = await db.getConnection();
+
+    const [[exists]] = await conn.execute(
+      "SELECT ticket_id FROM tickets WHERE ticket_id=? LIMIT 1",
+      [ticketId]
+    );
+    if (!exists) return res.status(404).json({ success:false, message:"ticket not found" });
+
+    const [[{ uuid: messageId }]] = await conn.query("SELECT UUID() AS uuid");
+    await conn.execute(
+      `INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at, is_internal)
+       VALUES (?, ?, 'system', ?, CURRENT_TIMESTAMP, 1)`,
+      [messageId, ticketId, body.trim()]
+    );
+    await conn.execute(
+      "UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE ticket_id = ?",
+      [ticketId]
+    );
+
+    return res.status(201).json({ success:true, message_id: messageId });
+  } catch (e) {
+    console.error("POST /:ticketId/internal-note error:", e);
+    return res.status(500).json({ success:false, message:"DB error saving note" });
   }
 });
 

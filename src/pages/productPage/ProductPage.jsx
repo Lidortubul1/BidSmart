@@ -137,13 +137,7 @@ function ProductPage() {
 
   return (
     <div className={styles.page}>
-      {/* פאנל מנהל – מוצג רק לאדמין ולא פוגע ביתר התצוגה */}
-      {isAdmin && (
-        <div className={styles.adminWrapper} style={{ marginBottom: 16 }}>
-          <AdminProductPanel productId={id} />
-        </div>
-      )}
-
+      {/* התוכן הראשי (גלריה + פרטים) */}
       <div className={styles.content}>
         {/* גלריה */}
         <div className={styles.imageWrapper}>
@@ -218,11 +212,9 @@ function ProductPage() {
                 <p className={styles.notice}>המכירה פעילה</p>
               )}
 
-              {/* הרשמה / ביטול / מעבר ללייב
-                  מוצג רק למי שאינו אדמין **ואינו בעל המוצר** */}
+              {/* הרשמה / ביטול / מעבר ללייב – רק מי שאינו אדמין ואינו בעל המוצר */}
               {!isAdmin &&
-                String(user?.id_number) !==
-                  String(product.seller_id_number) && (
+                String(user?.id_number) !== String(product.seller_id_number) && (
                   <RegistrationBlock
                     product={product}
                     user={user}
@@ -258,6 +250,13 @@ function ProductPage() {
           )}
         </div>
       </div>
+
+      {/* פאנל מנהל – עכשיו מתחת למוצר */}
+      {isAdmin && (
+        <div className={styles.adminSection}>
+          <AdminProductPanel productId={id} />
+        </div>
+      )}
 
       {/* מודאל כללי */}
       {modal && (
