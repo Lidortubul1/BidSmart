@@ -24,12 +24,18 @@ export async function fetchTicketMessages(ticketId, params = {}) {
     (למנהל): עדכון סטטוס טיקט
    ערכים מותרים: 'unread' | 'progress' | 'read'
    ========================================================== */
+export async function updateTicketStatus(ticketId, status, opts = {}) {
+  const params = {};
+  if (opts.cascade) params.cascade = 1; // חשוב: "1" ולא true
 
-
-export async function updateTicketStatus(ticketId, status) {
-  const res = await axios.put(`/api/contacts/${ticketId}/status`, { status });
+  const res = await axios.put(
+    `/api/contacts/${ticketId}/status`,
+    { status },                 // הגוף
+    { params }                  // הפרמטרים לשאילתא (?cascade=1)
+  );
   return res.data;
 }
+
 
 // דיווחים של מוצר מסוים (לבחירה בדרופדאון)
 export async function fetchProductReportTickets(productId) {

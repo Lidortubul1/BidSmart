@@ -44,38 +44,46 @@ router.get("/stats/registrations", async (req, res) => {
 
 //נתונים כללים של הלוח בקרה
 router.get("/stats", async (req, res) => {
+  const { from, to } = req.query; // אופציונלי
   try {
     const conn = await db.getConnection();
 
-    const [[{ totalSellers }]] = await conn.query(
-      "SELECT COUNT(*) AS totalSellers FROM users WHERE role = 'seller'"
+    // כשקיים טווח — נסנן לפי תאריך ה-registered של המשתמשים
+    const usersWhere = (from && to) ? " AND registered BETWEEN ? AND ? " : "";
+    const usersParams = (from && to) ? [from, to] : [];
+
+    const [[{ totalSellers }]] = await conn.execute(
+      `SELECT COUNT(*) AS totalSellers FROM users WHERE role = 'seller'${usersWhere}`,
+      usersParams
     );
 
-    const [[{ totalUsers }]] = await conn.query(
-      "SELECT COUNT(*) AS totalUsers FROM users WHERE role IN ('buyer', 'seller')"
+    const [[{ totalUsers }]] = await conn.execute(
+      `SELECT COUNT(*) AS totalUsers FROM users WHERE role IN ('buyer','seller')${usersWhere}`,
+      usersParams
     );
 
+    const [[{ blockedUsers }]] = await conn.execute(
+      `SELECT COUNT(*) AS blockedUsers FROM users WHERE status = 'blocked'${usersWhere}`,
+      usersParams
+    );
+
+    // השדות הבאים לא הוגדר שנרצה לסנן לפי טווח, משאירים מצטבר:
     const [[{ deliveredSales }]] = await conn.query(
       "SELECT COUNT(*) AS deliveredSales FROM sale WHERE is_delivered = 1 AND sent = 'yes'"
     );
-
     const [[{ undeliveredSales }]] = await conn.query(
       "SELECT COUNT(*) AS undeliveredSales FROM sale WHERE is_delivered = 0"
     );
-
     const [[{ upcomingProducts }]] = await conn.query(
       "SELECT COUNT(*) AS upcomingProducts FROM product WHERE is_live = 0"
     );
-
     const [[{ unsoldProducts }]] = await conn.query(
       "SELECT COUNT(*) AS unsoldProducts FROM product WHERE is_live = 1 AND winner_id_number IS NULL"
     );
-    const [[{ blockedUsers }]] = await conn.query(
-      "SELECT COUNT(*) AS blockedUsers FROM users WHERE status = 'blocked' "
+    const [[{ soldProducts }]] = await conn.query(
+      "SELECT COUNT(*) AS soldProducts FROM product WHERE product_status = 'sale'"
     );
-const [[{ soldProducts }]] = await conn.query(
-  "SELECT COUNT(*) AS soldProducts FROM product WHERE product_status = 'sale'"
-);
+
     res.json({
       totalSellers,
       totalUsers,
@@ -85,13 +93,13 @@ const [[{ soldProducts }]] = await conn.query(
       unsoldProducts,
       blockedUsers,
       soldProducts,
-      
     });
   } catch (error) {
     console.error("שגיאה בקבלת סטטיסטיקות:", error);
     res.status(500).json({ error: "שגיאה בשרת" });
   }
 });
+
 
 
 //שליפת כמות מוצרים לפי קטגוריה 
@@ -398,10 +406,139 @@ router.get("/stats/registrations-range", async (req, res) => {
 });
 
 
+// /api/admin/stats/products-status-trend?from=YYYY-MM-DD&to=YYYY-MM-DD&group=day|month&seller_id_number=...
+router.get("/stats/products-status-trend", async (req, res) => {
+  const { from, to, group = "month", seller_id_number } = req.query;
+  try {
+    const conn = await db.getConnection();
+
+    const bucketExpr =
+      group === "day"
+        ? "DATE(p.start_date)"
+        : "CONCAT(YEAR(p.start_date), '-', LPAD(MONTH(p.start_date),2,'0'))";
+
+    let sql = `
+      SELECT
+        ${bucketExpr} AS bucket,
+        /* סטטוסים לפי עמודות נפרדות */
+        SUM(CASE WHEN p.product_status = 'for sale' THEN 1 ELSE 0 END) AS for_sale,
+        SUM(CASE WHEN p.product_status = 'sale' THEN 1 ELSE 0 END) AS sale,
+        SUM(CASE WHEN LOWER(p.product_status) = 'not sold' THEN 1 ELSE 0 END) AS not_sold,
+        SUM(CASE WHEN p.product_status = 'blocked' THEN 1 ELSE 0 END) AS blocked,
+        COUNT(*) AS total_in_bucket
+      FROM product p
+      WHERE p.start_date BETWEEN ? AND ?
+    `;
+    const params = [from, to];
+
+    if (seller_id_number) {
+      sql += " AND p.seller_id_number = ? ";
+      params.push(seller_id_number);
+    }
+
+    sql += " GROUP BY bucket ORDER BY bucket ASC";
+
+    const [rows] = await conn.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("שגיאה ב-products-status-trend:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
 
 
 
 //ניהול משתמשים
+
+// כל המשתמשים שהם buyer/seller עם סינון אופציונלי ע"פ role
+router.get("/users", async (req, res) => {
+  const { role } = req.query; // אופציונלי: "buyer" | "seller"
+  try {
+    const conn = await db.getConnection();
+    let sql = `
+      SELECT
+        id, id_number, email, first_name, last_name, phone,
+        role, status, registered, rating,
+        country, city, street, house_number, apartment_number, zip,
+        id_card_photo, profile_photo, delivery_options
+      FROM users
+      WHERE role IN ('buyer','seller')
+    `;
+    const params = [];
+    if (role === "buyer" || role === "seller") {
+      sql += " AND role = ? ";
+      params.push(role);
+    }
+    sql += " ORDER BY registered DESC";
+    const [rows] = await conn.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("שגיאה בשליפת משתמשים:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+// פרטי משתמש בודד
+router.get("/users/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(
+      `
+      SELECT
+        id, id_number, email, first_name, last_name, phone,
+        role, status, registered, rating,
+        country, city, street, house_number, apartment_number, zip,
+        id_card_photo, profile_photo, delivery_options
+      FROM users
+      WHERE id = ? AND role IN ('buyer','seller')
+      `,
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "לא נמצא משתמש" });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("שגיאה בשליפת משתמש:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
+
+
+// עדכון סטטוס משתמש-חסום/לא חסום
+router.put("/users/:id/status", async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  try {
+    const conn = await db.getConnection();
+    const [result] = await conn.query("UPDATE users SET status = ? WHERE id = ?",[status, id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "משתמש לא נמצא" });
+    }
+    res.json({ message: "סטטוס עודכן בהצלחה" });
+  } catch (error) {
+    console.error("שגיאה בעדכון סטטוס:", error);
+    res.status(500).json({ error: "שגיאה בשרת" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //פונקציה למחיקת משתמש לצמיתות ע"י המנהל
 // שים לב - עכשיו id (ולא email)
@@ -453,22 +590,7 @@ router.get("/users", async (req, res) => {
   }
 });
 
-// עדכון סטטוס משתמש
-router.put("/users/:id/status", async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  try {
-    const conn = await db.getConnection();
-    const [result] = await conn.query("UPDATE users SET status = ? WHERE id = ?",[status, id]);
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "משתמש לא נמצא" });
-    }
-    res.json({ message: "סטטוס עודכן בהצלחה" });
-  } catch (error) {
-    console.error("שגיאה בעדכון סטטוס:", error);
-    res.status(500).json({ error: "שגיאה בשרת" });
-  }
-});
+
 
 //עריכת משתמש ע"י המנהל מערכת
 router.put("/users/:id", async (req, res) => {

@@ -18,7 +18,7 @@ import PaymentSuccess from "../pages/payment-success/payment-success.jsx";
 import PaymentCancel from "../pages/payment-cancel/payment-cancel.jsx";
 import ForgotPasswordPage from "../pages/ForgotPassword/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPassword/ResetPasswordPage";
-import AdminUsers from "../pages/AdminUsers/AdminUsers.jsx";
+import AdminUsersPage from "../pages/AdminUsers/AdminUsersPage.jsx";
 import AdminCategories from "../pages/AdminCategories/AdminCategories.jsx";
 import AdminProductsPage from "../pages/AdminProductsPage/AdminProductsPage.jsx";
 import AdminMessages from "../pages/AdminMessages/AdminMessages.jsx"
@@ -78,7 +78,7 @@ const isAdmin = user && user.role === "admin";
             }
           />
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/categories" element={<AdminCategories />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/messages" element={<AdminMessages />} />

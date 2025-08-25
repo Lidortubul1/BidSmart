@@ -3,11 +3,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   fetchTicketMessages,
   updateTicketStatus,
-  sendAdminMessage,            // מענה למשתמשים "כללי"
-  adminSendMessageToSeller,    // מענה למוכר (נרשם תמיד על האב)
-  fetchProductReportTickets,   // הבאת הילדים לפי מוצר
-  adminAddInternalNoteByProduct, // הערת מנהל פנימית לפי מוצר (על האב)
-  adminAddInternalNoteByTicket,  // הערת מנהל פנימית לטיקט בודד
+  sendAdminMessage,
+  adminSendMessageToSeller,
+  fetchProductReportTickets,
+  adminAddInternalNoteByProduct,
+  adminAddInternalNoteByTicket,
 } from "../../services/contactApi";
 import { adminFetchProduct, cancelProductSale } from "../../services/productApi";
 import { Link } from "react-router-dom";
@@ -44,9 +44,8 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
 
   // --- מצב מוצר (כשאין ticket ועובדים לפי productId) ---
   const inProductMode = !!productId && !ticket;
-  const [childTickets, setChildTickets] = useState([]); // ילדים של report למוצר
+  const [childTickets, setChildTickets] = useState([]);
 
-  // מצטבר סטטוסים מן הילדים
   const aggregateStatus = (rows) => {
     if (!rows?.length) return "read";
     let agg = "read";
@@ -57,20 +56,17 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
     return agg;
   };
 
-  // זיהוי מצב הכרטיס
   const isReport  = inProductMode ? true : (ticket?.type_message === "report");
-  const isGrouped = inProductMode ? true : Boolean(ticket?.isGroupedReport);
-  const canReply  = !isReport; // מענה טקסטואלי למשתמשים רק ב"כללי"
+  const isGrouped = inProductMode || isReport;
+  const canReply  = !isReport;
 
   const pid = inProductMode ? productId : ticket?.product_id;
 
-  // סטטוס תצוגה
   const [status, setStatus] = useState(ticket?.status || "unread");
   useEffect(() => {
     if (inProductMode) setStatus(aggregateStatus(childTickets));
   }, [inProductMode, childTickets]);
 
-  // מפת מדווחים להצגה
   const reporterMap = useMemo(() => {
     if (!isGrouped) return ticket?.reporterMap || {};
     if (!inProductMode) return ticket?.reporterMap || {};
@@ -81,92 +77,169 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
     return map;
   }, [isGrouped, inProductMode, ticket?.reporterMap, childTickets]);
 
-  // סטטוס מוצר (לחסימה)
   useEffect(() => {
     (async () => {
       if (!pid) return;
       try {
         const res = await adminFetchProduct(pid);
         setProdStatus(res?.product?.product_status || "");
-      } catch { /* מתעלמים בשקט */ }
+      } catch {}
     })();
   }, [pid]);
 
   const isBlocked = String(prodStatus || "").trim().toLowerCase() === "blocked";
 
-  // במצב מוצר: טוענים את הילדים (reports) של המוצר
-  useEffect(() => {
-    if (!inProductMode) return;
-    let alive = true;
-    (async () => {
-      try {
-        const res = await fetchProductReportTickets(productId);
+  // במצב מוצר: טוענים את הילדים של המוצר (לא מסוננים לפי סטטוס)
+useEffect(() => {
+  if (!isGrouped || !pid) return;
+  let alive = true;
+  (async () => {
+    try {
+      const res = await fetchProductReportTickets(pid);
+      if (!alive) return;
+      setChildTickets(res.tickets || []); // ← ילדים בלבד
+    } catch {}
+  })();
+  return () => { alive = false; };
+}, [isGrouped, pid]);
+
+  // ===== טעינת הודעות לשרשור (כולל הערות פנימיות) =====
+// ===== טעינת הודעות לשרשור (כולל הערות פנימיות) =====
+useEffect(() => {
+  if (!open) return;               // נטען רק כשהשיחה פתוחה
+  let alive = true;
+
+  (async () => {
+    try {
+      setLoadingMsgs(true);
+
+      if (isGrouped) {
+        // בוחרים מזהה כלשהו של השרשור (אב/בן) — במצב מוצר נדרשים הילדים
+        const anyThreadTicketId = inProductMode
+          ? (childTickets[0]?.ticket_id || null)
+          : (ticket?.parentTicketId || ticket?.ticket_id || ticket?.ticketIds?.[0] || null);
+
+        // אם עדיין אין מזהה – ממתינים לרענון (אל תדרסי ל־[])
+        if (!anyThreadTicketId) return;
+
+        const full = await fetchTicketMessages(anyThreadTicketId);
         if (!alive) return;
-        setChildTickets(res.tickets || []);
-      } catch { /* נתעלם; יוצג "אין הודעות" */ }
-    })();
-    return () => { alive = false; };
-  }, [inProductMode, productId]);
-
-  // טעינת הודעות לשרשור (כולל הערות פנימיות)
-  useEffect(() => {
-    if (!open || messages.length > 0) return;
-    (async () => {
-      try {
-        setLoadingMsgs(true);
-
-        if (isGrouped) {
-          // מזהי הילדים
-          const ids = inProductMode
-            ? childTickets.map((t) => t.ticket_id)
-            : (ticket?.ticketIds || []);
-
-          // 1) הודעות ילדים בלבד (scope=self)
-          const childs = await Promise.all(
-            ids.map(async (tid) => {
-              const res = await fetchTicketMessages(tid, { scope: "self" });
-              return (res.messages || []).map((m) => ({ ...m, _ticketId: tid }));
-            })
-          );
-          const childMsgs = childs.flat();
-
-          // 2) הודעות הורה: מנהל + הערות פנימיות (לא שייכות לאחד הילדים)
-          let parentMsgs = [];
-          if (ids.length) {
-            const full = await fetchTicketMessages(ids[0]); // אב + ילדים
-            parentMsgs = (full.messages || [])
-              .filter((m) => !ids.includes(m.ticket_id))
-              .filter((m) => m.sender_role === "system" || !!m.is_internal)
-              .map((m) => ({ ...m, _ticketId: "PARENT" }));
-          }
-
-          setMessages(
-            [...childMsgs, ...parentMsgs].sort(
-              (a, b) => new Date(a.created_at) - new Date(b.created_at)
-            )
-          );
-        } else {
-          // טיקט בודד (כללי): כל ההודעות של הטיקט (כולל is_internal)
-          const res = await fetchTicketMessages(ticket.ticket_id);
-          setMessages(res.messages || []);
-        }
-      } catch {
-        setError("שגיאה בטעינת ההודעות");
-      } finally {
-        setLoadingMsgs(false);
+        const all = (full.messages || []).map(m => ({ ...m, _ticketId: m.ticket_id }));
+        setMessages(all);
+      } else {
+        if (!ticket?.ticket_id) return;
+        const res = await fetchTicketMessages(ticket.ticket_id);
+        if (!alive) return;
+        setMessages(res.messages || []);
       }
-    })();
-    // נרענן גם כשמס׳ ההודעות משתנה, או כשילדים התעדכנו
-  }, [open, isGrouped, inProductMode, childTickets, ticket?.ticket_id, ticket?.ticketIds, messages.length]);
+    } catch {
+      if (!alive) return;
+      setError("שגיאה בטעינת ההודעות");
+    } finally {
+      if (!alive) return;
+      setLoadingMsgs(false);
+    }
+  })();
 
-  // גלילה לתחתית עם שינוי הודעות
+  return () => { alive = false; };
+  // חשוב: לא לתלות ב-messages.length כדי לא ליצור ריצודים מיותרים
+}, [
+  open,
+  isGrouped,
+  inProductMode,
+  childTickets.length,           // מספיק לעקוב אחרי אורך הילדים
+  ticket?.ticket_id,
+  ticket?.parentTicketId,
+  ticket?.ticketIds?.length,     // וגם אחרי מספר הילדים בקבוצה שהגיע מהלוח
+]);
+
+// לוג כשכמות ההודעות משתנה – רק לדיבוג
+useEffect(() => {
+  console.log("כמות הודעות:", messages.length);
+}, [messages.length]);
+
+console.log("כמות הודעות", messages.length);
+
+
+
+// גלילה לתחתית
   useEffect(() => {
     if (!open) return;
     const el = threadRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [open, messages, loadingMsgs]);
 
-  // עדכון סטטוס (בודד/קבוצה)
+
+const computedChildrenCount = useMemo(() => {
+  if (!isGrouped || messages.length === 0) return null;
+  const s = new Set(
+    messages
+      .filter(m => m.sender_role !== "system" && !m.is_internal)
+      .map(m => m._ticketId || m.ticket_id)
+  );
+  return s.size;
+}, [isGrouped, messages]);
+
+// כמה ילדים בסה"כ (נקראו + לא נקראו)
+const totalReportsCount = useMemo(() => {
+  if (!isGrouped) return 0;
+
+  // עדיפות: האמת מהשרת (הילדים שנטענו)
+  if (childTickets.length) return childTickets.length;
+
+  // גיבוי מהקיבוץ של הלוח (אם יש)
+  if (Array.isArray(ticket?.ticketIds) && ticket.ticketIds.length) return ticket.ticketIds.length;
+  if (typeof ticket?.reportersCount === "number") return ticket.reportersCount;
+  if (typeof ticket?.reports_count === "number") return ticket.reports_count;
+
+  // גיבוי אחרון מתוך הודעות שכבר נטענו (אם יש)
+  if (typeof computedChildrenCount === "number") return computedChildrenCount;
+
+  return 0;
+}, [isGrouped, childTickets.length, ticket?.ticketIds?.length, ticket?.reportersCount, ticket?.reports_count, computedChildrenCount]);
+
+// כמה ילדים בסטטוס 'unread' (רק ילדים!)
+
+
+const reportersCount = useMemo(() => {
+  if (!isGrouped) return 0;
+
+  // 1) מהקיבוץ שמגיע מהלוח (TicketsBoard)
+  if (typeof ticket?.reportersCount === "number" && ticket.reportersCount > 0) {
+    return ticket.reportersCount;
+  }
+  const mapLen = Object.keys(ticket?.reporterMap || {}).length;
+  if (mapLen > 0) return mapLen;
+
+  // 2) מתוך ההודעות שכבר נטענו (אב+ילדים)
+  if (typeof computedChildrenCount === "number" && computedChildrenCount > 0) {
+    return computedChildrenCount;
+  }
+
+  // 3) מצב מוצר: אורך הילדים מה-API
+  if (inProductMode && childTickets.length > 0) return childTickets.length;
+
+  // 4) ערך reports_count מהשרת אם קיים
+  if (typeof ticket?.reports_count === "number") return ticket.reports_count;
+
+  return 0;
+}, [
+  isGrouped,
+  ticket?.reportersCount,
+  ticket?.reporterMap,
+  computedChildrenCount,
+  inProductMode,
+  childTickets.length,
+  ticket?.reports_count,
+]);
+
+
+const newReportsCount = useMemo(() => {
+  if (!isGrouped) return 0;
+  return childTickets.filter(r => String(r.status) === "unread").length;
+}, [isGrouped, childTickets]);
+
+  
   const handleSaveStatus = async (newStatus) => {
     setError("");
     try {
@@ -174,13 +247,29 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
       setStatus(newStatus);
 
       if (isGrouped) {
-        const ids = inProductMode
-          ? childTickets.map((t) => t.ticket_id)
-          : (ticket?.ticketIds || []);
-        await Promise.all(ids.map((tid) => updateTicketStatus(tid, newStatus)));
+        let parentId = null;
+        if (inProductMode) {
+          parentId = childTickets[0]?.related_ticket_id || null;
+        } else if (ticket) {
+          parentId = ticket.related_ticket_id || ticket.parentTicketId || ticket.ticket_id || null;
+        }
+
+        if (parentId) {
+          await updateTicketStatus(parentId, newStatus, { cascade: true });
+        } else {
+          const ids = inProductMode
+            ? childTickets.map((t) => t.ticket_id)
+            : (ticket?.ticketIds || []);
+          const targetIds = ids.length ? ids : (ticket?.ticket_id ? [ticket.ticket_id] : []);
+          await Promise.all(
+            targetIds.map((tid) => updateTicketStatus(tid, newStatus, { cascade: true }))
+          );
+        }
+
         if (inProductMode) {
           setChildTickets((rows) => rows.map((r) => ({ ...r, status: newStatus })));
         }
+        onStatusSaved?.(ticket?.ticket_id || parentId || "", newStatus);
       } else {
         await updateTicketStatus(ticket.ticket_id, newStatus);
         onStatusSaved?.(ticket.ticket_id, newStatus);
@@ -193,7 +282,6 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
     }
   };
 
-  // מענה למשתמש (כללי)
   const handleSend = async () => {
     if (!canReply) return;
     setError("");
@@ -217,7 +305,6 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
     }
   };
 
-  // הודעה למוכר — תמיד לאב
   const handleSendToSeller = async () => {
     if (!pid || !isGrouped) return;
     setError("");
@@ -228,7 +315,6 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
       const res = await adminSendMessageToSeller(pid, sellerMsg.trim(), null);
       setMailInfo(res?.mail || null);
 
-      // רענון השרשור
       if (open) setMessages([]);
       setSellerMsg("");
       if (status !== "read") await handleSaveStatus("read");
@@ -240,22 +326,18 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
     }
   };
 
-  // הערת מנהל פנימית — לא נשלחת
   const handleSaveAdminNote = async () => {
     const body = adminNote.trim();
     if (!body) return;
     try {
       setSavingNote(true);
       if (isGrouped) {
-        // דיווחים מקובצים / מצב מוצר → לפי מוצר (על האב)
         const targetProductId = inProductMode ? productId : (ticket?.product_id);
         await adminAddInternalNoteByProduct(targetProductId, body);
       } else if (ticket?.ticket_id) {
-        // טיקט "כללי" בודד
         await adminAddInternalNoteByTicket(ticket.ticket_id, body);
       }
       setAdminNote("");
-      // כדי לטעון שוב את השרשור (ה־effect יופעל כשmessages.length=0)
       if (open) setMessages([]);
     } catch {
       setError("שגיאה בשמירת הערת מנהל");
@@ -264,7 +346,6 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
     }
   };
 
-  // חסימת מוצר
   const handleBlockProduct = async () => {
     if (!pid) return;
     if (!window.confirm("לחסום את המוצר ולשלוח מייל לכל הנרשמים?")) return;
@@ -289,29 +370,35 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
     status === "progress" ? s.statusProgress :
     s.statusRead;
 
-  const reportersCount = inProductMode
-    ? childTickets.length
-    : (ticket?.reportersCount || 0);
 
-  const reportersLine = isGrouped
-    ? `דיווחים: ${reportersCount} משתמשים`
-    : `${ticket?.first_name} ${ticket?.last_name} · ${ticket?.email}`;
-
+console.log(" כמות הודעות",reportersCount);
+  // ✅ מעדכנים את הלייבל של השולח כך שישתמש קודם במידע שמגיע בכל הודעה מהשרת (first_name/last_name/email),
+  //   ואם אין — יפול ל-reporterMap.
   const senderLabel = (m) => {
     if (m.is_internal) return "הערת מנהל (פנימית)";
-    if (!isGrouped) return m.sender_role === "system" ? "מנהל" : "משתמש";
+    if (!isGrouped) return m.sender_role === "system" ? "מנהל" : (m.email || "משתמש");
     if (m.sender_role === "system") return "מנהל";
+
+    const nameFromMsg = `${m.first_name || ""} ${m.last_name || ""}`.trim();
+    if (nameFromMsg || m.email) return nameFromMsg || m.email;
+
     const u = reporterMap?.[m._ticketId];
     const name = `${u?.first_name || ""} ${u?.last_name || ""}`.trim();
     return name || u?.email || "משתמש";
   };
 
   const avatarText = (m) => {
-    if (m.is_internal) return "ה"; // הערה פנימית
+    if (m.is_internal) return "ה";
     if (m.sender_role === "system") return "מ";
     const label = senderLabel(m) || "";
     return (label[0] || "מ").toUpperCase();
   };
+
+const reportersLine = isGrouped
+  ? (status === "unread"
+      ? `דיווחים חדשים: ${newReportsCount}`
+      : `כמות דיווחים כוללת: ${totalReportsCount}`)
+  : `${ticket?.first_name} ${ticket?.last_name} · ${ticket?.email}`;
 
   const statusLabel =
     status === "unread" ? "לא טופל" :
@@ -377,7 +464,7 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
             </button>
           </div>
 
-          {/* חסימת מוצר – מוצג אם יש product id */}
+          {/* חסימת מוצר */}
           {pid && (
             <div style={{ marginTop: 10 }}>
               {isBlocked ? (
@@ -486,7 +573,7 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
                 </div>
               )}
 
-              {/* הערת מנהל (פנימית) – לא נשלחת לאיש */}
+              {/* הערת מנהל (פנימית) */}
               <div className={s.replyRow}>
                 <textarea
                   className={s.textarea}

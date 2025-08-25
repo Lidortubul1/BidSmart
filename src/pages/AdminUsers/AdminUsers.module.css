@@ -1,256 +1,308 @@
-@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
+/* =================== AdminUsers.module.css — Light Warm Theme (no darks, no blue fills) =================== */
+/* Design tokens – רק גוונים בהירים וחמים, ללא רקעי כחול/כהה */
+:root {
+  --au-bg: #FFF8F2;              /* רקע כללי חמים מאוד */
+  --au-surface: #FFFFFF;         /* משטח לבן */
+  --au-card: #FFFCF7;            /* כרטיסים בהירים */
+  --au-card-plain: #FFFDF9;
 
-.page {
-  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
-  font-family: "Heebo", sans-serif;
-  color: #222;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  /* קווי מתאר/רשת – חום-בז׳ עדין */
+  --au-line: #EADBC8;
+  --au-line-soft: #F1E7D9;
+  --au-line-bright: #E4D3BE;
+
+  --au-gridline: rgba(228, 211, 190, .35);  /* קווי גריד בהירים */
+
+  --au-text: #3E2E26;           /* חום כהה לטקסט (עדיין בהיר ביחס לרקע) */
+  --au-sub: #806E62;            /* טקסט משני חם */
+  --au-muted: #9B8A7E;
+
+  --au-accent: #F59E0B;         /* ענבר – לשימוש בקווי מתאר/פוקוס בלבד (לא מילוי) */
+  --au-success: #4E9D63;        /* ירקרק חם להצלחות */
+  --au-danger: #C2410C;         /* אדום-חלודה */
+  --au-warning: #D97706;        /* כתום-דבש */
+
+  --au-radius-xl: 18px;
+  --au-radius: 14px;
+  --au-radius-sm: 10px;
+
+  --au-ring: 0 0 0 3px rgba(245, 158, 11, .30);  /* טבעת פוקוס חמימה */
+  --au-shadow-1: 0 10px 24px rgba(120, 90, 60, .08);
+  --au-shadow-2: 0 18px 48px rgba(120, 90, 60, .10);
 }
 
-.hero {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 80px 5% 40px;
-  background: linear-gradient(145deg, #f0f0f0, #ffffff);
+/* ===== רקע עמוד – "נייר" חמים עם גריד עדין ===== */
+.auPage_single {
+  direction: rtl;
+  min-height: 100%;
+  padding: 24px;
+  max-width: 1280px;
+  margin-inline: auto;
+  color: var(--au-text);
+  background:
+    linear-gradient(180deg, #FFF8F2, #FFF8F2 45%, #FFF6EE),
+    repeating-linear-gradient(90deg, transparent 0 60px, var(--au-gridline) 60px),
+    repeating-linear-gradient(180deg, transparent 0 40px, var(--au-gridline) 40px);
+  background-blend-mode: normal, normal, normal;
+}
+
+/* =================== רשימת משתמשים =================== */
+.auList_wrapper { display: flex; flex-direction: column; gap: 18px; }
+
+.auList_headerRow {
+  display: flex; justify-content: space-between; align-items: center; gap: 14px;
+  padding: 18px;
+  border-radius: var(--au-radius-xl);
+  border: 1px solid var(--au-line-bright);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.55)),
+    var(--au-card);
+  box-shadow: var(--au-shadow-1);
   position: relative;
   overflow: hidden;
-  z-index: 1;
 }
-
-.hero::before,
-.hero::after {
+.auList_headerRow::before,
+.auList_headerRow::after {
   content: "";
   position: absolute;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.3;
-  z-index: 0;
+  width: 42px; height: 42px;
+  border: 2px solid var(--au-line-bright);
+  opacity: .8;
+}
+.auList_headerRow::before { top: 10px; inset-inline-start: 10px; border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0; }
+.auList_headerRow::after  { bottom: 10px; inset-inline-end: 10px; border-left: 0; border-top: 0; border-radius: 0 0 12px 0; }
+
+.au_title {
+  margin: 0; font-size: 1.45rem; font-weight: 900; letter-spacing: .25px;
+  background: linear-gradient(90deg, #5A4A41, #3E2E26);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.au_subtitle { margin: 6px 0 0 0; color: var(--au-sub); font-size: .98rem; }
+
+/* מסננים */
+.auList_filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.au_input, .au_select {
+  padding: 11px 14px; border-radius: 999px;
+  border: 1px solid var(--au-line-bright);
+  background: #FFFFFF;
+  color: var(--au-text); outline: none;
+  transition: border-color .15s, box-shadow .15s, transform .08s, filter .15s;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,.03);
+}
+.au_input { min-width: 320px; }
+.au_input::placeholder { color: var(--au-muted); opacity: .9; }
+.au_input:focus, .au_select:focus {
+  border-color: var(--au-accent);
+  box-shadow: var(--au-ring);
+  transform: translateY(-1px);
 }
 
-.hero::before {
-  width: 300px;
-  height: 300px;
-  background: #d5723d;
-  top: -100px;
-  right: -100px;
+/* מצבים */
+.au_state {
+  padding: 12px 14px; color: var(--au-sub);
+  background: #FFFBF6; border: 1px dashed var(--au-line-bright);
+  border-radius: var(--au-radius);
+}
+.au_error {
+  padding: 12px 14px; color: #6F2C10;
+  background: linear-gradient(180deg, #FFEDE6, #FFF5F2);
+  border: 1px solid rgba(194,65,12,.35);
+  border-radius: var(--au-radius);
 }
 
-.hero::after {
-  width: 400px;
-  height: 400px;
-  background: #a2cddd;
-  bottom: -150px;
-  left: -150px;
-}
-
-.heroText {
-  max-width: 600px;
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(8px);
-  padding: 36px;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+/* =================== טבלה (בהירה/חמימה) =================== */
+.auTable_wrap {
+  border: 1px solid var(--au-line-bright);
+  border-radius: var(--au-radius-xl);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.70)),
+    var(--au-card-plain);
+  box-shadow: var(--au-shadow-2);
   position: relative;
-  z-index: 1;
+}
+.auTable_wrap::after {
+  /* רשת עדינה בהירה */
+  content: "";
+  position: absolute; inset: 0; pointer-events: none; opacity: .35;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 120px, var(--au-gridline) 121px),
+    repeating-linear-gradient(180deg, transparent 0 48px, var(--au-gridline) 49px);
 }
 
-.heroText h1 {
-  font-size: 2.2rem;
-  margin-bottom: 16px;
-  line-height: 1.3;
-  color: #000000;
-}
-.subText {
-  font-size: 1.1rem;
-  color: #555;
-  margin-bottom: 0;
+.auTable { width: 100%; min-width: 980px; border-collapse: separate; border-spacing: 0; direction: rtl; }
+
+/* כותרת דביקה */
+.auTable thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: linear-gradient(180deg, #FFF7E9, #FFF2DE);
+  color: #5A4A41; font-weight: 800; letter-spacing: .2px;
+  padding: 14px 12px; text-align: start;
+  border-bottom: 2px solid var(--au-line-bright);
 }
 
-.searchInput {
-  padding: 10px 20px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  width: 320px;
-  margin: 0 auto 24px auto;
-  display: block;
-  font-family: "Heebo", sans-serif;
-  font-size: 1em;
-  background: #fff;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.03);
+.auTable tbody td {
+  padding: 14px 12px; text-align: start;
+  border-bottom: 1px solid var(--au-line-soft);
+  color: var(--au-text);
 }
 
-.productsSection {
-  padding: 28px 5% 0 5%;
+/* זברה + הובר */
+.auTable tbody tr:nth-child(even):not(.auDetails_row) {
+  background: #FFF9F2;
+}
+.au_row {
+  cursor: pointer; transition: background .15s, transform .08s, filter .2s;
+}
+.au_row:hover {
+  background: #FFF4E5;
+  filter: saturate(1.02);
+}
+.au_rowSelected {
+  background: #FFEFD6;
+  box-shadow: inset -4px 0 0 var(--au-accent);
+  transform: translateY(-1px);
 }
 
-.productsSection h2 {
-  font-size: 1.15rem;
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 600;
-  color: #000000;
-  letter-spacing: 1.1px;
+/* מראה טכנולוגי עדין בעמודות "מספריות/קז'ואל" – בלי להכהות */
+.auTable tbody tr > td:first-child,
+.auTable tbody tr > td:nth-child(2),
+.auTable tbody tr > td:nth-child(4),
+.auTable tbody tr > td:nth-child(5) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  letter-spacing: .2px;
+  color: #4B3C34;
 }
 
-.table {
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 800px;
-  margin: 0 auto;
+/* שורת פרטים מתחת לרשומה */
+.auDetails_row { background: #FFF9F1; }
+.auDetails_cell { padding: 0; }
+.auDetails_card {
+  padding: 18px; border-top: 1px solid var(--au-line-bright);
+  background: linear-gradient(180deg, #FFFFFF, #FFFCF7);
+  animation: auExpand .18s ease-out;
+}
+@keyframes auExpand {
+  from { opacity: .6; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.tableHeader,
-.tableRow {
-  display: grid;
-  grid-template-columns: 1.3fr 2.1fr 1fr 1fr 1.4fr 2fr;
-  /*         שם   דואל  תפקיד סטטוס  תאריך   פעולות */
-  padding: 15px;
-  border-bottom: 1px solid #eee;
+/* =================== פרטי משתמש (כרטיסים) =================== */
+.auDetails_wrap { display: flex; flex-direction: column; gap: 14px; }
+.auDetails_header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+/* כפתור – רק קו מתאר חמים, בלי מילוי צבע */
+.au_btn {
+  padding: 9px 16px; border-radius: 999px;
+  border: 1px solid var(--au-line-bright);
+  background: #FFFFFF;
+  color: var(--au-text); cursor: pointer; font-weight: 800; letter-spacing: .25px;
+  transition: transform .08s, box-shadow .15s, border-color .15s, filter .2s;
+}
+.au_btn:hover {
+  border-color: var(--au-accent);
+  box-shadow: var(--au-ring);
+  transform: translateY(-1px);
+}
+
+.au_grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+
+/* כרטיסים בהירים עם פינות/קווי-פינה חמים */
+.au_card {
+  position: relative;
+  background: linear-gradient(180deg, #FFFFFF, #FFFCF8);
+  border: 1px solid var(--au-line-bright);
+  border-radius: var(--au-radius);
+  padding: 14px;
+  box-shadow: var(--au-shadow-1);
+  overflow: hidden;
+}
+.au_card::before, .au_card::after {
+  content: ""; position: absolute; width: 40px; height: 40px; pointer-events: none;
+  border: 2px solid var(--au-line-bright);
+  opacity: .8;
+}
+.au_card::before { inset-inline-start: 10px; top: 10px; border-right: 0; border-bottom: 0; border-radius: 10px 0 0 0; }
+.au_card::after  { inset-inline-end: 10px; bottom: 10px; border-left: 0; border-top: 0; border-radius: 0 0 10px 0; }
+
+.au_card h4 { margin: 0 0 10px; font-size: 1.06rem; font-weight: 900; letter-spacing: .25px; color: #4B3C34; }
+
+.au_field {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+  padding: 11px 0; border-bottom: 1px dashed var(--au-line-bright);
+}
+.au_field:last-child { border-bottom: none; }
+.au_field span { color: var(--au-sub); }
+.au_field b   { color: var(--au-text); font-weight: 800; }
+
+/* =================== נגישות ורספונסיביות =================== */
+@media (max-width: 1024px) {
+  .au_input { min-width: 220px; }
+}
+@media (max-width: 720px) {
+  .auPage_single { padding: 16px; }
+  .au_input { min-width: 160px; }
+  .auTable { min-width: 760px; }
+  .au_title { font-size: 1.25rem; }
+}
+
+:where(.au_input, .au_select, .au_btn):focus-visible {
+  outline: none; box-shadow: var(--au-ring); border-color: var(--au-accent);
+}
+
+
+/* ===== תגיות סטטוס – בהיר/חמים ===== */
+.au_badge {
+  display: inline-flex;
   align-items: center;
-    direction: rtl;
-
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--au-line-bright);
+  font-weight: 800;
+  font-size: .85rem;
+  white-space: nowrap;
+}
+.au_badgeActive {
+  background: #FFF4E0;                 /* ענברי בהיר */
+  color: #7A4B00;
+  border-color: #F3D2A2;
+}
+.au_badgeBlocked {
+  background: #FFEAE3;                 /* חרס בהיר */
+  color: #8A3B20;
+  border-color: #F3C2B3;
 }
 
-
-.tableHeader {
-  font-weight: 600;
-  text-align: center;
-  border-bottom: 1px solid #000;
-  background: #fefdfd;
-  border-radius: 20px 20px 0 0;
+/* ===== עמודת פעולה + כפתור פעולה – Outline בלבד, ללא מילוי כהה ===== */
+.au_actionCol {
+  white-space: nowrap;
 }
 
-.tableRow {
-   text-align: center;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.15s;
-
-}
-
-.tableRow:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-}
-
-
-.actionButtons {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.editBtn {
-  background: linear-gradient(90deg, #37b8ed 40%, #4fc3f7 100%);
-  color: #fff;
-  border: none;
-  border-radius: 24px;
-  padding: 7px 20px;
-  font-size: 1rem;
-  font-family: "Heebo", sans-serif;
-  font-weight: 600;
+.au_actionBtn {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--au-line-bright);
+  background: #FFFFFF;
+  color: var(--au-text);
+  font-weight: 800;
+  letter-spacing: .2px;
   cursor: pointer;
-  box-shadow: 0 2px 10px #daf0fa80;
-  transition: background 0.2s, box-shadow 0.18s, transform 0.15s;
-  letter-spacing: 0.03em;
+  transition: transform .08s, box-shadow .15s, border-color .15s, filter .2s;
+}
+.au_actionBtn:hover {
+  border-color: var(--au-accent);
+  box-shadow: var(--au-ring);
+  transform: translateY(-1px);
 }
 
-.editBtn:hover {
-  background: linear-gradient(90deg, #29a2d3 40%, #1793ce 100%);
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 6px 18px #37b8ed33;
+/* מצב פעולה לפי סוג */
+.au_actionDanger { color: #9A3A12; }   /* “השבת” – חמים אך בולט */
+.au_actionOk     { color: #6E4E18; }   /* “החזר למערכת” – חום דבש עדין */
+
+.au_actionBtn:disabled {
+  cursor: default;
+  opacity: .6;
+  transform: none;
+  box-shadow: none;
 }
-
-.suspendBtn {
-  background: linear-gradient(90deg, #121212 40%, #525252 100%);
-  color: #fff;
-  border: none;
-  border-radius: 24px;
-  padding: 7px 18px;
-  font-size: 1rem;
-  font-family: "Heebo", sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 10px #ffecc280;
-  transition: background 0.2s, box-shadow 0.18s, transform 0.15s;
-}
-
-.suspendBtn:hover {
-  background: linear-gradient(90deg, #ec7c05 40%, #f5af00 100%);
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 6px 18px #ffb84d33;
-}
-
-.deleteBtn {
-  background: linear-gradient(90deg, #ef5350 40%, #fc8a82 100%);
-  color: #fff;
-  border: none;
-  border-radius: 24px;
-  padding: 7px 18px;
-  font-size: 1rem;
-  font-family: "Heebo", sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 10px #fc8a8280;
-  transition: background 0.2s, box-shadow 0.18s, transform 0.15s;
-}
-
-.deleteBtn:hover {
-  background: linear-gradient(90deg, #be2222 40%, #ff6666 100%);
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 6px 18px #fc8a8233;
-}
-
-/* למובייל – מרווח מתחת לכפתורים */
-@media (max-width: 550px) {
-  .actionButtons {
-    gap: 7px;
-    flex-direction: column;
-  }
-  .editBtn, .suspendBtn, .deleteBtn {
-    width: 100%;
-    min-width: 120px;
-  }
-}
-
-
-.footer {
-  text-align: center;
-  padding: 18px 0;
-  margin-top: auto;
-  background-color: #f0f0f0;
-  font-size: 0.98rem;
-  color: #666;
-  letter-spacing: 0.7px;
-}
-
-
-/* AdminUsers.module.css */
-.filterButtons {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  direction: rtl;
-  justify-content: flex-start;
-}
-.filterButtons button {
-  padding: 0.6rem 1.3rem;
-  border: none;
-  border-radius: 2rem;
-  background: #fef2f2;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-/* .filterButtons .activeFilterBtn {
-  background: #000000;
-  color: #fff;
-} */
-

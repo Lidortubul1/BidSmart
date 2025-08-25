@@ -145,3 +145,54 @@ export async function getRegistrationsRange({ from, to, group = "day" }) {
     return [];
   }
 }
+
+
+// ... qp ועוד פונקציות קיימות
+
+export async function getProductsStatusTrend({ from, to, group = "month", seller_id_number }) {
+  try {
+    const res = await axios.get(`${BASE}/stats/products-status-trend`, {
+    params: { from, to, group, seller_id_number }
+  });
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    console.error("שגיאה ב-products-status-trend:", err);
+    return [];
+  }
+}
+
+
+
+// --- Users (buyers/sellers only) ---
+export async function getUsers({ role } = {}) {
+  try {
+    const res = await axios.get(`${BASE}/users`, { params: role ? { role } : {} });
+    return res.data;
+  } catch (err) {
+    console.error("שגיאה בשליפת משתמשים:", err);
+    return [];
+  }
+}
+
+export async function getUserById(id) {
+  try {
+    const res = await axios.get(`${BASE}/users/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error("שגיאה בשליפת משתמש:", err);
+    return null;
+  }
+}
+
+
+
+//פונקציה שמעדכנת את סטטוס המשתמש (active/blocked)
+export async function updateUserStatus(id, status) {
+  try {
+    const res = await axios.put(`${BASE}/users/${id}/status`, { status });
+    return res.data; // { message: "סטטוס עודכן בהצלחה" }
+  } catch (err) {
+    console.error("שגיאה בעדכון סטטוס:", err);
+    throw err;
+  }
+}

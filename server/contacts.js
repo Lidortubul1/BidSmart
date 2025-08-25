@@ -210,6 +210,11 @@ router.get("/", async (req, res) => {
  *  - אם זה דיווח: כל הודעות האב + הילדים (כולל is_internal)
  *  - אם כללי: כל הודעות הטיקט (כולל is_internal)
  */
+// GET /api/contacts/:ticketId/messages
+// scope=self → הודעות הטיקט עצמו בלבד
+// אחרת:
+//  - אם זה דיווח (report): כל הודעות האב + הילדים (כולל is_internal)
+//  - אם כללי: כל הודעות הטיקט (כולל is_internal)
 router.get("/:ticketId/messages", async (req, res) => {
   const ticketId = String(req.params.ticketId || "");
   const scope = String(req.query.scope || "").toLowerCase(); // '' | 'self'
@@ -218,38 +223,66 @@ router.get("/:ticketId/messages", async (req, res) => {
   try {
     const conn = await db.getConnection();
 
+    // מאתרים סוג טיקט + מזהה אב (אם קיים) כדי לדעת האם להביא הודעות אב+ילדים
     const [[row]] = await conn.execute(
       "SELECT type_message, COALESCE(related_ticket_id, ticket_id) AS parent_id FROM tickets WHERE ticket_id=? LIMIT 1",
       [ticketId]
     );
-    if (!row) return res.status(404).json({ success:false, message:"ticket not found" });
+    if (!row) {
+      return res.status(404).json({ success: false, message: "ticket not found" });
+    }
 
     let messages;
+
     if (row.type_message === "report" && !childOnly) {
+      // דיווח: מביאים את כל הודעות האב + כל הילדים
       const parentId = row.parent_id;
       const [msgs] = await conn.execute(
-        `SELECT m.message_id, m.ticket_id, m.sender_role, m.body, m.created_at, m.is_internal
+        `SELECT  m.message_id,
+                 m.ticket_id,
+                 m.sender_role,
+                 m.body,
+                 m.created_at,
+                 m.is_internal,
+                 t.email,
+                 t.first_name,
+                 t.last_name
            FROM ticket_messages m
-          WHERE m.ticket_id IN (SELECT ticket_id FROM tickets WHERE ticket_id=? OR related_ticket_id=?)
+           JOIN tickets t ON t.ticket_id = m.ticket_id
+          WHERE m.ticket_id IN (
+                  SELECT ticket_id
+                    FROM tickets
+                   WHERE ticket_id = ? OR related_ticket_id = ?
+                )
           ORDER BY m.created_at ASC`,
         [parentId, parentId]
       );
       messages = msgs;
     } else {
+      // כללי / self: רק הודעות הטיקט המבוקש
       const [msgs] = await conn.execute(
-        `SELECT message_id, ticket_id, sender_role, body, created_at, is_internal
-           FROM ticket_messages
-          WHERE ticket_id = ?
-          ORDER BY created_at ASC`,
+        `SELECT  m.message_id,
+                 m.ticket_id,
+                 m.sender_role,
+                 m.body,
+                 m.created_at,
+                 m.is_internal,
+                 t.email,
+                 t.first_name,
+                 t.last_name
+           FROM ticket_messages m
+           JOIN tickets t ON t.ticket_id = m.ticket_id
+          WHERE m.ticket_id = ?
+          ORDER BY m.created_at ASC`,
         [ticketId]
       );
       messages = msgs;
     }
 
-    res.json({ success:true, messages });
+    return res.json({ success: true, messages });
   } catch (e) {
     console.error("GET /api/contacts/:ticketId/messages error:", e);
-    res.status(500).json({ success:false, message:"DB error" });
+    return res.status(500).json({ success: false, message: "DB error" });
   }
 });
 
@@ -260,12 +293,59 @@ router.get("/:ticketId/messages", async (req, res) => {
 router.put("/:ticketId/status", adminGuard, async (req, res) => {
   const ticketId = String(req.params.ticketId || "");
   const { status } = req.body || {};
+  const cascade = String(req.query.cascade || req.body?.cascade || "") === "1";
+
   if (!STATUS_VALUES.has(status)) {
     return res.status(400).json({ success: false, message: "invalid status" });
   }
 
   try {
     const conn = await db.getConnection();
+
+    // נשלוף את ה-ticket כדי לדעת מה ה-product_id שלו (ואם יש הורה)
+    const [[row]] = await conn.execute(
+      `SELECT ticket_id,
+              product_id,
+              COALESCE(related_ticket_id, ticket_id) AS parent_id
+         FROM tickets
+        WHERE ticket_id = ?
+        LIMIT 1`,
+      [ticketId]
+    );
+    if (!row) {
+      return res.status(404).json({ success: false, message: "ticket not found" });
+    }
+
+    if (cascade) {
+      // אם לטיקט יש product_id – נעדכן את כל הרשומות עם אותו product_id
+      if (row.product_id != null) {
+        const [r] = await conn.execute(
+          `UPDATE tickets
+              SET status = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE product_id = ?`,
+          [status, row.product_id]
+        );
+        return res.json({ success: true, mode: "by_product", affected: r.affectedRows });
+      }
+
+      // fallback: אם אין product_id (למשל טיקט כללי) – נעדכן אב+ילדים בלבד
+      const parentId = row.parent_id;
+      const [r] = await conn.execute(
+        `UPDATE tickets
+            SET status = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE ticket_id IN (
+                SELECT ticket_id FROM (
+                  SELECT ticket_id FROM tickets WHERE ticket_id = ?
+                  UNION ALL
+                  SELECT ticket_id FROM tickets WHERE related_ticket_id = ?
+                ) x
+          )`,
+        [status, parentId, parentId]
+      );
+      return res.json({ success: true, mode: "parent_and_children", affected: r.affectedRows });
+    }
+
+    // ברירת מחדל: עדכון טיקט בודד
     const [r] = await conn.execute(
       "UPDATE tickets SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE ticket_id = ?",
       [status, ticketId]
@@ -277,6 +357,113 @@ router.put("/:ticketId/status", adminGuard, async (req, res) => {
   } catch (e) {
     console.error("PUT /api/contacts/:ticketId/status error:", e);
     res.status(500).json({ success: false, message: "DB error" });
+  }
+});
+
+/* =======================================================================
+   יצירת טיקט "report" ממשתמש מחובר (session) + מייל אישור
+======================================================================= */
+router.post("/report", async (req, res) => {
+  const u = req.session.user;
+  if (!u || !u.email) {
+    return res.status(401).json({ success: false, message: "Login required" });
+  }
+
+  const { product_id, subject, body } = req.body || {};
+  const pid = String(product_id ?? "").trim();
+
+  if (!pid) return res.status(400).json({ success: false, message: "product_id is required" });
+  if (!nonEmpty(String(subject || "")) || String(subject).trim().length < 3)
+    return res.status(400).json({ success: false, message: "subject is too short" });
+  if (!nonEmpty(String(body || "")) || String(body).trim().length < 10)
+    return res.status(400).json({ success: false, message: "body is too short (min 10 chars)" });
+
+  try {
+    const conn = await db.getConnection();
+
+    // מזהה טיקט
+    const [[{ uuid: ticketId }]] = await conn.query("SELECT UUID() AS uuid");
+
+    // שרשור-אב לדיווחי המוצר
+    const parentId = await getOrCreateReportParent(conn, pid);
+await conn.execute(
+  `UPDATE tickets
+      SET updated_at = CURRENT_TIMESTAMP,
+          status = CASE WHEN status = 'read' THEN 'unread' ELSE status END
+    WHERE ticket_id = ?`,
+  [parentId]
+);
+    // יצירת טיקט-בן לדיווח הספציפי של המשתמש
+   // יצירת טיקט-בן לדיווח הספציפי של המשתמש
+await conn.execute(
+  `INSERT INTO tickets
+     (ticket_id, type_message, product_id, subject, email, first_name, last_name, related_ticket_id, created_at, updated_at)
+   VALUES
+     (?, 'report', ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+  [
+    ticketId,
+    pid,
+    String(subject).trim(),
+    String(u.email).trim(),
+    String(u.first_name || "").trim(),
+    String(u.last_name || "").trim(),
+    parentId,
+  ]
+);
+
+    // הודעה ראשונה בתוך הטיקט (מהמשתמש)
+    const [[{ uuid: messageId }]] = await conn.query("SELECT UUID() AS uuid");
+    await conn.execute(
+      `INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at, is_internal)
+       VALUES (?, ?, 'user', ?, CURRENT_TIMESTAMP, 0)`,
+      [messageId, ticketId, String(body).trim()]
+    );
+
+    await conn.execute(
+      "UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE ticket_id = ?",
+      [ticketId]
+    );
+
+    // מייל אישור לדווח
+    let ackMail = { sent: false };
+    try {
+      let pName = "";
+      try {
+        const [pRows] = await conn.execute(
+          "SELECT product_name FROM product WHERE product_id = ? LIMIT 1",
+          [pid]
+        );
+        pName = pRows[0]?.product_name || "";
+      } catch {}
+
+      const productUrl =
+        (process.env.FRONTEND_ORIGIN || "http://localhost:3000") +
+        `/product/${pid}`;
+      const subj = `אישור קבלת דיווח – ${pName ? `"${pName}"` : `מוצר #${pid}`}`;
+      const html = `
+        <div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;">
+          <p>שלום ${esc(u.first_name || "")},</p>
+          <p>תודה על פנייתך. המוצר ${pName ? `<b>${esc(pName)}</b>` : `#${pid}`} <b>עבר לבדיקה ע"י הנהלת האתר</b>.</p>
+          <p><a href="${productUrl}">לצפייה במוצר</a></p>
+          <hr/>
+          <p style="margin:8px 0 0;">נושא הדיווח: <b>${esc(String(subject).trim())}</b></p>
+          <blockquote style="border-right:3px solid #e0e0e0;padding:8px 12px;margin:6px 0 0;">
+            ${toHtml(String(body).trim())}
+          </blockquote>
+          <p style="color:#777">מס' פנייה: ${esc(ticketId)}</p>
+        </div>
+      `;
+      ackMail = await sendSystemMail(u.email, subj, html);
+    } catch (e) {
+      console.warn("ack mail failed:", e.message);
+    }
+
+    return res
+      .status(201)
+      .json({ success: true, ticket_id: ticketId, message_id: messageId, mail: ackMail });
+  } catch (err) {
+    console.error("POST /api/contacts/report error:", err);
+    return res.status(500).json({ success: false, message: "DB error creating report ticket" });
   }
 });
 
@@ -430,105 +617,7 @@ router.post("/:ticketId/message", async (req, res) => {
   }
 });
 
-/* =======================================================================
-   יצירת טיקט "report" ממשתמש מחובר (session) + מייל אישור
-======================================================================= */
-router.post("/report", async (req, res) => {
-  const u = req.session.user;
-  if (!u || !u.email) {
-    return res.status(401).json({ success: false, message: "Login required" });
-  }
 
-  const { product_id, subject, body } = req.body || {};
-  const pid = String(product_id ?? "").trim();
-
-  if (!pid) return res.status(400).json({ success: false, message: "product_id is required" });
-  if (!nonEmpty(String(subject || "")) || String(subject).trim().length < 3)
-    return res.status(400).json({ success: false, message: "subject is too short" });
-  if (!nonEmpty(String(body || "")) || String(body).trim().length < 10)
-    return res.status(400).json({ success: false, message: "body is too short (min 10 chars)" });
-
-  try {
-    const conn = await db.getConnection();
-
-    // מזהה טיקט
-    const [[{ uuid: ticketId }]] = await conn.query("SELECT UUID() AS uuid");
-
-    // שרשור-אב לדיווחי המוצר
-    const parentId = await getOrCreateReportParent(conn, pid);
-
-    // יצירת טיקט-בן לדיווח הספציפי של המשתמש
-    await conn.execute(
-      `INSERT INTO tickets
-         (ticket_id, type_message, product_id, subject, email, first_name, last_name, related_ticket_id, created_at, updated_at)
-       VALUES
-         (?, 'report', ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-      [
-        ticketId,
-        pid,
-        String(subject).trim(),
-        String(u.email).trim(),
-        String(u.first_name || "").trim(),
-        String(u.last_name || "").trim(),
-        parentId,
-      ]
-    );
-
-    // הודעה ראשונה בתוך הטיקט (מהמשתמש)
-    const [[{ uuid: messageId }]] = await conn.query("SELECT UUID() AS uuid");
-    await conn.execute(
-      `INSERT INTO ticket_messages (message_id, ticket_id, sender_role, body, created_at, is_internal)
-       VALUES (?, ?, 'user', ?, CURRENT_TIMESTAMP, 0)`,
-      [messageId, ticketId, String(body).trim()]
-    );
-
-    await conn.execute(
-      "UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE ticket_id = ?",
-      [ticketId]
-    );
-
-    // מייל אישור לדווח
-    let ackMail = { sent: false };
-    try {
-      let pName = "";
-      try {
-        const [pRows] = await conn.execute(
-          "SELECT product_name FROM product WHERE product_id = ? LIMIT 1",
-          [pid]
-        );
-        pName = pRows[0]?.product_name || "";
-      } catch {}
-
-      const productUrl =
-        (process.env.FRONTEND_ORIGIN || "http://localhost:3000") +
-        `/product/${pid}`;
-      const subj = `אישור קבלת דיווח – ${pName ? `"${pName}"` : `מוצר #${pid}`}`;
-      const html = `
-        <div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;">
-          <p>שלום ${esc(u.first_name || "")},</p>
-          <p>תודה על פנייתך. המוצר ${pName ? `<b>${esc(pName)}</b>` : `#${pid}`} <b>עבר לבדיקה ע"י הנהלת האתר</b>.</p>
-          <p><a href="${productUrl}">לצפייה במוצר</a></p>
-          <hr/>
-          <p style="margin:8px 0 0;">נושא הדיווח: <b>${esc(String(subject).trim())}</b></p>
-          <blockquote style="border-right:3px solid #e0e0e0;padding:8px 12px;margin:6px 0 0;">
-            ${toHtml(String(body).trim())}
-          </blockquote>
-          <p style="color:#777">מס' פנייה: ${esc(ticketId)}</p>
-        </div>
-      `;
-      ackMail = await sendSystemMail(u.email, subj, html);
-    } catch (e) {
-      console.warn("ack mail failed:", e.message);
-    }
-
-    return res
-      .status(201)
-      .json({ success: true, ticket_id: ticketId, message_id: messageId, mail: ackMail });
-  } catch (err) {
-    console.error("POST /api/contacts/report error:", err);
-    return res.status(500).json({ success: false, message: "DB error creating report ticket" });
-  }
-});
 
 /* =======================================================================
    הודעה למוכר לגבי מוצר (שרשור האב) + מייל
