@@ -220,7 +220,20 @@ export default function ProductEditor({ productId, onSaved, onCancel }) {
       />
     );
   }
-
+  if (status === "admin blocked") {
+    return (
+      <Box
+        msg={
+          <>
+            <div>המוצר נחסם – לא ניתן לערוך.</div>
+            <div style={{ marginTop: 6 }}>
+              ההנהלה חסמה את המוצר- <b>{product.product_name || " "} </b> פנה למוקד התמיכה לבירור הפרטים
+            </div>
+          </>
+        }
+      />
+    );
+  }
   // נמכר סופית — אין עריכה
   if (status === "sale") {
     return <Box msg="המוצר נמכר – לא ניתן לערוך." />;

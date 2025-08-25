@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { getUsers, updateUserStatus } from "../../services/adminApi";
 import AdminUserDetails from "./AdminUserDetails";
 import styles from "./AdminUsers.module.css";
@@ -67,14 +67,23 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
   };
 
 const handleToggleStatus = async (user, e) => {
-  e?.stopPropagation(); // כדי שלחיצה על הכפתור לא תפתח/תסגור את שורת הפרטים
-
+  e?.stopPropagation();
   const nextStatus = user.status === "active" ? "blocked" : "active";
-  await updateUserStatus(user.id, nextStatus);
+  setTogglingId(user.id);
+  try {
+    const resp = await updateUserStatus(user.id, nextStatus);
+    // עדכון מיידי של ה־state המקומי
+    setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: nextStatus } : u));
 
-  // עדכון מיידי של ה־state המקומי
-  setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: nextStatus } : u));
+    // אם בא לך להציג תוצאה:
+    // showModal({ title: "עודכן", message: JSON.stringify(resp) })
+    console.log("Admin status toggle result:", resp);
+  } finally {
+    setTogglingId(null);
+  }
 };
+
+
 
 
   const COLS = 9; // עדכנו כי הוספנו עמודת "פעולה"
@@ -101,8 +110,8 @@ const handleToggleStatus = async (user, e) => {
             onChange={(e) => setRole(e.target.value)}
           >
             <option value="">כל התפקידים</option>
-            <option value="buyer">Buyer</option>
-            <option value="seller">Seller</option>
+            <option value="buyer">קונה</option>
+            <option value="seller">מוכר</option>
           </select>
 
           <select
@@ -137,65 +146,66 @@ const handleToggleStatus = async (user, e) => {
                 <th>פעולה</th>
               </tr>
             </thead>
-            <tbody>
-              {filtered.map((u) => (
-                <tr key={`row-${u.id}`}>
-                  {/* שורת הנתונים הראשית */}
-                  <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.id}</td>
-                  <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.id_number || "-"}</td>
-                  <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
-                    {[u.first_name, u.last_name].filter(Boolean).join(" ") || "-"}
-                  </td>
-                  <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.email || "-"}</td>
-                  <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.phone || "-"}</td>
-                  <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.role}</td>
-                  <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
-                    <span className={`${styles.au_badge} ${u.status === "active" ? styles.au_badgeActive : styles.au_badgeBlocked}`}>
-                      {u.status === "active" ? "פעיל" : "חסום"}
-                    </span>
-                  </td>
-                  <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
-                    {u.registered ? new Date(u.registered).toLocaleDateString("he-IL") : "-"}
-                  </td>
-                  <td className={styles.au_actionCol}>
-                    <button
-                      className={`${styles.au_actionBtn} ${u.status === "active" ? styles.au_actionDanger : styles.au_actionOk}`}
-                      onClick={(e) => handleToggleStatus(u, e)}
-                      disabled={togglingId === u.id}
-                      title={u.status === "active" ? "השבת משתמש (חסימה)" : "החזר משתמש למערכת"}
-                    >
-                      {togglingId === u.id
-                        ? "מבצע…"
-                        : u.status === "active"
-                        ? "השבת"
-                        : "החזר למערכת"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+<tbody>
+  {filtered.map((u) => (
+    <React.Fragment key={u.id}>
+      {/* שורת הנתונים הראשית */}
+      <tr>
+        <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.id}</td>
+        <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.id_number || "-"}</td>
+        <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
+          {[u.first_name, u.last_name].filter(Boolean).join(" ") || "-"}
+        </td>
+        <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.email || "-"}</td>
+        <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.phone || "-"}</td>
+        <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.role}</td>
+        <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
+          <span className={`${styles.au_badge} ${u.status === "active" ? styles.au_badgeActive : styles.au_badgeBlocked}`}>
+            {u.status === "active" ? "פעיל" : "חסום"}
+          </span>
+        </td>
+        <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
+          {u.registered ? new Date(u.registered).toLocaleDateString("he-IL") : "-"}
+        </td>
+        <td className={styles.au_actionCol}>
+          <button
+            className={`${styles.au_actionBtn} ${u.status === "active" ? styles.au_actionDanger : styles.au_actionOk}`}
+            onClick={(e) => handleToggleStatus(u, e)}
+            disabled={togglingId === u.id}
+            title={u.status === "active" ? "השבת משתמש (חסימה)" : "החזר משתמש למערכת"}
+          >
+            {togglingId === u.id
+              ? "מבצע…"
+              : u.status === "active"
+              ? "השבת"
+              : "החזר למערכת"}
+          </button>
+        </td>
+      </tr>
 
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={COLS} className={styles.au_state}>לא נמצאו משתמשים</td>
-                </tr>
-              )}
+      {/* שורת פרטים – מופיעה ישירות אחרי השורה הראשית אם נבחר */}
+      {selectedId === u.id && (
+        <tr className={styles.auDetails_row}>
+          <td colSpan={COLS} className={styles.auDetails_cell}>
+            <div className={styles.auDetails_card}>
+              <AdminUserDetails
+                userId={u.id}
+                onClose={() => onSelectUser(null)}
+              />
+            </div>
+          </td>
+        </tr>
+      )}
+    </React.Fragment>
+  ))}
 
-              {/* פרטי משתמש – שורה מתרחבת */}
-              {filtered.map(u => (
-                selectedId === u.id ? (
-                  <tr key={`details-${u.id}`} className={styles.auDetails_row}>
-                    <td colSpan={COLS} className={styles.auDetails_cell}>
-                      <div className={styles.auDetails_card}>
-                        <AdminUserDetails
-                          userId={u.id}
-                          onClose={() => onSelectUser(null)}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ) : null
-              ))}
-            </tbody>
+  {filtered.length === 0 && (
+    <tr>
+      <td colSpan={COLS} className={styles.au_state}>לא נמצאו משתמשים</td>
+    </tr>
+  )}
+</tbody>
+
           </table>
         </div>
       )}

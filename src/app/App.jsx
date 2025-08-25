@@ -23,6 +23,7 @@ import AdminCategories from "../pages/AdminCategories/AdminCategories.jsx";
 import AdminProductsPage from "../pages/AdminProductsPage/AdminProductsPage.jsx";
 import AdminMessages from "../pages/AdminMessages/AdminMessages.jsx"
 import AdminStatistics from "../pages/AdminStatistics/AdminStatistics.jsx";
+import AdminSellerProductsPage from "../pages/AdminProductsPage/AdminSellerProductsPage.jsx";
 
 // קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
@@ -83,7 +84,7 @@ const isAdmin = user && user.role === "admin";
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/messages" element={<AdminMessages />} />
           <Route path="/admin/stats" element={<AdminStatistics />} />
-
+          <Route path="/admin/sellers/:id_number/products" element={<AdminSellerProductsPage />} />
           <Route
             path="/admin/products/:productId"
             element={<AdminProductDetails />}

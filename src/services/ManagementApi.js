@@ -6,7 +6,7 @@ axios.defaults.withCredentials = true;
 
 const BASE_SELLER_URL = "/api/Management";
 
-// טיפ: אם את משתמשת ב-session/cookie, השאירי withCredentials: true
+// לקיחת כל המוצרים אם מנהל או מוכר 
 export async function getSellerProducts(filter = "all") {
   const { data } = await axios.get(`${BASE_SELLER_URL}/products`, {
     params: { filter },

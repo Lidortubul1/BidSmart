@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getUserById } from "../../services/adminApi";
 import styles from "./AdminUsers.module.css";
+import { useNavigate } from "react-router-dom";
 
 /**
  * props:
@@ -11,7 +12,7 @@ export default function AdminUserDetails({ userId, onClose }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const navigate = useNavigate();
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -37,15 +38,39 @@ export default function AdminUserDetails({ userId, onClose }) {
             סגור
           </button>
         )}
+        
       </div>
 
       {loading && <div className={styles.au_state}>טוען…</div>}
       {error && <div className={styles.au_error}>{error}</div>}
 
       {!loading && !error && user && (
-        <div className={styles.au_grid}>
-          <div className={styles.au_card}>
-            <h4>פרטים בסיסיים</h4>
+    <div className={styles.au_grid}>
+      <div className={styles.au_card}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+          <h4>פרטים בסיסיים</h4>
+
+          {/* NEW: כפתור צפייה במוצרי המוכר (רק אם זה מוכר ויש לו ת"ז) */}
+          {user.role === "seller" && user.id_number && (
+          <button
+  className={styles.au_btn}
+  onClick={() =>
+    navigate(
+      `/admin/sellers/${user.id_number || ""}/products`,
+      {
+        state: {
+          sellerName: [user.first_name, user.last_name].filter(Boolean).join(" "),
+          sellerIdNumber: user.id_number,   // ← NEW: גיבוי דרך state
+        }
+      }
+    )
+  }
+  title="צפייה בכל הפריטים של המוכר"
+>
+  👀 צפייה בפריטי המוכר
+</button>
+          )}
+        </div>
             <div className={styles.au_field}>
               <span>מזהה:</span>
               <b>{user.id}</b>
@@ -85,12 +110,14 @@ export default function AdminUserDetails({ userId, onClose }) {
                   : "-"}
               </b>
             </div>
-            {"rating" in user && (
-              <div className={styles.au_field}>
-                <span>דירוג:</span>
-                <b>{user.rating ?? "-"}</b>
-              </div>
-            )}
+            
+           {user.role !== "buyer" && "rating" in user && (
+  <div className={styles.au_field}>
+    <span>דירוג:</span>
+    <b>{user.rating ?? "-"}</b>
+  </div>
+)}
+
           </div>
 
           <div className={styles.au_card}>
@@ -133,13 +160,16 @@ export default function AdminUserDetails({ userId, onClose }) {
             </div>
           </div>
 
-          <div className={styles.au_card}>
-            <h4>העדפות משלוח</h4>
-            <div className={styles.au_field}>
-              <span>אפשרויות:</span>
-              <b>{user.delivery_options || "-"}</b>
+                   {user.role !== "buyer" && (
+            <div className={styles.au_card}>
+              <h4>העדפות משלוח</h4>
+              <div className={styles.au_field}>
+                <span>אפשרויות:</span>
+                <b>{user.delivery_options || "-"}</b>
+              </div>
             </div>
-          </div>
+          )}
+
         </div>
       )}
     </div>

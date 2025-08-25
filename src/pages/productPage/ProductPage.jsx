@@ -132,8 +132,23 @@ function ProductPage() {
       />
     );
   }
+  const status = String(product.product_status || "").trim().toLowerCase();
 
   const images = product?.images || [];
+  if (status === "blocked" || status === "admin blocked") {
+    return (
+      <Box
+        msg={
+          <>
+           
+            <div style={{ marginTop: 6 }}>
+              מוצר זה נמחק מהמערכת
+            </div>
+          </>
+        }
+      />
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -298,3 +313,20 @@ function ProductPage() {
 }
 
 export default ProductPage;
+function Box({ msg }) {
+  return (
+    <div
+      style={{
+        padding: 16,
+        border: "1px solid #e2e8f0",
+        borderRadius: 12,
+        background: "#fff",
+        maxWidth: 640,
+        margin: "16px auto",
+        textAlign: "center",
+      }}
+    >
+      {msg}
+    </div>
+  );
+}
