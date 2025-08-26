@@ -95,7 +95,9 @@
   border-radius: 20px;
   box-shadow: var(--shadow);
   padding: 1.2rem 1.2rem 1rem;
-  overflow: hidden;
+  overflow: hidden; 
+   display:flex;
+  flex-direction:column;
 }
 
 .card::before {
@@ -119,6 +121,8 @@
 .chart {
   width: 100%;
   height: 260px; /* ResponsiveContainer מקבל את הגובה מכאן */
+  flex: 1;
+  min-height: 260px;
 }
 
 .inlineFilters {

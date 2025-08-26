@@ -1,3 +1,4 @@
+// src/components/tickets/RecentUnreadTickets.jsx
 import { useEffect, useMemo, useState } from "react";
 import { fetchTickets } from "../../services/contactApi";
 import TicketCard from "./TicketCard";
@@ -15,10 +16,31 @@ export default function RecentUnreadTickets() {
       try {
         setLoading(true);
         setErr("");
-        // מביא את כל הטיקטים שלא נקראו (כללי + דיווח)
-        const res = await fetchTickets({ status: "unread" });
+
+        // ✅ מביאים כל סוג בנפרד:
+        // general + admin_seller כרגיל, ו-report כהורים בלבד (כמו בדף הניהול)
+        const [gen, admin, reports] = await Promise.all([
+          fetchTickets({ type: "general", status: "unread" }),
+          fetchTickets({ type: "admin_seller", status: "unread" }),
+          fetchTickets({ type: "report", status: "unread" }), // ← יחזיר רק הורים
+        ]);
+
+        const genList     = gen?.tickets     ?? [];
+const adminList   = admin?.tickets   ?? [];
+const reportsList = (reports?.tickets ?? []).map(t => ({
+  ...t,
+  isGroupedReport: true,                  // לא חובה אחרי שינוי 1, אבל לא מזיק
+  reportersCount: t.reports_count ?? 0,   // שהכרטיס ידע להציג “דיווחים: X משתמשים”
+}));
         if (!alive) return;
-        setRows(Array.isArray(res?.tickets) ? res.tickets : []);
+
+const merged = [...genList, ...adminList, ...reportsList];
+
+        // ביטול כפילויות ליתר ביטחון
+        const dedupMap = new Map();
+        for (const t of merged) dedupMap.set(t.ticket_id, t);
+
+        setRows(Array.from(dedupMap.values()));
       } catch {
         if (!alive) return;
         setErr("שגיאה בטעינת פניות");
@@ -27,7 +49,9 @@ export default function RecentUnreadTickets() {
         setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const totalUnread = rows.length;
@@ -57,7 +81,6 @@ export default function RecentUnreadTickets() {
               <TicketCard
                 ticket={t}
                 onStatusSaved={(id, newStatus) => {
-                  // אם שינית סטטוס ל"נקרא" — נעלים מהרשימה במקום
                   if (newStatus === "read") {
                     setRows((prev) => prev.filter((x) => x.ticket_id !== id));
                   }
