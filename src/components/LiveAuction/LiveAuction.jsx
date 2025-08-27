@@ -97,7 +97,7 @@ const isBidDisabled = !isLive || auctionEnded || !canBid || isMyLastBid;
     setModalVisible(true);
   };
 
-  // טעינת מוצר + חישוב מצב ראשוני (כולל זיהוי "נגמרה")
+  // טעינת מוצר + חישוב מצב ראשוני 
   useEffect(() => {
     let mounted = true;
 
@@ -112,10 +112,10 @@ const auctionLenSec = timeToSeconds(data.end_time);
 const endMs = startMs + auctionLenSec * 1000;
 const now = Date.now();
 
-// "נגמרה" אם כבר יש זוכה או שהזמן עבר
+// נגמרה אם כבר יש זוכה או שהזמן עבר
 const ended = (data.winner_id_number != null) || (now >= endMs);
 
-// "לייב" רק אם is_live=1 וגם לא נגמרה
+// לייב רק אם is_live=1 וגם לא נגמרה
 const live = (data.is_live === 1) && !ended;
 
 setIsLive(live);

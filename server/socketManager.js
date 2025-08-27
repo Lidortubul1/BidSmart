@@ -287,7 +287,7 @@ function setupSocket(io) {
 socket.on("joinAuction", async ({ productId }) => {
   try {
     socket.join(`room_${productId}`);
-    console.log(`👤 joined room_${productId}`);
+    console.log(` joined room_${productId}`);
 
     // טיימר התחלה אם עדיין לא התחילה
     await ensureStartTimer(io, productId);
@@ -295,7 +295,7 @@ socket.on("joinAuction", async ({ productId }) => {
     // טיימר סיום כולל אם כבר לייב
     await ensureAuctionEndTimer(io, productId);
   } catch (err) {
-    console.error("❌ joinAuction error:", err.message || err);
+    console.error(" joinAuction error:", err.message || err);
   }
 });
 
