@@ -13,6 +13,20 @@ export async function getQuotationsByProductId(productId) {
   return response.data;
 }
 
+// 🆕 סטטוס תשלום לבידר ספציפי (מחזיר {success, found, paid})
+export async function getPaidStatus(productId, buyerIdNumber) {
+  const res = await axios.get(
+    `${BASE_QUOTATION_URL}/${productId}/paid/${buyerIdNumber}`
+  );
+  return res.data;
+}
+
+// 🆕 סטטוס תשלום לזוכה של המוצר (מחזיר {success, found, paid, buyer_id_number})
+export async function getWinnerPaidStatus(productId) {
+  const res = await axios.get(`${BASE_QUOTATION_URL}/${productId}/paid`);
+  return res.data;
+}
+
 // הרשמה להצעה למוצר
 export async function registerToQuotation(productId, buyerIdNumber) {
   try {
@@ -36,7 +50,7 @@ export async function cancelQuotationRegistration(productId, buyerIdNumber) {
   await axios.delete(`${BASE_QUOTATION_URL}/${productId}/${buyerIdNumber}`);
 }
 
-// הצגת כל ההצעות של המשתמש שנרשם אליהן
+// הצגת כל ההצעות של המשתמש שנרשמו אליהן
 export async function getUserBids(idNumber) {
   const response = await axios.get(`${BASE_QUOTATION_URL}/user/${idNumber}`);
   return response.data;

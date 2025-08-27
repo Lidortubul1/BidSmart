@@ -14,7 +14,7 @@ import {
   getSellersList,
   getRegistrationsRange,
   getProductsStatusTrend,
-               // ← חדש: לגרף פעילות בידס למוכר
+  // ← חדש: לגרף פעילות בידס למוכר
 } from "../../services/adminApi";
 import CustomModal from "../../components/CustomModal/CustomModal";
 
@@ -24,7 +24,7 @@ function RevenueFunnelCard({
   revenueData = [],
   funnel = { started: 0, sold: 0, not_sold: 0, conversion: 0 },
   revenueGroup = "month",
-  setRevenueGroup = () => {},
+  setRevenueGroup = () => { },
   fmtDay,
   fmtMonth,
   fmtInt,
@@ -37,8 +37,8 @@ function RevenueFunnelCard({
   return (
     <div className={styles.card}>
       <div className={styles.cardHeaderRow}
-           style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-        <h4 className={styles.cardTitle} style={{margin:0}}>{title}</h4>
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h4 className={styles.cardTitle} style={{ margin: 0 }}>{title}</h4>
 
         <div className={styles.inlineFilters}>
           <label>תצוגה</label>
@@ -86,7 +86,7 @@ function RevenueFunnelCard({
             <BarChart
               data={[
                 { name: "התחילו", value: funnel?.started || 0 },
-                { name: "נמכרו",  value: funnel?.sold    || 0 },
+                { name: "נמכרו", value: funnel?.sold || 0 },
                 { name: "לא נמכרו", value: funnel?.not_sold || 0 },
               ]}
             >
@@ -227,7 +227,7 @@ function AdminStatistics() {
         setRevenueSeller([]);
         setSalesByCategorySeller([]);
         setProductsStatusTrendSeller([]);
-       
+
         setFunnelSeller({ started: 0, sold: 0, not_sold: 0, conversion: 0 });
         return;
       }
@@ -306,7 +306,7 @@ function AdminStatistics() {
           ));
           break;
 
-      
+
 
         default:
           openModal("פרטים", JSON.stringify(p ?? {}, null, 2));
@@ -401,7 +401,7 @@ function AdminStatistics() {
                   <YAxis {...yAxisLeft} />
                   <Tooltip formatter={(v) => fmtInt(v)} />
                   <Bar dataKey="value" fill="#1a89ff" radius={[8, 8, 0, 0]}
-                       onClick={(d) => openDetails("usersBreakdown", d)} />
+                    onClick={(d) => openDetails("usersBreakdown", d)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -418,25 +418,25 @@ function AdminStatistics() {
                   <YAxis {...yAxisLeft} />
                   <Tooltip labelFormatter={(v) => fmtBucket(v, group)} formatter={(v) => fmtInt(v)} />
                   <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]}
-                       onClick={(d) => openDetails("registrations", d)} />
+                    onClick={(d) => openDetails("registrations", d)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-       <RevenueFunnelCard
-  title="הכנסות / משפך — כללי"
-  revenueData={revenueAll}
-  funnel={funnelAll}
-  revenueGroup={revenueGroup}
-  setRevenueGroup={setRevenueGroup}
-  fmtDay={fmtDay}
-  fmtMonth={fmtMonth}
-  fmtInt={fmtInt}
-  fmtCurrency={fmtCurrency}
-  yAxisLeft={yAxisLeft}
-  onOpenDetails={openDetails}
-/>
+          <RevenueFunnelCard
+            title="הכנסות / משפך — כללי"
+            revenueData={revenueAll}
+            funnel={funnelAll}
+            revenueGroup={revenueGroup}
+            setRevenueGroup={setRevenueGroup}
+            fmtDay={fmtDay}
+            fmtMonth={fmtMonth}
+            fmtInt={fmtInt}
+            fmtCurrency={fmtCurrency}
+            yAxisLeft={yAxisLeft}
+            onOpenDetails={openDetails}
+          />
 
 
           {/* מוצרים לפי סטטוס — כללי */}
@@ -455,14 +455,14 @@ function AdminStatistics() {
                       return [fmtInt(val), labelMap[key] || key];
                     }}
                   />
-                  <Bar dataKey="for_sale" name="טרם התחיל" fill="#3aaed8" radius={[8,8,0,0]}
-                       onClick={(d) => openDetails("productsStatusTrend", d)} />
-                  <Bar dataKey="sale" name="נמכר" fill="#28a745" radius={[8,8,0,0]}
-                       onClick={(d) => openDetails("productsStatusTrend", d)} />
-                  <Bar dataKey="not_sold" name="לא נמכר" fill="#ff6b6b" radius={[8,8,0,0]}
-                       onClick={(d) => openDetails("productsStatusTrend", d)} />
-                  <Bar dataKey="blocked" name="נמחק" fill="#ffa502" radius={[8,8,0,0]}
-                       onClick={(d) => openDetails("productsStatusTrend", d)} />
+                  <Bar dataKey="for_sale" name="טרם התחיל" fill="#3aaed8" radius={[8, 8, 0, 0]}
+                    onClick={(d) => openDetails("productsStatusTrend", d)} />
+                  <Bar dataKey="sale" name="נמכר" fill="#28a745" radius={[8, 8, 0, 0]}
+                    onClick={(d) => openDetails("productsStatusTrend", d)} />
+                  <Bar dataKey="not_sold" name="לא נמכר" fill="#ff6b6b" radius={[8, 8, 0, 0]}
+                    onClick={(d) => openDetails("productsStatusTrend", d)} />
+                  <Bar dataKey="blocked" name="נמחק" fill="#ffa502" radius={[8, 8, 0, 0]}
+                    onClick={(d) => openDetails("productsStatusTrend", d)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -471,9 +471,9 @@ function AdminStatistics() {
           {/* מוצרים לפי קטגוריה — כללי */}
           <div className={styles.card}>
             <div className={styles.cardHeaderRow}
-                 style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-              <h4 className={styles.cardTitle} style={{margin:0}}>מוצרים לפי קטגוריה — כללי</h4>
-              <div className={styles.filterGroup} style={{display:"flex", gap:8, alignItems:"center"}}>
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <h4 className={styles.cardTitle} style={{ margin: 0 }}>מוצרים לפי קטגוריה — כללי</h4>
+              <div className={styles.filterGroup} style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <label>מדד</label>
                 <select value={categoryMetric} onChange={(e) => setCategoryMetric(e.target.value)}>
                   <option value="sold_count">כמות מוצרים</option>
@@ -488,8 +488,8 @@ function AdminStatistics() {
                   <XAxis dataKey="category" interval={0} tickMargin={10} />
                   <YAxis {...yAxisLeft} />
                   <Tooltip formatter={(v) => categoryMetric === "total_sales" ? fmtCurrency(v) : fmtInt(v)} />
-                  <Bar dataKey={categoryMetric} fill="#0ea5e9" radius={[8,8,0,0]}
-                       onClick={(d) => openDetails("salesByCategory", d)} />
+                  <Bar dataKey={categoryMetric} fill="#0ea5e9" radius={[8, 8, 0, 0]}
+                    onClick={(d) => openDetails("salesByCategory", d)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -520,7 +520,7 @@ function AdminStatistics() {
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>פילוח לפי מוכר</h3>
 
-          <div className={styles.filtersRow} style={{marginTop: 8}}>
+          <div className={styles.filtersRow} style={{ marginTop: 8 }}>
             <div className={styles.filterGroup}>
               <label>בחר/י מוכר</label>
               <select value={sellerId} onChange={(e) => setSellerId(e.target.value)}>
@@ -536,30 +536,30 @@ function AdminStatistics() {
         </div>
 
         {!sellerId ? (
-          <div className={styles.card} style={{padding: 24}}>
+          <div className={styles.card} style={{ padding: 24 }}>
             בחר/י מוכר כדי להציג גרפים ממוקדים למוכר.
           </div>
         ) : (
           <>
-            <div className={styles.subTitle} style={{margin: "8px 0 16px", color:"#6b7280"}}>
+            <div className={styles.subTitle} style={{ margin: "8px 0 16px", color: "#6b7280" }}>
               מציג נתונים עבור: <b>{currentSellerName || sellerId}</b> (בטווח {from}–{to})
             </div>
 
             <div className={styles.grid}>
-              
-<RevenueFunnelCard
-  title="הכנסות / משפך — לפי מוכר"
-  revenueData={revenueSeller}
-  funnel={funnelSeller}
-  revenueGroup={revenueGroup}
-  setRevenueGroup={setRevenueGroup}
-  fmtDay={fmtDay}
-  fmtMonth={fmtMonth}
-  fmtInt={fmtInt}
-  fmtCurrency={fmtCurrency}
-  yAxisLeft={yAxisLeft}
-  onOpenDetails={openDetails}
-/>
+
+              <RevenueFunnelCard
+                title="הכנסות / משפך — לפי מוכר"
+                revenueData={revenueSeller}
+                funnel={funnelSeller}
+                revenueGroup={revenueGroup}
+                setRevenueGroup={setRevenueGroup}
+                fmtDay={fmtDay}
+                fmtMonth={fmtMonth}
+                fmtInt={fmtInt}
+                fmtCurrency={fmtCurrency}
+                yAxisLeft={yAxisLeft}
+                onOpenDetails={openDetails}
+              />
 
               {/* מוצרים לפי סטטוס — לפי מוכר */}
               <div className={styles.card}>
@@ -577,14 +577,14 @@ function AdminStatistics() {
                           return [fmtInt(val), labelMap[key] || key];
                         }}
                       />
-                      <Bar dataKey="for_sale" name="טרם התחיל" fill="#3aaed8" radius={[8,8,0,0]}
-                           onClick={(d) => openDetails("productsStatusTrend", d)} />
-                      <Bar dataKey="sale" name="נמכר" fill="#28a745" radius={[8,8,0,0]}
-                           onClick={(d) => openDetails("productsStatusTrend", d)} />
-                      <Bar dataKey="not_sold" name="לא נמכר" fill="#ff6b6b" radius={[8,8,0,0]}
-                           onClick={(d) => openDetails("productsStatusTrend", d)} />
-                      <Bar dataKey="blocked" name="נמחק" fill="#ffa502" radius={[8,8,0,0]}
-                           onClick={(d) => openDetails("productsStatusTrend", d)} />
+                      <Bar dataKey="for_sale" name="טרם התחיל" fill="#3aaed8" radius={[8, 8, 0, 0]}
+                        onClick={(d) => openDetails("productsStatusTrend", d)} />
+                      <Bar dataKey="sale" name="נמכר" fill="#28a745" radius={[8, 8, 0, 0]}
+                        onClick={(d) => openDetails("productsStatusTrend", d)} />
+                      <Bar dataKey="not_sold" name="לא נמכר" fill="#ff6b6b" radius={[8, 8, 0, 0]}
+                        onClick={(d) => openDetails("productsStatusTrend", d)} />
+                      <Bar dataKey="blocked" name="נמחק" fill="#ffa502" radius={[8, 8, 0, 0]}
+                        onClick={(d) => openDetails("productsStatusTrend", d)} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -593,9 +593,9 @@ function AdminStatistics() {
               {/* קטגוריות — לפי מוכר */}
               <div className={styles.card}>
                 <div className={styles.cardHeaderRow}
-                     style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                  <h4 className={styles.cardTitle} style={{margin:0}}>מוצרים לפי קטגוריה — לפי מוכר</h4>
-                  <div className={styles.filterGroup} style={{display:"flex", gap:8, alignItems:"center"}}>
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <h4 className={styles.cardTitle} style={{ margin: 0 }}>מוצרים לפי קטגוריה — לפי מוכר</h4>
+                  <div className={styles.filterGroup} style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <label>מדד</label>
                     <select value={categoryMetric} onChange={(e) => setCategoryMetric(e.target.value)}>
                       <option value="sold_count">כמות מוצרים</option>
@@ -610,16 +610,16 @@ function AdminStatistics() {
                       <XAxis dataKey="category" interval={0} tickMargin={10} />
                       <YAxis {...yAxisLeft} />
                       <Tooltip formatter={(v) => categoryMetric === "total_sales" ? fmtCurrency(v) : fmtInt(v)} />
-                      <Bar dataKey={categoryMetric} fill="#0ea5e9" radius={[8,8,0,0]}
-                           onClick={(d) => openDetails("salesByCategory", d)} />
+                      <Bar dataKey={categoryMetric} fill="#0ea5e9" radius={[8, 8, 0, 0]}
+                        onClick={(d) => openDetails("salesByCategory", d)} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-             
 
-             
+
+
             </div>
           </>
         )}

@@ -77,6 +77,9 @@ function LiveAuction() {
 // בתוך הקומפוננטה LiveAuction, אחרי ש יש product/currentPrice/lastBidder:
 const openingPrice = Number(product?.price) || 0;
 const hasFirstBid  = (Number(currentPrice) > openingPrice) || !!lastBidder;
+// מי היה המציע האחרון ומה מצב הכפתור
+const isMyLastBid = lastBidder && String(lastBidder) === String(buyerId);
+const isBidDisabled = !isLive || auctionEnded || !canBid || isMyLastBid;
 
 
   // מודאל
@@ -120,10 +123,21 @@ setAuctionEnded(ended);
 setWinnerId(data.winner_id_number || null);
 
 setCurrentPrice(Number(data.current_price) || 0);
-setLastBidder(ended ? data.winner_id_number : null);
+ // נעדכן רק אם יש לנו זוכה (נגמר) או אם השרת מחזיר "מציע אחרון"
+const apiLastBidder =
+   data.last_bidder_id_number ??
+   data.lastBidderId ??
+   data.last_bidder ??
+   null;
+
+setLastBidder((prev) => {
+   if (ended) return data.winner_id_number || prev; // בסוף מכירה – הזוכה
+   return apiLastBidder ?? prev;                    // אחרת – נעדכן רק אם השרת סיפק מזהה
+ });
 
 // לאפשר הצעות כברירת מחדל
-setCanBid(true);
+// אם ממש רוצים לנעול בסוף מכירה:
+ if (ended) setCanBid(false);
 
 // אם המכירה בלייב אבל טרם הייתה הצעה – לא מפעילים טיימר סבב
 if ((data.is_live === 1) && !ended) {
@@ -197,16 +211,18 @@ const onAuctionEnded = ({ winnerId, finalPrice }) => {
 
   // מאזין להצעות חדשות
   useEffect(() => {
-    const onNewBid = ({ price, buyerId: bidderId }) => {
-      setCurrentPrice(price);
-      setLastBidder(bidderId);
-      setRoundTimeLeft(15);
-      if (bidderId !== buyerId) setCanBid(true);
+  const onNewBid = ({ price, buyerId: bidderId }) => {
+  setCurrentPrice(price);
+  setLastBidder(bidderId);
+  setRoundTimeLeft(15);
 
-      // לוג מיני (אופציונלי)
-      const { name, color } = getAnon(bidderId);
-      setChatLog((prev) => [...prev, { text: `${name} הציע ${price} ₪`, color }]);
-    };
+  // פותחים את הכפתור רק אם מישהו אחר הציע
+  setCanBid(bidderId !== buyerId);
+
+  const { name, color } = getAnon(bidderId);
+  setChatLog((prev) => [...prev, { text: `${name} הציע ${price} ₪`, color }]);
+};
+
 
     socket.on("newBid", onNewBid);
     return () => socket.off("newBid", onNewBid);
@@ -291,11 +307,15 @@ useEffect(() => {
     }
   }
 
-  function handleBid(amount = 10) {
-    if (!isLive || auctionEnded || !canBid) return;
-    socket.emit("placeBid", { productId, buyerId, customAmount: amount });
-    setCanBid(false);
-  }
+function handleBid(amount = 10) {
+  if (!isLive || auctionEnded || !canBid) return;
+  // נועלים מיידית ומסמנים שההצעה האחרונה שלי (אופטימית)
+  setCanBid(false);
+  setLastBidder(buyerId);
+
+  socket.emit("placeBid", { productId, buyerId, customAmount: amount });
+}
+
 
   if (!product) return <p>טוען מוצר...</p>;
 
@@ -480,15 +500,25 @@ useEffect(() => {
   )}
 
   {/* כפתור הגשה – טקסט משתנה לפני/אחרי ההצעה הראשונה */}
-  <button
-    className={styles.bidButton}
-    disabled={!canBid}
-    onClick={() => handleBid(Number(product.bid_increment))}
-  >
-    {hasFirstBid
-      ? `הגש הצעה של +${product.bid_increment} ₪`
-      : "הגש הצעה הראשונה"}
-  </button>
+<button
+  className={styles.bidButton}
+  disabled={isBidDisabled}
+  title={
+    isMyLastBid
+      ? "הצעת כבר — ממתינים להצעה נגדית"
+      : !canBid
+      ? "ממתינים לאישור/עדכון מהשרת"
+      : ""
+  }
+  onClick={() => handleBid(Number(product.bid_increment))}
+>
+  {hasFirstBid
+    ? isMyLastBid
+      ? "ממתינים להצעה נגדית…"
+      : `הגש הצעה של +${product.bid_increment} ₪`
+    : ` הגש הצעה ראשונה של +${product.bid_increment} ₪`}
+</button>
+
 
   {/* טיימר כללי של המכירה */}
   {auctionTimeLeft != null && auctionTimeLeft > 0 && (

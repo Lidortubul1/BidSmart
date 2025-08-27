@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { adminFetchProduct } from "../../../services/productApi";
 import TicketCard from "../../../components/tickets/TicketCard"; // ⬅️ משתמשים בכרטיס המאוחד
-
+//תצוגה ייעודית למנהל
 export default function AdminProductPanel({ productId }) {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("");

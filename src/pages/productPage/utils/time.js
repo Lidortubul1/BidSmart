@@ -1,4 +1,6 @@
 // src/pages/ProductPage/utils/time.js
+
+// ממיר מחרוזת משך זמן (שעות:דקות:שניות / דקות:שניות / דקות) למילישניות ומחזיר לנאל אם לא תקין
 export function parseDurationToMs(timeStr) {
   if (timeStr == null) return null;
   const parts = String(timeStr).trim().split(":").map(Number);
@@ -9,6 +11,8 @@ export function parseDurationToMs(timeStr) {
   else m = parts[0];
   return (h * 3600 + m * 60 + s) * 1000;
 }
+
+// מעצב ערך בשניות של ספירה לאחור לתצוגה "שעות:דקות:שניות" או "ימים שעות:דקות:שניות" כאשר יש ימים
 export function formatCountdown(total) {
   if (total == null) return "";
   const d = Math.floor(total / 86400);
@@ -18,6 +22,8 @@ export function formatCountdown(total) {
   const base = `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
   return d > 0 ? `${d} ימים ${base}` : base;
 }
+
+// ממיר מחרוזת משך זמן למספר הדקות (מעוגל) כמחרוזת ומחזיר מחרוזת ריקה אם הקלט לא תקין
 export function durationToMinutesDisplay(timeStr) {
   const ms = parseDurationToMs(timeStr);
   return ms == null ? "" : String(Math.round(ms / 60000));

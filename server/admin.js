@@ -13,7 +13,7 @@ router.use((req, res, next) => {
   next();
 });
 
-
+//סטטיסטיקות מנהל
 
 //כמות נרשמים לפי חודש ושנה שהתקבל מהמנהל
 router.get("/stats/registrations", async (req, res) => {
@@ -40,7 +40,6 @@ router.get("/stats/registrations", async (req, res) => {
     res.status(500).json({ message: "שגיאה בטעינת הנתונים" });
   }
 });
-
 
 //נתונים כללים של הלוח בקרה
 router.get("/stats", async (req, res) => {
@@ -99,9 +98,6 @@ router.get("/stats", async (req, res) => {
     res.status(500).json({ error: "שגיאה בשרת" });
   }
 });
-
-
-
 
 //סכום מכירות לפי חודש
 router.get("/stats/sales-by-month", async (req, res) => {
@@ -167,9 +163,6 @@ router.get("/stats/revenue", async (req, res) => {
   }
 });
 
-
-
-
 //מכירות לםי קטגוריה בטווח
 router.get("/stats/sales-by-category", async (req, res) => {
   const { from, to, seller_id_number } = req.query;
@@ -204,8 +197,6 @@ router.get("/stats/sales-by-category", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
-
-
 
 //מוכרים מובילים בטווח
 // /api/admin/stats/top-sellers?from=2025-08-01&to=2025-08-31&limit=10
@@ -512,7 +503,7 @@ router.put("/users/:id/status", async (req, res) => {
               to: user.email,
               subject: "עדכון חשבון – החשבון נחסם",
               text:
-`שלום ${user.first_name || ""} ${user.last_name || ""},
+                `שלום ${user.first_name || ""} ${user.last_name || ""},
 
 חשבונך הוגבל ואינו זמין לשימוש, מאחר שאינך עומד/ת בתנאי השימוש של BidSmart.
 במידה ואת/ה סבור/ה שמדובר בטעות או ברצונך להשיב את החשבון לפעילות, נשמח לסייע דרך הדוא״ל: support@bidsmart.com.
@@ -525,7 +516,7 @@ router.put("/users/:id/status", async (req, res) => {
               to: user.email,
               subject: "עדכון חשבון – החשבון הוחזר לפעילות",
               text:
-`שלום ${user.first_name || ""} ${user.last_name || ""},
+                `שלום ${user.first_name || ""} ${user.last_name || ""},
 
 שמחים לעדכן שחשבונך הוחזר למצב פעיל ותוכלו לשוב ולהשתמש במערכת BidSmart.
 
@@ -555,7 +546,7 @@ router.put("/users/:id/status", async (req, res) => {
               to: user.email,
               subject: "עדכון חשבון מוכר – החשבון נחסם",
               text:
-`שלום ${user.first_name || ""} ${user.last_name || ""},
+                `שלום ${user.first_name || ""} ${user.last_name || ""},
 
 חשבונך כמוכר הוגבל ואינו זמין לשימוש בשל אי-עמידה בתנאי השימוש של BidSmart.
 במהלך תקופת ההגבלה לא ניתן יהיה לנהל מכירות או לקבל הצעות על מוצרים המשויכים לחשבון.
@@ -573,7 +564,7 @@ support@bidsmart.com
               to: user.email,
               subject: "עדכון חשבון מוכר – החשבון הוחזר לפעילות",
               text:
-`שלום ${user.first_name || ""} ${user.last_name || ""},
+                `שלום ${user.first_name || ""} ${user.last_name || ""},
 
 שמחים לעדכן שחשבונך כמוכר הוחזר לפעילות.
 מוצרים שסווגו בעבר כ-"admin blocked" עודכנו בהתאם למועד ההתחלה שהוגדר לכל מוצר.
@@ -607,7 +598,7 @@ support@bidsmart.com
       );
       const productIds = prodRows.map(r => r.product_id);
 
-        if (productIds.length > 0) {
+      if (productIds.length > 0) {
         // 2) עדכן סטטוס מוצרים ל-admin blocked + כיבוי live
         const placeholders = productIds.map(() => "?").join(",");
         const [updProducts] = await conn.execute(
@@ -641,7 +632,7 @@ support@bidsmart.com
               to: row.email,
               subject: "ביטול הרשמה למכירה – BidSmart",
               text:
-`שלום,
+                `שלום,
 
 הרשמתך למכירה על המוצר:
 ${row.product_name} (מזהה מוצר: ${row.product_id})
@@ -674,7 +665,7 @@ ${row.product_name} (מזהה מוצר: ${row.product_id})
             to: user.email,
             subject: "עדכון חשבון מוכר – החשבון נחסם",
             text:
-`שלום ${user.first_name || ""} ${user.last_name || ""},
+              `שלום ${user.first_name || ""} ${user.last_name || ""},
 
 חשבונך כמוכר הוגבל ואינו זמין לשימוש, מאחר שלא עמד בתנאי השימוש של BidSmart.
 במהלך תקופת ההגבלה לא ניתן יהיה לפרסם מוצרים, לנהל מכירות או לקבל הצעות.
@@ -731,7 +722,7 @@ support@bidsmart.com
             to: user.email,
             subject: "עדכון חשבון מוכר – החשבון הוחזר לפעילות",
             text:
-`שלום ${user.first_name || ""} ${user.last_name || ""},
+              `שלום ${user.first_name || ""} ${user.last_name || ""},
 
 שמחים לעדכן שחשבונך כמוכר הוחזר לפעילות.
 מוצרים שסווגו בעבר כ-"admin blocked" עודכנו: אם מועד ההתחלה שלהם טרם הגיע – הוחזרו ל-"for sale"; ואם המועד כבר עבר – סווגו כ-"Not sold".
@@ -943,7 +934,7 @@ router.delete("/category/:id", async (req, res) => {
 router.delete("/category/subcategory/:id", async (req, res) => {
   const { id } = req.params;
   const conn = await db.getConnection();
-console.log(id);
+  console.log(id);
   try {
     // שלב 1: הבאת ה־category_id של התת־קטגוריה שמוחקים
     const [subRows] = await conn.query(

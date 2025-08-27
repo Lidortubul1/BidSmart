@@ -15,7 +15,7 @@ const FILTERS = [
   { value: "unsold",  label: "לא נמכרו" },
   { value: "blocked", label: "חסומים" },
 ];
-
+//דף ניהול מוצרים של כל המוכרים של המנהל
 export default function AdminProductsPage() {
   const [rows, setRows] = useState([]);
   const [filter, setFilter] = useState("all");

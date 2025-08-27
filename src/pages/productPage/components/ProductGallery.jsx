@@ -1,7 +1,7 @@
 // src/pages/ProductPage/components/ProductGallery.jsx
 import React, { useState } from "react";
 import styles from "../ProductPage.module.css";
-
+//גלריית תמונות
 export default function ProductGallery({ images = [] }) {
   const [idx, setIdx] = useState(0);
   const [open, setOpen] = useState(false);

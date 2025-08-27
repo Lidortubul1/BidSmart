@@ -4,6 +4,7 @@ import Product from "../productCard/product";
 // אפשר למחזר את ה-CSS של כרטיס המוכר כדי לשמור מראה אחיד:
 import styles from "./ProductCardUnified.module.css"
 
+//קומפוננטה של כרטיס של מנהל
 export default function ProductCardUnified({
   product,
   viewer = "seller",           // "seller" | "admin"
@@ -34,6 +35,10 @@ export default function ProductCardUnified({
     statusIcon = "info";
   } else if (rawStatus === "blocked") {
     statusText = "מוצר נחסם";
+    statusTone = "toneRed";
+    statusIcon = "ban";
+  }else if (rawStatus === "admin blocked") {
+    statusText = "מוצר נחסם על ידי ההנהלה";
     statusTone = "toneRed";
     statusIcon = "ban";
   }

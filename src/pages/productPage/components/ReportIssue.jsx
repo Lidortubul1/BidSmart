@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import styles from "../ProductPage.module.css";
 import Contacts from "../../../components/contacts/contacts";
-
+//דיווח על מוצר
 export default function ReportIssue({ user, productId, onNeedLogin }) {
   const [showForm, setShowForm] = useState(false);
   const [sent, setSent] = useState(false);
