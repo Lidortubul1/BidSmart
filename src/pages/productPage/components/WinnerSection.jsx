@@ -6,6 +6,7 @@ import { formatCountdown } from "../utils/time";
 import { createOrder } from "../../../services/paymentApi";
 import useSellerOptions from "../hooks/useSellerOptions";
 
+// תצוגה למשתמש שזכה במוצר - מצבים שונים (שילם / טרם שילם / הזמן פג)
 export default function WinnerSection({
   product,
   saleInfo,
@@ -16,21 +17,21 @@ export default function WinnerSection({
   sellerOption: sellerOptionProp,
   pickupAddressText: pickupAddressTextProp,
 }) {
-  const canPay = isUnpaidWinner && (secondsLeft ?? 0) > 0;
+  const canPay = isUnpaidWinner && (secondsLeft ?? 0) > 0; // האם ניתן עדיין לשלם
 
   const productId = product?.product_id;
   const { option: sellerOptionHook, pickupAddressText: pickupFromHook } =
-    useSellerOptions(productId);
+    useSellerOptions(productId); // שליפת אפשרויות משלוח מהמוכר דרך hook
 
-  const sellerOption = sellerOptionProp ?? sellerOptionHook; // "delivery" | "delivery+pickup"
-  const pickupAddressText = pickupAddressTextProp ?? pickupFromHook;
+  const sellerOption = sellerOptionProp ?? sellerOptionHook; // קביעת אופציית משלוח בפועל
+  const pickupAddressText = pickupAddressTextProp ?? pickupFromHook; // קביעת טקסט כתובת בפועל
 
   const handlePay = async () => {
-    if (onContinueToPayment) return onContinueToPayment();
-    const data = await createOrder(product.product_id);
-    const approveUrl = data?.links?.find((l) => l.rel === "approve")?.href;
-    if (approveUrl) window.location.href = approveUrl;
-    else alert("שגיאה בקבלת קישור לתשלום");
+    if (onContinueToPayment) return onContinueToPayment(); // אם הועברה פונקציה חיצונית – מפעיל אותה
+    const data = await createOrder(product.product_id); // יוצר הזמנה חדשה בשרת
+    const approveUrl = data?.links?.find((l) => l.rel === "approve")?.href; // מוצא קישור לאישור תשלום
+    if (approveUrl) window.location.href = approveUrl; // מפנה את המשתמש ל-PayPal
+    else alert("שגיאה בקבלת קישור לתשלום"); // אם אין קישור – מציג שגיאה
   };
 
   const renderSellerDeliveryNote = () => {
@@ -74,33 +75,52 @@ export default function WinnerSection({
 
   return (
     <>
+      {/* מוצג רק אם המשתמש כבר שילם */}
       {!isUnpaidWinner && <h1>ברכות! זכית במוצר</h1>}
-      {saleInfo && <OrderDetails sale={saleInfo} />}
 
+      {/* אם יש saleInfo – מציג פרטי הזמנה */}
+      {saleInfo && (
+   <OrderDetails
+     sale={saleInfo}
+     isWinner={true}
+     sellerView={false}
+     adminView={false}
+   />
+)}
+
+      {/* אם המשתמש זכה אך עדיין לא שילם */}
       {isUnpaidWinner && (
         <>
           {canPay ? (
             <>
+              {/* מציג פרטי מוצר */}
               {renderProductInfo()}
 
+              {/* מציג דדליין + טיימר */}
               <p className={styles.notice}>
                 ניתן להשלים תשלום עד <b>{deadlineText}</b>
                 <br />
                 זמן שנותר: {formatCountdown(secondsLeft)}
               </p>
 
-              <button type="button" className={styles.bidButton} onClick={handlePay}>
+              {/* כפתור מעבר לתשלום */}
+              <button
+                type="button"
+                className={styles.bidButton}
+                onClick={handlePay}
+              >
                 המשך לתשלום
               </button>
             </>
           ) : (
-            <>   
-            <p className={styles.error} style={{ marginTop: 12 }}>
-            <b> חלפו 24 שעות מהרגע שהיה ניתן לשלם- לכן זכייה זו בוטלה   </b>   
+            <>
+              {/* חלון הזמן עבר – ביטול זכייה */}
+              <p className={styles.error} style={{ marginTop: 12 }}>
+                <b> חלפו 24 שעות מהרגע שהיה ניתן לשלם- לכן זכייה זו בוטלה </b>
               </p>
-              {renderProductInfo()}
 
-           
+              {/* מציג שוב פרטי מוצר */}
+              {renderProductInfo()}
             </>
           )}
         </>

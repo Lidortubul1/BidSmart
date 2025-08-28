@@ -82,22 +82,21 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
   };
 
   // לחצן חסימה/החזרה לפעילות (טיפול בסטטוס המשתמש)
-  const handleToggleStatus = async (user, e) => {
-    e?.stopPropagation(); // שלא יפתח/יסגור את שורת הפרטים בטעות
-    const nextStatus = user.status === "active" ? "blocked" : "active"; // חישוב הסטטוס הבא
-    setTogglingId(user.id);
-    try {
-      const resp = await updateUserStatus(user.id, nextStatus); // בקשת עדכון לשרת
-      // עדכון אופטימי ב־state המקומי, כדי לשקף מיידית למשתמש
-      setUsers(prev => prev.map(u => (u.id === user.id ? { ...u, status: nextStatus } : u)));
-      console.log("Admin status toggle result:", resp); // לוג/דיבאג בלבד
-    } finally {
-      setTogglingId(null);
-    }
-  };
+const handleToggleStatus = async (user) => {
+  const nextStatus = user.status === "active" ? "blocked" : "active";
+  setTogglingId(user.id);
+  try {
+    const resp = await updateUserStatus(user.id, nextStatus);
+    setUsers(prev => prev.map(u => (u.id === user.id ? { ...u, status: nextStatus } : u)));
+    console.log("Admin status toggle result:", resp);
+  } finally {
+    setTogglingId(null);
+  }
+};
+
 
   // מספר העמודות בטבלה (לשימוש ב-colSpan של שורת הפרטים)
-  const COLS = 8;
+  const COLS = 7;
 
   return (
     <div className={styles.auList_wrapper}>
@@ -150,15 +149,13 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
           <table className={styles.auTable}>
             <thead>
               <tr>
-
-                <th>ת״ז</th>               {/* מספר זהות */}
-                <th>שם</th>                {/* שם מלא */}
-                <th>דוא״ל</th>             {/* כתובת אימייל */}
-                <th>טלפון</th>             {/* מספר טלפון */}
-                <th>תפקיד</th>             {/* buyer/seller */}
-                <th>סטטוס</th>             {/* active/blocked (תג) */}
-                <th>נרשם בתאריך</th>       {/* registered */}
-                <th>פעולה</th>             {/* כפתור חסימה/השבה */}
+                <th>ת״ז</th>             
+                <th>שם</th>                
+                <th>דוא״ל</th>           
+                <th>טלפון</th>           
+                <th>תפקיד</th>            
+                <th>סטטוס</th>           
+                <th>נרשם בתאריך</th>                 
               </tr>
             </thead>
 
@@ -166,7 +163,7 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
               {filtered.map((u) => (
                 <React.Fragment key={u.id}>
                   <tr>
-                    {/* <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.id}</td> ← להסיר */}
+                  
                     <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.id_number || "-"}</td>
                     <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
                       {[u.first_name, u.last_name].filter(Boolean).join(" ") || "-"}
@@ -182,24 +179,22 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
                     <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
                       {u.registered ? new Date(u.registered).toLocaleDateString("he-IL") : "-"}
                     </td>
-                    <td className={styles.au_actionCol}>
-                      <button
-                        className={`${styles.au_actionBtn} ${u.status === "active" ? styles.au_actionDanger : styles.au_actionOk}`}
-                        onClick={(e) => handleToggleStatus(u, e)}
-                        disabled={togglingId === u.id}
-                        title={u.status === "active" ? "השבת משתמש (חסימה)" : "החזר משתמש למערכת"}
-                      >
-                        {togglingId === u.id ? "מבצע…" : u.status === "active" ? "השבת" : "החזר למערכת"}
-                      </button>
-                    </td>
+                 
                   </tr>
 
                   {selectedId === u.id && (
                     <tr className={styles.auDetails_row}>
-                      {/* שים לב: colSpan נשען על COLS המעודכן (8) */}
+                     
                       <td colSpan={COLS} className={styles.auDetails_cell}>
                         <div className={styles.auDetails_card}>
-                          <AdminUserDetails userId={u.id} onClose={() => onSelectUser(null)} />
+<AdminUserDetails
+  userId={u.id}
+  onClose={() => onSelectUser(null)}
+  onToggleStatus={(user) => handleToggleStatus(user)}
+  togglingId={togglingId}
+/>
+
+
                         </div>
                       </td>
                     </tr>

@@ -1,9 +1,10 @@
+// src/pages/home/HomePage.jsx
 import ProductList from "../../components/productList/productList";
 import CategoryBar from "../../components/CategoryBar/CategoryBar";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { fetchCategoriesWithSubs } from "../../services/categoriesApi";
-import styles from "./HomePage.module.css";
+import styles from "./Landing.module.css"; // ← העיצוב המשותף
 
 function HomePage() {
   const [categories, setCategories] = useState({});
@@ -26,27 +27,23 @@ function HomePage() {
             <br />
             זו מכירה חכמה
           </h1>
+
           <p className={styles.subText}>
             למצוא מוצרים מדהימים בדרך פשוטה, חכמה ויעילה
           </p>
 
-          <p className={styles.startText}>:התחילו עכשיו</p>
+          <p className={styles.aiAssistantText}>המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה</p>
+
           <div className={styles.authLinks}>
-            <Link to="/login" className={styles.loginLink}>
-              התחברות
-            </Link>
-            <Link to="/register" className={styles.registerLink}>
-              הרשמה
-            </Link>
+            <Link to="/login" className={styles.loginLink}>התחברות</Link>
+            <Link to="/register" className={styles.registerLink}>הרשמה</Link>
           </div>
-          <p className={styles.aiAssistantText}>
-            המופיעה בצד השמאלי של המסך AI לכל שאלה על האתר ניתן לשאול את נציגת ה
-          </p>
         </div>
       </section>
 
       <section className={styles.productsSection}>
         <h2>כל המוצרים</h2>
+
         <div className={styles.searchContainer}>
           <input
             type="text"

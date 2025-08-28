@@ -1,13 +1,15 @@
 // src/pages/ProductPage/components/AdminProductPanel.jsx
-//בתוך הדף מוצר - צפייה של מנהל רק 
 import React, { useEffect, useState } from "react";
 import { adminFetchProduct } from "../../../services/productApi";
-import TicketCard from "../../../components/tickets/TicketCard"; // ⬅️ משתמשים בכרטיס המאוחד
-//תצוגה ייעודית למנהל
+import {  adminFetchUserByIdNumber } from "../../../services/userApi";
+import TicketCard from "../../../components/tickets/TicketCard";
+
 export default function AdminProductPanel({ productId }) {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("");
   const [err, setErr] = useState("");
+  const [winner, setWinner] = useState(null);     // ← חדש
+  const [loadingWinner, setLoadingWinner] = useState(false); // ← אופציונלי
 
   useEffect(() => {
     let alive = true;
@@ -17,6 +19,20 @@ export default function AdminProductPanel({ productId }) {
         if (!alive) return;
         setData(res.product);
         setStatus(res.product.product_status || "");
+
+        // נטען פרטי מנצח אם יש winner_id_number
+        const wid = res.product?.winner_id_number;
+        if (wid) {
+          setLoadingWinner(true);
+          try {
+            const u = await adminFetchUserByIdNumber(wid);
+            if (!alive) return;
+            setWinner(u); // { id_number, first_name, last_name, email }
+          } catch {}
+          finally { if (alive) setLoadingWinner(false); }
+        } else {
+          setWinner(null);
+        }
       } catch {
         if (!alive) return;
         setErr("שגיאה בטעינת נתוני המוצר");
@@ -40,7 +56,7 @@ export default function AdminProductPanel({ productId }) {
       <h3 style={{ marginTop: 0 }}>פאנל ניהול מוצר</h3>
 
       {/* מידע כללי */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
         <div>
           <strong>נתוני מוצר</strong>
           <div>שם מוצר: {data.product_name}</div>
@@ -57,9 +73,28 @@ export default function AdminProductPanel({ productId }) {
           <div>{seller.phone || "—"}</div>
           <div>סטטוס: {seller.status || "—"}</div>
         </div>
+
+        <div>
+          <strong>נתוני מנצח</strong>
+          {data.winner_id_number ? (
+            loadingWinner ? (
+              <div>טוען נתוני מנצח…</div>
+            ) : winner ? (
+              <>
+                <div>#{winner.id_number}</div>
+                <div>{`${winner.first_name || ""} ${winner.last_name || ""}`.trim() || "—"}</div>
+                <div>{winner.email || "—"}</div>
+              </>
+            ) : (
+              <div>לא נמצאו פרטי מנצח</div>
+            )
+          ) : (
+            <div>אין זוכה למוצר זה</div>
+          )}
+        </div>
       </div>
 
-      {/* כרטיס השיחה/דיווחים + סטטוס מקובץ + חסימת מוצר – הכל מתוך TicketCard */}
+      {/* כרטיס שיחות/דיווחים */}
       <div style={{ marginTop: 16 }}>
         <TicketCard productId={productId} />
       </div>

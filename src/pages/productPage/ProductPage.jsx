@@ -1,3 +1,4 @@
+// src/pages/productPage/ProductPage.jsx
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./ProductPage.module.css";
@@ -6,7 +7,6 @@ import { useAuth } from "../../auth/AuthContext";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import LoginForm from "../../components/LoginForm/LoginForm";
 
-import ProductGallery from "./components/ProductGallery";
 import WinnerSection from "./components/WinnerSection";
 import RegistrationBlock from "./components/RegistrationBlock";
 import ReportIssue from "./components/ReportIssue";
@@ -14,7 +14,6 @@ import AdminProductPanel from "./components/AdminProductPanel";
 import OrderDetails from "./components/OrderDetails";
 import ShippingForm from "../../pages/ShippingForm/ShippingForm";
 
-import { renderStars } from "../../services/productApi";
 import { formatCountdown } from "./utils/time";
 
 import { useProductData } from "./hooks/useProductData";
@@ -23,36 +22,41 @@ import { useSaleState } from "./hooks/useSaleState";
 import { useStartCountdown } from "./hooks/useStartCountdown";
 import { usePaymentDeadline } from "./hooks/usePaymentDeadline";
 
-// שולם? לפי טבלת quotation
-import { getQuotationsByProductId } from "../../services/quotationApi";
+import ProductLayout from "./components/ui/ProductLayout";
+import SellerRating from "./components/ui/SellerRating";
+import Box from "./components/ui/Box";
+import { useLoginModal } from "./hooks/useLoginModal";
+import { useWinnerPaymentStatus } from "./hooks/useWinnerPaymentStatus";
 
 /* ----------------------------------------------------
-   ProductPage – גרסה מסודרת לפי תפקיד הצופה
+   ProductPage – תצוגת מוצר לפי תפקיד הצופה (אדמין/מוכר/זוכה/משתמש/אורח)
 ---------------------------------------------------- */
 export default function ProductPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { id } = useParams();                         // מזהה מוצר מה-URL
+  const navigate = useNavigate();                     // נווט לקישורים פנימיים
+  const { user, setUser } = useAuth();                // משתמש מחובר (כולל role)
 
-  /* ---------- דאטה בסיס ---------- */
-  const { product, setProduct } = useProductData(id);
-  const { loading, option: sellerOption, pickupAddressText, rating: sellerRating } =
-    useSellerOptions(id);
-  const images = product?.images || [];
+  /* ---------- טעינת נתוני מוצר ואפשרויות מוכר ---------- */
+  const { product, setProduct } = useProductData(id); // הבאת מוצר ועדכון לאחר רענון
+  const {
+    loading,
+    option: sellerOption,
+    pickupAddressText,
+    rating: sellerRating,
+  } = useSellerOptions(id);                           // משלוח/איסוף + דירוג מוכר
 
-  // מכירה/סטטוס זכייה לפי הוק
-  const { saleForProduct, saleInfo } = useSaleState(id, user?.id_number);
-const [showPickup, setShowPickup] = useState(false); // <— גלובלי לקומפוננטה
+  /* ---------- סטטוס מכירה/זכייה ---------- */
+  const { saleForProduct, saleInfo } = useSaleState(id, user?.id_number); // מצב מכירה ושורת מכירה אם קיימת
+  const [showPickup, setShowPickup] = useState(false);                    // הצגת/הסתרת כתובת איסוף
 
   /* ---------- זיהוי תפקיד הצופה ---------- */
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin";                                      // האם אדמין
   const isOwner =
-    user?.role === "seller" &&
-    String(user?.id_number) === String(product?.seller_id_number);
+    user?.role === "seller" && String(user?.id_number) === String(product?.seller_id_number); // האם המוכר של המוצר
 
-  const currentUserId = user?.id_number ?? null;
+  const currentUserId = user?.id_number ?? null;                               // מזהה משתמש מחובר
 
-  // זוכה אמיתי – רק אם יש משתמש מחובר וגם יש מזהה זוכה בפועל
+  // בדיקת זכייה לפי שדה winner_id_number על המוצר
   const winnerIdProduct = product?.winner_id_number;
   const isWinnerByProduct =
     !!currentUserId &&
@@ -60,23 +64,22 @@ const [showPickup, setShowPickup] = useState(false); // <— גלובלי לקו
     String(winnerIdProduct).trim() !== "" &&
     String(winnerIdProduct) === String(currentUserId);
 
-  const saleWinnerId =
-    saleInfo?.buyer_id_number ?? saleInfo?.winner_id_number ?? null;
+  // בדיקת זכייה לפי שורת המכירה (saleInfo) אם קיימת
+  const saleWinnerId = saleInfo?.buyer_id_number ?? saleInfo?.winner_id_number ?? null;
   const isWinnerBySale =
     !!currentUserId &&
     saleWinnerId != null &&
     String(saleWinnerId).trim() !== "" &&
     String(saleWinnerId) === String(currentUserId);
 
-  const isWinnerFinal = isWinnerByProduct || isWinnerBySale;
-  const isLoggedIn = !!user?.email;
- 
+  const isWinnerFinal = isWinnerByProduct || isWinnerBySale;                   // זוכה סופי (מוצר או מכירה)
+  const isLoggedIn = !!user?.email;                                            // יש התחברות
 
   /* ---------- עזרי זמן/סטטוס ---------- */
-  const rawStatus = String(product?.product_status ?? "");
-  const status = rawStatus.trim().toLowerCase().replace(/[_\s]+/g, " ");
+  const rawStatus = String(product?.product_status ?? "");                     // סטטוס גולמי מהדאטה
+  const status = rawStatus.trim().toLowerCase().replace(/[_\s]+/g, " ");       // נירמול הסטטוס
 
-  // “המכרז הסתיים” לפי זמן (גם אם אין sale)
+  // האם הסתיים לפי start_date + end_time (גם ללא sale)
   const endedByTime = useMemo(() => {
     if (!product?.start_date || !product?.end_time) return false;
     const startMs = new Date(product.start_date).getTime();
@@ -85,53 +88,31 @@ const [showPickup, setShowPickup] = useState(false); // <— גלובלי לקו
     return Number.isFinite(startMs) && ms ? Date.now() >= startMs + ms : false;
   }, [product?.start_date, product?.end_time]);
 
-  const isEnded = !!saleForProduct || endedByTime;
-  const startCountdownSec = useStartCountdown(product?.start_date);
+  const isEnded = !!saleForProduct || endedByTime;                      // הסתיימה המכירה (לפי זמן או לפי מכירה בפועל)
+  const startCountdownSec = useStartCountdown(product?.start_date);     // שניות עד תחילת מכירה (אם טרם החלה)
 
-  // מותר להירשם רק אם: סטטוס פעיל, אין זוכה, ועוד לא הסתיים לפי הזמן
+  // הרשמה אפשרית רק אם: סטטוס פעיל, אין זוכה, ולא הסתיים
   const noWinner = product?.winner_id_number == null || String(product?.winner_id_number).trim() === "";
   const canRegister = status === "for sale" && noWinner && !isEnded;
 
-  /* ---------- תשלום לזוכה שלא שילם ---------- */
-  const [isPaid, setIsPaid] = useState(false);
-  const [isUnpaidWinner, setIsUnpaidWinner] = useState(false);
+  /* ---------- סטטוס תשלום לזוכה (Hook מרוכז) ---------- */
+ const { isPaid, isUnpaidWinner } =
+    useWinnerPaymentStatus({
+      product,
+      saleInfo,
+      isWinnerFinal,
+      isWinnerByProduct,
+      status,
+    });
 
-  React.useEffect(() => {
-    let alive = true;
-    (async () => {
-      if (!product?.product_id || !isWinnerFinal) {
-        if (alive) setIsPaid(false);
-        return;
-      }
-      try {
-        const res = await getQuotationsByProductId(product.product_id);
-        const list = res?.data || res || [];
-        const winQuote = list.find(
-          (q) => String(q.buyer_id_number) === String(product.winner_id_number)
-        );
-        const paid = !!(
-          winQuote &&
-          (winQuote.is_paid === true ||
-            winQuote.is_paid === 1 ||
-            String(winQuote.is_paid).toLowerCase() === "yes" ||
-            String(winQuote.is_paid) === "1")
-        );
-        if (alive) setIsPaid(paid);
-      } catch {
-        if (alive) setIsPaid(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, [product?.product_id, product?.winner_id_number, isWinnerFinal]);
 
-  React.useEffect(() => {
-    const pendingWithoutSale = !saleInfo && isWinnerByProduct && status === "for sale";
-    const expiredNotPaid = isWinnerByProduct && status === "not sold" && !isPaid;
-    const notPaidYet = isWinnerFinal && !isPaid && (saleInfo || pendingWithoutSale || expiredNotPaid);
-    setIsUnpaidWinner(Boolean(notPaidYet));
-  }, [isWinnerFinal, isWinnerByProduct, status, saleInfo, isPaid]);
+  // האם להציג שעון ספירה לתשלום לזוכה שלא שילם
+  const countdownEnabled = isWinnerFinal && isUnpaidWinner;
+  // סטטוס נגזר להצגה בלבד – לא משנה בסיס נתונים ולא נשלח לשרת
+  const derivedStatus =
+    (isWinnerFinal && isUnpaidWinner) ? "awaiting_payment" : status;
 
-  const countdownEnabled = isWinnerFinal && isUnpaidWinner && status === "for sale";
+  // ספירה לאחור לזמן תשלום; על סיום תוקף – רענון מוצר
   const { secondsLeft, deadlineText } = usePaymentDeadline(
     product?.last_bid_time,
     countdownEnabled,
@@ -144,152 +125,164 @@ const [showPickup, setShowPickup] = useState(false); // <— גלובלי לקו
     }
   );
 
-  /* ---------- מודאל/התחברות ---------- */
-  const [modal, setModal] = useState(null);
-  const [showLogin, setShowLogin] = useState(false);
+  /* ---------- מודאל/התחברות (Hook מרוכז) ---------- */
+  const { modal, setModal, showLogin, setShowLogin, openModal, askLogin } = useLoginModal(navigate);
 
-  const openModal = (cfg) =>
-    setModal({ ...cfg, onCancel: cfg.onCancel || (() => setModal(null)) });
-
-const askLogin = (/* intent */) => {
-  openModal({
-    title: "התחברות נדרשת",
-    message: "כדי להירשם למוצר יש להתחבר",
-    confirmText: "התחברות",
-    onConfirm: () => { setModal(null); setShowLogin(true); },
-    extraButtonText: "הרשמה",
-    onExtra: () => navigate("/register"),
-  });
-};
-
-
+  // בזמן טעינת מוצר
   if (!product) return <p>טוען מוצר...</p>;
 
   /* ====================================================
-     1) הגדרת תפקיד הצופה (Role)
+     1) קביעת תפקיד הצופה (Role)
      ==================================================== */
-  let viewerRole = "guest"; // guest | admin | owner | winner | user
+  let viewerRole = "guest";                     // guest | admin | owner | winner | user
   if (isAdmin) viewerRole = "admin";
   else if (isOwner) viewerRole = "owner";
   else if (isWinnerFinal) viewerRole = "winner";
   else if (isLoggedIn) viewerRole = "user";
-  // אחרת נשאר guest
 
   /* ====================================================
-     2) Renderers לפי Role
+     2) פונקציות רנדר לפי Role
      ==================================================== */
-  const renderOwnerView = () => {
-    const ProductEditor = require("./components/productEditor").default;
+  const images = product?.images || [];         // תמונות המוצר להצגה בגלריה
 
-    // חסימות
+  // תצוגת בעלים (מוכר שהוא בעל המוצר)
+  const renderOwnerView = () => {
+    const ProductEditor = require("./components/productEditor").default; // טעינה דינמית קלה (נמנע Bundle מיותר)
+
+    // מוצר חסום ע"י הנהלה – אין עריכה, הצגת פרטים בסיסיים
     if (status === "admin blocked") {
       return (
-        <Box msg={
-          <>
-            <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
-            <div>ההנהלה חסמה מוצר זה, נא לפנות לתמיכה להמשך בירור.</div>
-            <div style={{ marginTop: 8, color: "#555" }}>תיאור: {product.description || "-"}</div>
-            <div style={{ marginTop: 4, color: "#555" }}>מחיר פתיחה: ₪{product.price ?? "-"}</div>
-            <div style={{ marginTop: 12, fontWeight: 600 }}>לא ניתן לערוך.</div>
-          </>
-        }/>
+        <Box>
+          <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
+          <div>ההנהלה חסמה מוצר זה, נא לפנות לתמיכה להמשך בירור.</div>
+          <div style={{ marginTop: 8, color: "#555" }}>תיאור: {product.description || "-"}</div>
+          <div style={{ marginTop: 4, color: "#555" }}>מחיר פתיחה: ₪{product.price ?? "-"}</div>
+          <div style={{ marginTop: 12, fontWeight: 600 }}>לא ניתן לערוך.</div>
+        </Box>
       );
     }
+
+    // מוצר שנמחק ע"י המוכר – אין עריכה
     if (status === "blocked") {
       return (
-        <Box msg={
-          <>
-            <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
-            <div>מחקת מוצר זה.</div>
-            <div style={{ marginTop: 8, color: "#555" }}>תיאור: {product.description || "-"}</div>
-            <div style={{ marginTop: 4, color: "#555" }}>מחיר פתיחה: ₪{product.price ?? "-"}</div>
-            <div style={{ marginTop: 12, fontWeight: 600 }}>לא ניתן לערוך.</div>
-          </>
-        }/>
+        <Box>
+          <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
+          <div>מחקת מוצר זה.</div>
+          <div style={{ marginTop: 8, color: "#555" }}>תיאור: {product.description || "-"}</div>
+          <div style={{ marginTop: 4, color: "#555" }}>מחיר פתיחה: ₪{product.price ?? "-"}</div>
+          <div style={{ marginTop: 12, fontWeight: 600 }}>לא ניתן לערוך.</div>
+        </Box>
       );
     }
-    // נמכר – מציג פרטי מכירה (ניסוח מוכר)
+
+    // מוצר שנמכר – מציגים פרטי מכירה (צד מוכר), בלי אפשרות עריכה
+    // בתוך renderOwnerView
     if (status === "sale" && saleInfo) {
       return (
-        <div className={styles.page}>
-          <div className={styles.content}>
-            <div className={styles.imageWrapper}><ProductGallery images={images} /></div>
-            <div className={styles.details}>
-              <h1>{product.product_name}</h1>
-              {!isOwner && (startCountdownSec ?? 0) > 0 && (
-                <p className={styles.infoNote}>המכרז מתחיל בעוד: {formatCountdown(startCountdownSec)}</p>
-              )}
-              <p className={styles.notice}>המוצר נמכר — לא ניתן לערוך.</p>
-              <OrderDetails sale={saleInfo} isWinner={false} sellerView={true} adminView={false} />
-            </div>
-          </div>
-        </div>
+        <ProductLayout images={images}>
+          {/* התראה למוכר: הקונה שילם אך טרם מילא כתובת */}
+     
+
+
+          <h1>{product.product_name}</h1>
+          {!isOwner && (startCountdownSec ?? 0) > 0 && (
+            <p className={styles.infoNote}>
+              המכרז מתחיל בעוד: {formatCountdown(startCountdownSec)}
+            </p>
+          )}
+          <p className={styles.notice}>המוצר נמכר — לא ניתן לערוך.</p>
+          <OrderDetails
+            sale={saleInfo}
+            isWinner={false}
+            sellerView={true}
+            adminView={false}
+          />
+        </ProductLayout>
       );
     }
+
+
     // עריכת מוצר (לא חסום ולא נמכר)
     return <ProductEditor productId={id} onSaved={() => window.history.back()} onCancel={() => window.history.back()} />;
   };
 
+
+  // תצוגת אדמין
   const renderAdminView = () => {
-    // אדמין – כשהמוצר לא נמכר
-    if (status === "not sold") {
-      return (
-        <div className={styles.page}>
-          <div className={styles.content}>
-            <div className={styles.imageWrapper}><ProductGallery images={images} /></div>
-            <div className={styles.details}>
-              <h1>{product.product_name}</h1>
-              <p className={styles.notice}>מוצר זה לא נמכר.</p>
-              <p className={styles.description}>{product.description}</p>
-              <p className={styles.price}>מחיר פתיחה: ₪{product.price}</p>
-              {!loading && sellerOption === "delivery" && (
-                <p className={styles.infoNote}>מוצר זה ניתן <b>רק לשליחה</b>.</p>
-              )}
-              {!loading && sellerOption === "delivery+pickup" && (
-                <div className={styles.infoNote}>
-                  מוצר זה ניתן <b>גם לשליחה וגם לאיסוף עצמי</b> מכתובת המוכר.
-                </div>
-              )}
-              <SellerRating rating={sellerRating} />
-            </div>
-          </div>
-          <div className={styles.adminSection}><AdminProductPanel productId={id} /></div>
+    // מוצר שלא נמכר – מציגים פירוט, אופציות משלוח/איסוף ודירוג מוכר
+// מוצר שלא נמכר – מציגים פירוט, אופציות משלוח/איסוף ודירוג מוכר
+if (status === "not sold") {
+  const hasWinner = product?.winner_id_number != null && String(product.winner_id_number).trim() !== "";
+
+  return (
+    <ProductLayout
+      images={images}
+      adminPanel={<div className={styles.adminSection}><AdminProductPanel productId={id} /></div>}
+    >
+      <h1>{product.product_name}</h1>
+
+      {hasWinner ? (
+        <p
+          className={styles.notice}
+          style={{ background: "#fff3cd", border: "1px solid #ffeeba", color: "#856404" }}
+        >
+          הרוכש לא שילם על מוצר זה
+        </p>
+      ) : (
+        <p className={styles.notice}>מוצר זה לא נמכר.</p>
+      )}
+
+      <p className={styles.description}>{product.description}</p>
+      <p className={styles.price}>מחיר פתיחה: ₪{product.price}</p>
+
+      {!loading && sellerOption === "delivery" && (
+        <p className={styles.infoNote}>מוצר זה ניתן <b>רק לשליחה</b>.</p>
+      )}
+
+      {!loading && sellerOption === "delivery+pickup" && (
+        <div className={styles.infoNote}>
+          מוצר זה ניתן <b>גם לשליחה וגם לאיסוף עצמי</b> מכתובת המוכר.
         </div>
-      );
-    }
-    // אדמין – כשהמוצר נמכר
+      )}
+
+      <SellerRating rating={sellerRating} />
+    </ProductLayout>
+  );
+}
+
+
+
+    // מוצר שנמכר – מציגים פרטי מכירה (צד אדמין)
     if (status === "sale" && saleInfo) {
       return (
-        <div className={styles.page}>
-          <div className={styles.content}>
-            <div className={styles.imageWrapper}><ProductGallery images={images} /></div>
-            <div className={styles.details}>
-              <h1>{product.product_name}</h1>
-              <p className={styles.notice}>המוצר נמכר.</p>
-              <OrderDetails sale={saleInfo} isWinner={false} sellerView={false} adminView={true} />
-            </div>
-          </div>
-          <div className={styles.adminSection}><AdminProductPanel productId={id} /></div>
-        </div>
+        <ProductLayout
+          images={images}
+          adminPanel={<div className={styles.adminSection}><AdminProductPanel productId={id} /></div>}
+        >
+          <h1>{product.product_name}</h1>
+          <p className={styles.notice}>המוצר נמכר.</p>
+          <OrderDetails sale={saleInfo} isWinner={false} sellerView={false} adminView={true} />
+        </ProductLayout>
       );
     }
-    // חסימות (למי שאינו הבעלים)
+
+    // מוצר חסום/נמחק – הודעה בלבד
     if (status === "admin blocked" || status === "blocked") {
       return (
-        <Box msg={
-          <>
-            <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
-            <div>{status === "admin blocked" ? "מוצר זה נמחק ע\"י ההנהלה ואינו זמין יותר" : "המוצר נמחק על ידי המוכר ואינו זמין יותר"}</div>
-            <div style={{ marginTop: 8, color: "#555" }}>תיאור: {product.description || "-"}</div>
-            <div style={{ marginTop: 4, color: "#555" }}>מחיר פתיחה: ₪{product.price ?? "-"}</div>
-          </>
-        }/>
+        <Box>
+          <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
+          <div>{status === "admin blocked" ? 'מוצר זה נמחק ע"י ההנהלה ואינו זמין יותר' : "המוצר נמחק על ידי המוכר ואינו זמין יותר"}</div>
+          <div style={{ marginTop: 8, color: "#555" }}>תיאור: {product.description || "-"}</div>
+          <div style={{ marginTop: 4, color: "#555" }}>מחיר פתיחה: ₪{product.price ?? "-"}</div>
+        </Box>
       );
     }
-    // אדמין – תצוגה רגילה של מוצר (כמו משתמש רגיל)
+
+    // תצוגה רגילה (כמו משתמש רגיל/אורח)
     return renderUserOrGuestCommon();
   };
 
+  // תצוגת זוכה (כולל טיפול בהשלמת פרטי משלוח במקרה הצורך)
   const renderWinnerView = () => {
     const needsDeliveryAddress =
       isWinnerFinal &&
@@ -299,103 +292,110 @@ const askLogin = (/* intent */) => {
         const v = saleInfo?.[f];
         return v == null || String(v).trim() === "";
       });
-
     return (
-      <div className={styles.page}>
-        <div className={styles.content}>
-          <div className={styles.imageWrapper}><ProductGallery images={images} /></div>
-          <div className={styles.details}>
-            {needsDeliveryAddress ? (
-              <ShippingForm />
-            ) : (
-              <WinnerSection
-                product={product}
-                saleInfo={saleInfo}
-                isUnpaidWinner={isUnpaidWinner}
-                secondsLeft={secondsLeft}
-                deadlineText={deadlineText}
-                sellerOption={sellerOption}
-                pickupAddressText={pickupAddressText}
-              />
-            )}
+      <ProductLayout
+        images={images}
+        adminPanel={isAdmin ? <div className={styles.adminSection}><AdminProductPanel productId={id} /></div> : undefined}
+      >
+        {/* ShippingForm- טופס משלוח אם חסרים פרטי כתובת לזוכה ששילם */}
+        {needsDeliveryAddress ? (
+          <div>
+            <div className={styles.orderCard} style={{ marginBottom: 16 }}>
+              <div style={{ textAlign: "right" }}>
+                <h3 style={{ margin: 0 }}>{product.product_name}</h3>
+                {saleInfo?.final_price && (
+                  <div style={{ marginTop: 4, color: "#444" }}>
+                    מחיר סופי: {saleInfo.final_price} ₪
+                  </div>
+                )}
+                <div style={{ marginTop: 4, color: "#666" }}>
+                  אנא מלא/י את פרטי המשלוח להמשך טיפול במשלוח.
+                </div>
+              </div>
+            </div>
+            <ShippingForm />
           </div>
-        </div>
-        {isAdmin && <div className={styles.adminSection}><AdminProductPanel productId={id} /></div>}
-      </div>
+        ) : (
+          <WinnerSection
+            product={product}
+            saleInfo={saleInfo}
+            isUnpaidWinner={isUnpaidWinner}
+            secondsLeft={secondsLeft}
+            deadlineText={deadlineText}
+            sellerOption={sellerOption}
+            pickupAddressText={pickupAddressText}
+          />
+        )}
+
+      </ProductLayout>
     );
   };
 
-  // תצוגה משותפת ל־User (קונה שאינו זוכה) ול־Guest
+  // תצוגה משותפת למשתמש רגיל/אורח (לא זוכה)
   const renderUserOrGuestCommon = () => {
     return (
-      <div className={styles.page}>
-        <div className={styles.content}>
-          <div className={styles.imageWrapper}><ProductGallery images={images} /></div>
+      <ProductLayout
+        images={images}
+        adminPanel={isAdmin ? <div className={styles.adminSection}><AdminProductPanel productId={id} /></div> : undefined}
+      >
+        {isEnded && derivedStatus !== "awaiting_payment" ? (
+          <>
+            <h1>{product.product_name}</h1>
+            <p className={styles.notice}>המכרז הסתיים — לא זכית במכרז זה.</p>
+            <SellerRating rating={sellerRating} />
+          </>
+        ) : (
+          <>
+            <h1>{product.product_name}</h1>
+            <p className={styles.description}>{product.description}</p>
+            <p className={styles.price}>מחיר פתיחה: ₪{product.price}</p>
 
-          <div className={styles.details}>
-            {/* הסתיים – לא זכית */}
-            {isEnded ? (
-              <>
-                <h1>{product.product_name}</h1>
-                <p className={styles.notice}>המכרז הסתיים — לא זכית במכרז זה.</p>
-                <SellerRating rating={sellerRating} />
-              </>
-            ) : (
-              <>
-                <h1>{product.product_name}</h1>
-                <p className={styles.description}>{product.description}</p>
-                <p className={styles.price}>מחיר פתיחה: ₪{product.price}</p>
+            {/* הודעות לגבי אופן מסירה */}
+            {!loading && sellerOption === "delivery" && <p className={styles.infoNote}>מוצר זה ניתן <b>רק לשליחה</b>.</p>}
 
-                {!loading && sellerOption === "delivery" && (
-                  <p className={styles.infoNote}>מוצר זה ניתן <b>רק לשליחה</b>.</p>
-                )}
-                {!loading && sellerOption === "delivery+pickup" && (
-                  <div className={styles.infoNote}>
-                    מוצר זה ניתן <b>גם לשליחה וגם לאיסוף עצמי</b> מכתובת המוכר.
-                    <div style={{ marginTop: 8 }}>
-                      <button
-                        type="button"
-                        className={`${styles.linkLikeButton} ${showPickup ? styles.linkLikeButtonActive : ""}`}
-                        onClick={() => setShowPickup((v) => !v)}
-                      >
-                        הצג/הסתר כתובת המוכר
-                      </button>
-                      {showPickup && (
-                        <div className={styles.pickupBox}>
-                          {pickupAddressText || <small>(כתובת המוכר לא זמינה כרגע)</small>}
-                        </div>
-                      )}
+            {!loading && sellerOption === "delivery+pickup" && (
+              <div className={styles.infoNote}>
+                מוצר זה ניתן <b>גם לשליחה וגם לאיסוף עצמי</b> מכתובת המוכר.
+                <div style={{ marginTop: 8 }}>
+                  <button
+                    type="button"
+                    className={`${styles.linkLikeButton} ${showPickup ? styles.linkLikeButtonActive : ""}`}
+                    onClick={() => setShowPickup((v) => !v)} // הצגת/הסתרת כתובת איסוף
+                  >
+                    הצג/הסתר כתובת המוכר
+                  </button>
+                  {showPickup && (
+                    <div className={styles.pickupBox}>
+                      {pickupAddressText || <small>(כתובת המוכר לא זמינה כרגע)</small>}
                     </div>
-                  </div>
-                )}
-
-                {/* טיימר "המכירה תחל בעוד..." */}
-                {(startCountdownSec ?? 0) > 0 && (
-                  <p className={styles.countdown}>המכירה תחל בעוד {formatCountdown(startCountdownSec)}</p>
-                )}
-
-                {/* בלוק הרשמה – לכל מי שאינו הבעלים כאשר אפשר להירשם */}
-                {String(user?.id_number) !== String(product.seller_id_number) && canRegister && (
-                  <RegistrationBlock
-                    product={product}
-                    user={user}
-                    setUser={setUser}
-                    navigate={navigate}
-                    openModal={openModal}
-                    onNeedLogin={() => askLogin("register")}
-                  />
-                )}
-
-                <SellerRating rating={sellerRating} />
-                <ReportIssue user={user} productId={product.product_id} onNeedLogin={() => askLogin("report")} />
-              </>
+                  )}
+                </div>
+              </div>
             )}
-          </div>
-        </div>
 
-        {isAdmin && <div className={styles.adminSection}><AdminProductPanel productId={id} /></div>}
+            {/* טיימר לתחילת מכירה */}
+            {(startCountdownSec ?? 0) > 0 && (
+              <p className={styles.countdown}>המכירה תחל בעוד {formatCountdown(startCountdownSec)}</p>
+            )}
 
-        {/* מודאל כללי */}
+            {/* בלוק הרשמה – רק אם הצופה אינו המוכר ובאפשרות להירשם */}
+            {String(user?.id_number) !== String(product.seller_id_number) && canRegister && (
+              <RegistrationBlock
+                product={product}
+                user={user}
+                setUser={setUser}
+                navigate={navigate}
+                openModal={openModal}
+                onNeedLogin={() => askLogin()} // פתיחת מודאל התחברות במידת הצורך
+              />
+            )}
+
+            <SellerRating rating={sellerRating} />
+            <ReportIssue user={user} productId={product.product_id} onNeedLogin={() => askLogin()} />
+          </>
+        )}
+
+        {/* מודאל כללי – הודעות/אישורים */}
         {modal && (
           <CustomModal
             title={modal.title}
@@ -410,16 +410,15 @@ const askLogin = (/* intent */) => {
           />
         )}
 
-        {/* התחברות */}
+        {/* מודאל התחברות עם טופס */}
         {showLogin && (
           <CustomModal
             message={
               <LoginForm
                 onSuccess={(u) => {
-                  setUser(u);
-                  setShowLogin(false);
-                  setModal(null);
-                  // RegistrationBlock ממשיך לבד אם intent היה "register"
+                  setUser(u);            // שמירת המשתמש המחובר
+                  setShowLogin(false);   // סגירת מודאל ההתחברות
+                  setModal(null);        // ניקוי מודאל כללי אם היה
                 }}
               />
             }
@@ -428,32 +427,31 @@ const askLogin = (/* intent */) => {
             disableBackdropClose={false}
           />
         )}
-      </div>
+      </ProductLayout>
     );
   };
 
   /* ====================================================
-     3) ניתוב לפי Role (מוקדם: חסימות כלליות למי שאינו בעלים)
+     3) חסימות גלובליות – לצופים שאינם בעלים
      ==================================================== */
   if (!isOwner && (status === "admin blocked" || status === "blocked")) {
     return (
-      <Box
-        msg={
-          <>
-            <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
-            {status === "admin blocked" ? (
-              <div>מוצר זה נמחק ע"י ההנהלה ואינו זמין יותר</div>
-            ) : (
-              <div>המוצר נמחק על ידי המוכר ואינו זמין יותר</div>
-            )}
-            <div style={{ marginTop: 8, color: "#555" }}>תיאור: {product.description || "-"}</div>
-            <div style={{ marginTop: 4, color: "#555" }}>מחיר פתיחה: ₪{product.price ?? "-"}</div>
-          </>
-        }
-      />
+      <Box>
+        <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
+        {status === "admin blocked" ? (
+          <div>מוצר זה נמחק ע"י ההנהלה ואינו זמין יותר</div>
+        ) : (
+          <div>המוצר נמחק על ידי המוכר ואינו זמין יותר</div>
+        )}
+        <div style={{ marginTop: 8, color: "#555" }}>תיאור: {product.description || "-"}</div>
+        <div style={{ marginTop: 4, color: "#555" }}>מחיר פתיחה: ₪{product.price ?? "-"}</div>
+      </Box>
     );
   }
 
+  /* ====================================================
+     4) ניתוב הרנדר לפי Role
+     ==================================================== */
   switch (viewerRole) {
     case "owner":
       return renderOwnerView();
@@ -466,33 +464,4 @@ const askLogin = (/* intent */) => {
     default:
       return renderUserOrGuestCommon();
   }
-}
-
-/* ---------- עזרי UI קטנים ---------- */
-function SellerRating({ rating }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5, margin: "10px 0", direction: "rtl" }}>
-      <strong>דירוג מוכר:</strong>
-      {renderStars(rating)}
-      <span>({rating})</span>
-    </div>
-  );
-}
-
-function Box({ msg }) {
-  return (
-    <div
-      style={{
-        padding: 16,
-        border: "1px solid #e2e8f0",
-        borderRadius: 12,
-        background: "#fff",
-        maxWidth: 640,
-        margin: "16px auto",
-        textAlign: "center",
-      }}
-    >
-      {msg}
-    </div>
-  );
 }

@@ -1,6 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
+// ---- מנהל בלבד ----
+function ensureAdmin(req, res, next) {
+  const u = req.session?.user;
+  if (!u || u.role !== "admin") {
+    return res.status(403).json({ success: false, message: "Admin only" });
+  }
+  next();
+}
 
 // שליפת כל המשתמשים
 router.get("/", async (req, res) => {
@@ -60,6 +68,34 @@ router.delete("/:id", async (req, res) => {
   } catch (err) {
     console.error("שגיאה במחיקת משתמש:", err);
     res.status(500).json({ error: "שגיאה בשרת" });
+  }
+});
+
+//מחזירה פרטים של משתמש
+// === GET /api/product/user/:id_number  (Admin only) ===
+router.get("/user/:id_number", ensureAdmin, async (req, res) => {
+  const { id_number } = req.params;
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(
+      `SELECT 
+         id_number,
+         first_name,
+         last_name,
+         email
+       FROM users
+       WHERE id_number = ?
+       LIMIT 1`,
+      [id_number]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: "משתמש לא נמצא" });
+    }
+    return res.json({ success: true, user: rows[0] });
+  } catch (e) {
+    console.error("GET /api/product/user/:id_number error:", e);
+    return res.status(500).json({ success: false, message: "DB error" });
   }
 });
 

@@ -37,6 +37,8 @@ import AdminProductDetails from "../components/AdminProductDetails/AdminProductD
 import BuyerDashboard from "../pages/home/BuyerDashboard";
 import SellerDashboard from "../pages/home/SellerDashboard.jsx";
 import AdminDashboard from "../pages/home/AdminDashboard";
+//ניתוב נכון לדף הבית לפי תפקיד
+import RoleRoute from "../components/RoleRoute/RoleRoute.jsx";
 
 import "./App.css";
 
@@ -55,9 +57,18 @@ const isAdmin = user && user.role === "admin";
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardRouter />} />
-          <Route path="/buyer" element={<BuyerDashboard />} />
-          <Route path="/seller" element={<SellerDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+  path="/buyer"
+  element={<RoleRoute element={<BuyerDashboard />} roles={["buyer"]} />}
+/>
+<Route
+   path="/seller"
+  element={<RoleRoute element={<SellerDashboard />} roles={["seller"]} />}
+/>
+<Route
+  path="/admin"
+  element={<RoleRoute element={<AdminDashboard />} roles={["admin"]} />}
+/>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
