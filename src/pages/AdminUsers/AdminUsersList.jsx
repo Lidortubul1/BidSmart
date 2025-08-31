@@ -103,7 +103,7 @@ const handleToggleStatus = async (user) => {
       {/* כותרת + סרגל מסננים */}
       <div className={styles.auList_headerRow}>
         <div>
-          <h2 className={styles.au_title}>משתמשים (Buyer/Seller)</h2>
+          <h2 className={styles.au_title}>כל המשתמשים </h2>
           <p className={styles.au_subtitle}>לחיצה על שורה תפתח פרטי משתמש מתחתיה</p>
         </div>
 

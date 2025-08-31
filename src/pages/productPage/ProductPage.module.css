@@ -10,8 +10,7 @@
   font-family: "Heebo", sans-serif;
 }
 .adminSection {
-  width: 100%;
-  max-width: 1000px;  /* תיאום לרוחב המקסימלי של .content */
+  max-width: min(95vw, 1600px);
 }
 
 .content {
@@ -363,4 +362,87 @@
   .orderLabel {
     min-width: auto;
   }
+}
+
+
+/* ===== Admin panel (ProductPage) ===== */
+.adminPanel {
+  border: 1px solid #e7ebf0;
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  direction: rtl;
+  background: #fff;
+  max-width: none;      /* מבטל כל הגבלה פנימית אם קיימת */
+  width: 100%;
+  margin-inline: auto;
+}
+
+.adminPanelTitle {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-align: center;
+}
+/* גורם לפריט ב-grid לתפוס רוחב מלא (מעמודה 1 עד הסוף) */
+.adminItemFull {
+  grid-column: 1 / -1;
+}
+
+.adminGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* שלושה טורים */
+  gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .adminGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 750px) {
+  .adminGrid { grid-template-columns: 1fr; }
+}
+@media (min-width: 1500px) {
+  .adminGrid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* שורה של כותרת + כפתור + כרטיס פרטים – הכל לרוחב */
+.userRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap; /* כדי שלא יגלוש במסכים צרים */
+}
+
+/* כפתור קטן ניטרלי */
+.smallBtn {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  background: #f6f8fa;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.smallBtn:hover { background: #eef1f4; }
+
+/* הקופסה שבה מוצג AdminUserDetails */
+.userDetailsBox {
+  border: 1px solid #e7ebf0;
+  border-radius: 12px;
+  padding: 12px;
+   flex: 0 1 900px; 
+  background: #fafbfc;
+  min-width: 320px;   /* רוחב נח למניעת שבירה */
+  max-width: 100%;
+}
+
+/* תיבת כרטיסי הדיווח */
+.ticketsBox {
+  margin-top: 16px;
+}
+
+/* טקסט שגיאה כללי בפאנל */
+.errorText {
+  color: crimson;
+  margin-top: 8px;
 }

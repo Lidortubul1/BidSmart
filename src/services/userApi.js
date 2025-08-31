@@ -6,9 +6,7 @@ axios.defaults.withCredentials = true;
 
 // --- Admin only: fetch user by ID number ---
 export async function adminFetchUserByIdNumber(idNumber) {
-  const { data } = await axios.get(`/api/users/user/${idNumber}`, {
-    withCredentials: true,
-  });
+  const { data } = await axios.get(`/api/users/user/${encodeURIComponent(idNumber)}`);
   if (data?.success === false) throw new Error(data.message || "Failed to fetch user");
-  return data.user; // { id_number, first_name, last_name, email }
+  return data.user; // כולל עכשיו: id, phone, role, status, address fields, photos, registered...
 }
