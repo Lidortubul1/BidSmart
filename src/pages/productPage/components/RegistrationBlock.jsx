@@ -9,7 +9,7 @@ import {
 import { uploadIdCard } from "../../../services/authApi";
 import { durationToMinutesDisplay, formatCountdown } from "../utils/time";
 import { formatDate, formatTime } from "../utils/datetime";
-
+//הרשמה/ביטול/מעבר ללייב למשתמשים שאינם הבעלים/אדמין
 export default function RegistrationBlock({ product, user, setUser, onNeedLogin, navigate, openModal }) {
   const [isRegistered, setIsRegistered] = useState(false);
   const [showIdForm, setShowIdForm] = useState(false);
@@ -159,11 +159,7 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
 
   return (
     <>
-      {startCountdownSec !== null && startCountdownSec > 0 && (
-        <p className={styles.countdown}>
-          המכירה תחל בעוד {formatCountdown(startCountdownSec)}
-        </p>
-      )}
+      
 
       <p className={styles.status}>
         זמן המכירה למוצר זה הוא {durationToMinutesDisplay(product.end_time)} דקות

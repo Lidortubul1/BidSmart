@@ -2,7 +2,7 @@ import axios from "axios";
 
 const BASE = "http://localhost:5000/api/admin";
 
-// עוזר כללי – בונה params רק אם יש ערכים
+/** עוזר: בונה אובייקט params רק עם מפתחות שיש להם ערך */
 function qp(obj) {
   const p = {};
   Object.entries(obj || {}).forEach(([k, v]) => {
@@ -11,7 +11,9 @@ function qp(obj) {
   return p;
 }
 
-// סטטיסטיקות כלליות (אפשר להוסיף טווח – אופציונלי)
+//פונקציות של סטטיסטיקה למנהל 
+
+/** מביא סטטיסטיקות כלליות לדשבורד (אופציונלית לפי טווח תאריכים) */
 export async function getAdminStats(params) {
   try {
     const res = await axios.get(`${BASE}/stats`, { params: qp(params) });
@@ -22,7 +24,7 @@ export async function getAdminStats(params) {
   }
 }
 
-// הרשמות לפי חודש/שנה – נשאר כמו אצלך
+/** מביא מספר הרשמות לפי ימים עבור חודש/שנה מסוימים */
 export async function getRegistrationsByMonth(year, month) {
   try {
     const response = await axios.get(`${BASE}/stats/registrations`, {
@@ -35,7 +37,7 @@ export async function getRegistrationsByMonth(year, month) {
   }
 }
 
-// מכירות (Revenue) לפי טווח/קיבוץ/מוכר
+/** מביא הכנסות (Revenue) לפי טווח וקיבוץ (יום/חודש) ואופציונלית לפי מוכר */
 export async function getRevenue({ from, to, group = "month", seller_id_number }) {
   try {
     const res = await axios.get(`${BASE}/stats/revenue`, {
@@ -48,20 +50,7 @@ export async function getRevenue({ from, to, group = "month", seller_id_number }
   }
 }
 
-// פעילות בידים
-export async function getBidsActivity({ from, to, group = "day", seller_id_number }) {
-  try {
-    const res = await axios.get(`${BASE}/stats/bids-activity`, {
-      params: qp({ from, to, group, seller_id_number }),
-    });
-    return res.data;
-  } catch (err) {
-    console.error("שגיאה ב-bids-activity:", err);
-    return [];
-  }
-}
-
-// מכירות לפי קטגוריה – בטווח/מוכר
+/** מביא מכירות לפי קטגוריה בטווח תאריכים ואופציונלית עבור מוכר מסוים */
 export async function getSalesByCategory({ from, to, seller_id_number }) {
   try {
     const res = await axios.get(`${BASE}/stats/sales-by-category`, {
@@ -74,7 +63,7 @@ export async function getSalesByCategory({ from, to, seller_id_number }) {
   }
 }
 
-// מוכרים מובילים (אפשר גם לסנן לפי מוכר יחיד — יחזיר שורה אחת)
+/** מביא רשימת מוכרים מובילים (סכום מכירות/כמות) לפי טווח, עם limit */
 export async function getTopSellers({ from, to, limit = 10, seller_id_number }) {
   try {
     const res = await axios.get(`${BASE}/stats/top-sellers`, {
@@ -87,7 +76,7 @@ export async function getTopSellers({ from, to, limit = 10, seller_id_number }) 
   }
 }
 
-// מכירות לפי חודש עם טווח/מוכר
+/** מביא סכומי מכירות לפי חודש עבור טווח תאריכים ואופציונלית לפי מוכר */
 export async function getSalesByMonth({ from, to, seller_id_number }) {
   try {
     const res = await axios.get(`${BASE}/stats/sales-by-month`, {
@@ -100,7 +89,7 @@ export async function getSalesByMonth({ from, to, seller_id_number }) {
   }
 }
 
-// משפך מכירות: התחילו / נמכרו / לא נמכרו + המרה
+/** מביא משפך מכירות (התחילו/נמכרו/לא נמכרו/המרה) בטווח תאריכים */
 export async function getAuctionFunnel({ from, to, seller_id_number }) {
   try {
     const res = await axios.get(`${BASE}/stats/auction-funnel`, {
@@ -113,10 +102,9 @@ export async function getAuctionFunnel({ from, to, seller_id_number }) {
   }
 }
 
-// -------- חדש: רשימת מוכרים לקומבובוקס --------
+/** מחזיר רשימת מוכרים (ת״ז + שם) לצורך קומבובוקס סינון */
 export async function getSellersList() {
   try {
-    // יש כבר /users שמחזיר את כולם — נסנן בצד לקוח
     const res = await axios.get(`${BASE}/users`);
     const all = res.data || [];
     return all
@@ -132,28 +120,25 @@ export async function getSellersList() {
   }
 }
 
-
-// 👇 חדש: הרשמות לפי טווח וקיבוץ
+/** מביא מספר הרשמות בטווח תאריכים, מקובצות לפי יום/חודש */
 export async function getRegistrationsRange({ from, to, group = "day" }) {
   try {
     const res = await axios.get(`${BASE}/stats/registrations-range`, {
       params: { from, to, group },
     });
-    return res.data; // [{ bucket: "2025-08-01" | "2025-08", count: 12 }, ...]
+    return res.data; // [{ bucket: "YYYY-MM-DD" | "YYYY-MM", count: N }]
   } catch (err) {
     console.error("שגיאה בהרשמות בטווח:", err);
     return [];
   }
 }
 
-
-// ... qp ועוד פונקציות קיימות
-
+/** מביא טרנד סטטוסים של מוצרים (for sale/sale/not sold/blocked) בטווח */
 export async function getProductsStatusTrend({ from, to, group = "month", seller_id_number }) {
   try {
     const res = await axios.get(`${BASE}/stats/products-status-trend`, {
-    params: { from, to, group, seller_id_number }
-  });
+      params: { from, to, group, seller_id_number },
+    });
     return Array.isArray(res.data) ? res.data : [];
   } catch (err) {
     console.error("שגיאה ב-products-status-trend:", err);
@@ -163,7 +148,15 @@ export async function getProductsStatusTrend({ from, to, group = "month", seller
 
 
 
-// --- Users (buyers/sellers only) ---
+
+
+
+
+
+//פונקציות של ניהול משתמשים למנהל
+
+//דף AdminUsersList.jsx
+/** מביא רשימת משתמשים (buyer/seller) עם סינון אופציונלי לפי role */
 export async function getUsers({ role } = {}) {
   try {
     const res = await axios.get(`${BASE}/users`, { params: role ? { role } : {} });
@@ -174,6 +167,7 @@ export async function getUsers({ role } = {}) {
   }
 }
 
+/** מביא פרטי משתמש בודד לפי מזהה פנימי (id) */
 export async function getUserById(id) {
   try {
     const res = await axios.get(`${BASE}/users/${id}`);
@@ -184,9 +178,7 @@ export async function getUserById(id) {
   }
 }
 
-
-
-//פונקציה שמעדכנת את סטטוס המשתמש (active/blocked)
+/** מעדכן סטטוס משתמש (active/blocked) עבור id ספציפי */
 export async function updateUserStatus(id, status) {
   try {
     const res = await axios.put(`${BASE}/users/${id}/status`, { status });
@@ -194,5 +186,16 @@ export async function updateUserStatus(id, status) {
   } catch (err) {
     console.error("שגיאה בעדכון סטטוס:", err);
     throw err;
+  }
+}
+
+/** מביא את כל המוצרים של מוכר לפי תעודת זהות (id_number) – לשימוש אדמין */
+export async function getProductsBySellerIdNumber(seller_id_number) {
+  try {
+    const res = await axios.get(`${BASE}/seller/${seller_id_number}/products`);
+    return res.data;
+  } catch (err) {
+    console.error("שגיאה בשליפת מוצרים לפי מוכר:", err);
+    return [];
   }
 }

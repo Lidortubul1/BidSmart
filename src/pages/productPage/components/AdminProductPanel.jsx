@@ -1,13 +1,29 @@
 // src/pages/ProductPage/components/AdminProductPanel.jsx
-//בתוך הדף מוצר - צפייה של מנהל רק 
 import React, { useEffect, useState } from "react";
 import { adminFetchProduct } from "../../../services/productApi";
-import TicketCard from "../../../components/tickets/TicketCard"; // ⬅️ משתמשים בכרטיס המאוחד
+import { adminFetchUserByIdNumber } from "../../../services/userApi";
+import TicketCard from "../../../components/tickets/TicketCard";
+import AdminUserDetails from "../../AdminUsers/AdminUserDetails";
+import styles from "../ProductPage.module.css"
 
 export default function AdminProductPanel({ productId }) {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("");
   const [err, setErr] = useState("");
+
+  // פתיחה/סגירה של הכרטיסים
+  const [openSeller, setOpenSeller] = useState(false);
+  const [openWinner, setOpenWinner] = useState(false);
+
+  // userId פנימי להצגה ב-AdminUserDetails
+  const [sellerUserId, setSellerUserId] = useState(null);
+  const [winnerUserId, setWinnerUserId] = useState(null);
+
+  // דגלי טעינה/שגיאה למיפוי id_number ➜ id
+  const [loadingSellerId, setLoadingSellerId] = useState(false);
+  const [loadingWinnerId, setLoadingWinnerId] = useState(false);
+  const [sellerIdErr, setSellerIdErr] = useState("");
+  const [winnerIdErr, setWinnerIdErr] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -17,6 +33,14 @@ export default function AdminProductPanel({ productId }) {
         if (!alive) return;
         setData(res.product);
         setStatus(res.product.product_status || "");
+
+        // איפוס כשמחליפים מוצר
+        setOpenSeller(false);
+        setOpenWinner(false);
+        setSellerUserId(null);
+        setWinnerUserId(null);
+        setSellerIdErr("");
+        setWinnerIdErr("");
       } catch {
         if (!alive) return;
         setErr("שגיאה בטעינת נתוני המוצר");
@@ -29,42 +53,121 @@ export default function AdminProductPanel({ productId }) {
 
   const seller = {
     id: data.seller_id_number || data.seller_id,
+    id_number: data.seller_id_number || null,
     name: `${data.seller_first_name || ""} ${data.seller_last_name || ""}`.trim(),
     email: data.seller_email || "",
     phone: data.seller_phone || "",
     status: data.seller_status || "",
   };
 
+  // מיפוי חד-פעמי id_number ➜ users.id (ל-AdminUserDetails)
+  async function mapIdNumberToUserId(idNumber, setUserId, setErr, setLoading) {
+    if (!idNumber) return;
+    if (setUserId === setSellerUserId && sellerUserId) return;
+    if (setUserId === setWinnerUserId && winnerUserId) return;
+
+    setErr("");
+    setLoading(true);
+    try {
+      const u = await adminFetchUserByIdNumber(idNumber);
+      const internalId = u?.id || null;
+      if (!internalId) setErr("לא אותר מזהה פנימי (users.id) למשתמש הזה.");
+      else setUserId(internalId);
+    } catch {
+      setErr("שגיאה בשליפת מזהה פנימי למשתמש.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onToggleSeller() {
+    const next = !openSeller;
+    setOpenSeller(next);
+    if (next && seller.id_number && !sellerUserId && !loadingSellerId) {
+      await mapIdNumberToUserId(seller.id_number, setSellerUserId, setSellerIdErr, setLoadingSellerId);
+    }
+  }
+
+  async function onToggleWinner() {
+    const next = !openWinner;
+    setOpenWinner(next);
+    if (next && data.winner_id_number && !winnerUserId && !loadingWinnerId) {
+      await mapIdNumberToUserId(data.winner_id_number, setWinnerUserId, setWinnerIdErr, setLoadingWinnerId);
+    }
+  }
+
   return (
-    <div style={{ border: "1px solid #e7ebf0", padding: 16, borderRadius: 12, marginBottom: 16, direction: "rtl", background: "#fff" }}>
-      <h3 style={{ marginTop: 0 }}>פאנל ניהול מוצר</h3>
 
-      {/* מידע כללי */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div>
-          <strong>נתוני מוצר</strong>
-          <div>שם מוצר: {data.product_name}</div>
-          <div>סטטוס: <code>{status || "—"}</code></div>
-          <div>מחיר פתיחה: ₪{data.price}</div>
-          {data.created_at && <div>נוצר ב: {new Date(data.created_at).toLocaleString("he-IL")}</div>}
-          {data.start_date && <div>תאריך התחלה: {new Date(data.start_date).toLocaleString("he-IL")}</div>}
-        </div>
+<div className={styles.adminPanel}>
+  <h3 className={styles.adminPanelTitle}>פאנל ניהול מוצר</h3>
 
-        <div>
-          <strong>נתוני מוכר</strong>
-          <div>#{seller.id} · {seller.name || "ללא שם"}</div>
-          <div>{seller.email || "—"}</div>
-          <div>{seller.phone || "—"}</div>
-          <div>סטטוס: {seller.status || "—"}</div>
-        </div>
-      </div>
-
-      {/* כרטיס השיחה/דיווחים + סטטוס מקובץ + חסימת מוצר – הכל מתוך TicketCard */}
-      <div style={{ marginTop: 16 }}>
-        <TicketCard productId={productId} />
-      </div>
-
-      {err && <div style={{ color: "crimson", marginTop: 8 }}>{err}</div>}
+  <div className={styles.adminGrid}>
+    {/* נתוני מוצר */}
+    <div>
+      <strong>נתוני מוצר</strong>
+      <div>שם מוצר: {data.product_name}</div>
+      <div>סטטוס: <code>{status || "—"}</code></div>
+      <div>מחיר פתיחה: ₪{data.price}</div>
+      {data.created_at && <div>נוצר ב: {new Date(data.created_at).toLocaleString("he-IL")}</div>}
+      {data.start_date && <div>תאריך התחלה: {new Date(data.start_date).toLocaleString("he-IL")}</div>}
     </div>
+
+    {/* נתוני מוכר + כפתור בלבד */}
+    <div className={`${styles.userRow} ${styles.adminItemFull}`}>
+      <strong>נתוני מוכר</strong>
+      {seller.id_number ? (
+        <>
+          <button
+            type="button"
+            onClick={onToggleSeller}
+            className={styles.smallBtn}
+            title="הצג/הסתר פרטי מוכר"
+          >
+            {loadingSellerId ? "טוען…" : openSeller ? "סגור פרטי מוכר" : "פתח פרטי מוכר"}
+          </button>
+
+          {openSeller && (
+            <div className={styles.userDetailsBox}>
+              {sellerIdErr && <div className={styles.errorText}>{sellerIdErr}</div>}
+              {!sellerIdErr && sellerUserId && <AdminUserDetails userId={sellerUserId} />}
+            </div>
+          )}
+        </>
+      ) : null}
+    </div>
+
+    {/* נתוני מנצח + כפתור בלבד */}
+    <div className={`${styles.userRow} ${styles.adminItemFull}`}>
+      <strong>נתוני מנצח</strong>
+      {data.winner_id_number ? (
+        <>
+          <button
+            type="button"
+            onClick={onToggleWinner}
+            className={styles.smallBtn}
+            title="הצג/הסתר פרטי מנצח"
+          >
+            {loadingWinnerId ? "טוען…" : openWinner ? "סגור פרטי מנצח" : "פתח פרטי מנצח"}
+          </button>
+
+          {openWinner && (
+            <div className={styles.userDetailsBox}>
+              {winnerIdErr && <div className={styles.errorText}>{winnerIdErr}</div>}
+              {!winnerIdErr && winnerUserId && <AdminUserDetails userId={winnerUserId} />}
+            </div>
+          )}
+        </>
+      ) : (
+        <div>אין זוכה למוצר זה</div>
+      )}
+    </div>
+  </div>
+
+  <div className={styles.ticketsBox}>
+    <TicketCard productId={productId} />
+  </div>
+
+  {err && <div className={styles.errorText}>{err}</div>}
+</div>
   );
 }

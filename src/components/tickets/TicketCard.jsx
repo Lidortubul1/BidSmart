@@ -59,6 +59,7 @@ export default function TicketCard({ ticket, productId, onStatusSaved }) {
   const isReport  = inProductMode ? true : (ticket?.type_message === "report");
   const isGrouped = inProductMode || isReport;
   const canReply  = !isReport;
+// מזההי הילדים (אם מגיעים מהלוח)
 
   const pid = inProductMode ? productId : ticket?.product_id;
 
@@ -144,13 +145,13 @@ useEffect(() => {
   return () => { alive = false; };
   // חשוב: לא לתלות ב-messages.length כדי לא ליצור ריצודים מיותרים
 }, [
-  open,
+ open,
   isGrouped,
   inProductMode,
-  childTickets.length,           // מספיק לעקוב אחרי אורך הילדים
+  childTickets,              // טוב להשאיר את כל המערך
   ticket?.ticket_id,
   ticket?.parentTicketId,
-  ticket?.ticketIds?.length,     // וגם אחרי מספר הילדים בקבוצה שהגיע מהלוח
+ ticket?.ticketIds,     
 ]);
 
 // לוג כשכמות ההודעות משתנה – רק לדיבוג
@@ -196,8 +197,7 @@ const totalReportsCount = useMemo(() => {
   if (typeof computedChildrenCount === "number") return computedChildrenCount;
 
   return 0;
-}, [isGrouped, childTickets.length, ticket?.ticketIds?.length, ticket?.reportersCount, ticket?.reports_count, computedChildrenCount]);
-
+}, [isGrouped, childTickets, ticket?.ticketIds, ticket?.reportersCount, ticket?.reports_count, computedChildrenCount]);
 // כמה ילדים בסטטוס 'unread' (רק ילדים!)
 
 
@@ -224,13 +224,13 @@ const reportersCount = useMemo(() => {
 
   return 0;
 }, [
-  isGrouped,
+ isGrouped,
   ticket?.reportersCount,
   ticket?.reporterMap,
   computedChildrenCount,
   inProductMode,
-  childTickets.length,
-  ticket?.reports_count,
+  childTickets,
+ ticket?.reports_count,
 ]);
 
 
@@ -405,7 +405,7 @@ const reportersLine = isGrouped
     status === "progress" ? "בטיפול" : "טופל";
 
   const titleText = isGrouped
-    ? `דיווחים על מוצר #${pid || ticket?.product_id}`
+    ? `דיווחים והודעות על מוצר #${pid || ticket?.product_id}`
     : (ticket?.subject || "");
 
   return (
@@ -464,26 +464,28 @@ const reportersLine = isGrouped
             </button>
           </div>
 
-          {/* חסימת מוצר */}
-          {pid && (
-            <div style={{ marginTop: 10 }}>
-              {isBlocked ? (
-                <div style={{ padding: "10px 12px", background: "#fff8e1", border: "1px solid #ffe082", borderRadius: 8 }}>
-                  המוצר נחסם ולא נמצא במערכת יותר.
-                </div>
-              ) : (
-                <button
-                  className={`${s.sendBtn} ${s.danger}`}
-                  style={{ marginTop: 4, padding: "6px 12px" }}
-                  disabled={blocking}
-                  onClick={handleBlockProduct}
-                >
-                  חסימת מוצר (מייל לכל הנרשמים)
-                </button>
-              )}
-              {notice && <div className={s.mailNote} style={{ marginTop: 6 }}>{notice}</div>}
-            </div>
-          )}
+        
+        {/* חסימת מוצר */}
+{pid && prodStatus !== "sale" && prodStatus !== "blocked" && (
+  <div style={{ marginTop: 10 }}>
+    {isBlocked ? (
+      <div style={{ padding: "10px 12px", background: "#fff8e1", border: "1px solid #ffe082", borderRadius: 8 }}>
+        המוצר נחסם ולא נמצא במערכת יותר.
+      </div>
+    ) : (
+      <button
+        className={`${s.sendBtn} ${s.danger}`}
+        style={{ marginTop: 4, padding: "6px 12px" }}
+        disabled={blocking}
+        onClick={handleBlockProduct}
+      >
+        חסימת מוצר (מייל לכל הנרשמים)
+      </button>
+    )}
+    {notice && <div className={s.mailNote} style={{ marginTop: 6 }}>{notice}</div>}
+  </div>
+)}
+
         </div>
       </div>
 

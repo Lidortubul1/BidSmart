@@ -257,3 +257,87 @@
   }
 }
 
+/* src/pages/AdminProducts/AdminProductsPage.module.css */
+:root{
+  --ink:#0f172a;
+  --muted:#64748b;
+  --card:#ffffff;
+  --bg:#f8fafc;
+  --border:#e5e7eb;
+  --primary:#1a89ff;
+  --accent:#14b8a6;
+  --shadow:0 10px 28px rgba(15,23,42,.12);
+}
+
+.page{
+  direction: rtl;
+  min-height: 100dvh;
+  background:
+    radial-gradient(1200px 600px at 110% -10%, rgba(20, 184, 166, .06), transparent 60%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(26, 137, 255, .07), transparent 60%),
+    var(--bg);
+  padding-bottom: 32px;
+}
+
+/* HERO */
+.hero{
+  padding: 28px 16px 8px;
+}
+.heroText{
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.hero h1{
+  margin: 0 0 6px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: .2px;
+}
+.subText{
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+
+.toolbar{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+}
+.toolbarRow{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.searchInput{
+  flex: 1 1 280px;
+  min-width: 220px;
+  padding: 10px 12px;
+  border:1px solid var(--border);
+  border-radius: 10px;
+  background: #fbfdff;
+}
+.select{
+  padding: 10px 12px;
+  border:1px solid var(--border);
+  border-radius: 10px;
+  background: #fbfdff;
+}
+.countBadge{
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #0b4ea2;
+  border: 1px solid #dbeafe;
+  font-weight: 600;
+}
+.backBtn{
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor:pointer;
+}
+

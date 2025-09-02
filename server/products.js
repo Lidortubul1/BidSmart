@@ -761,11 +761,11 @@ router.post("/expire-unpaid", async (req, res) => {
 // מחיקת כל ההצעות, ושליחת מייל לכל הנרשמים/מציעים
 // נתיב בצד-לקוח: POST /api/product/product/:id/cancel
 // ──────────────────────────────────────────────
-// server/routes/product.js  (באותו ראוטר שלך)
+
 router.post("/product/:id/cancel", ensureOwnerOrAdmin, async (req, res) => {
   const { id } = req.params;
   const { reason = "" } = req.body || {};
-  const user = req.session?.user;           // ← מי יזם
+  const user = req.session?.user; // ← מי יזם
   const initiator = user?.role === "admin" ? "admin" : "seller";
 
   const conn = await db.getConnection();
@@ -794,8 +794,14 @@ router.post("/product/:id/cancel", ensureOwnerOrAdmin, async (req, res) => {
     );
     const emails = mailRows.map(r => r.email).filter(Boolean);
 
-    // חסימה ומחיקת הצעות
-    await conn.execute("UPDATE product SET product_status = 'blocked' WHERE product_id = ?", [id]);
+    // 👇 כאן השינוי: סטטוס שונה לפי יוזם הפעולה
+    const newStatus = initiator === "admin" ? "admin blocked" : "blocked";
+
+    // חסימה/ביטול ומחיקת הצעות
+    await conn.execute(
+      "UPDATE product SET product_status = ? WHERE product_id = ?",
+      [newStatus, id]
+    );
     await conn.execute("DELETE FROM quotation WHERE product_id = ?", [id]);
 
     await conn.commit();
@@ -841,16 +847,17 @@ router.post("/product/:id/cancel", ensureOwnerOrAdmin, async (req, res) => {
           : "המכירה בוטלה, ההצעות נמחקו ונשלחו מיילים למשתתפים.",
       notified: emails.length,
       initiator,
+      status: newStatus, // אופציונלי: מחזיר ללקוח את הסטטוס החדש
     });
   } catch (e) {
     console.error("שגיאה בביטול/חסימה:", e);
     try { await conn.rollback(); } catch {}
     return res.status(500).json({ success: false, message: "שגיאה בביטול מכירה" });
- } finally {
-  safeRelease(conn);
-}
-
+  } finally {
+    safeRelease(conn);
+  }
 });
+
 
 
 

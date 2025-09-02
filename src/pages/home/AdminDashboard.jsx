@@ -28,7 +28,7 @@ import RecentUnreadTickets from "../../components/tickets/RecentUnreadTickets.js
        <section className={styles.hero}>
          <div className={styles.heroText}>
            <h1>BIDSMART לוח בקרה </h1>
-           <div className={styles.statsGrid}>
+           {/* <div className={styles.statsGrid}>
              <div className={styles.card}>
                <h3>סה״כ מוכרים</h3>
                <p>{stats.totalSellers}</p>
@@ -53,7 +53,7 @@ import RecentUnreadTickets from "../../components/tickets/RecentUnreadTickets.js
                <h3>מוצרים שלא נמכרו</h3>
                <p>{stats.unsoldProducts}</p>
              </div>
-           </div>
+           </div> */}
          </div>
        </section>
      <RecentUnreadTickets />

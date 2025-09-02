@@ -13,7 +13,7 @@ router.use((req, res, next) => {
   next();
 });
 
-
+//סטטיסטיקות מנהל
 
 //כמות נרשמים לפי חודש ושנה שהתקבל מהמנהל
 router.get("/stats/registrations", async (req, res) => {
@@ -40,7 +40,6 @@ router.get("/stats/registrations", async (req, res) => {
     res.status(500).json({ message: "שגיאה בטעינת הנתונים" });
   }
 });
-
 
 //נתונים כללים של הלוח בקרה
 router.get("/stats", async (req, res) => {
@@ -100,27 +99,6 @@ router.get("/stats", async (req, res) => {
   }
 });
 
-
-
-//שליפת כמות מוצרים לפי קטגוריה 
-router.get("/stats/products-by-category", async (req, res) => {
-  try {
-    const conn = await db.getConnection();
-    const [rows] = await conn.execute(`
-      SELECT c.name AS category, COUNT(p.product_id) AS count
-      FROM product p
-      JOIN categories c ON p.category_id = c.id
-      GROUP BY c.name
-      ORDER BY count DESC
-    `);
-
-    res.json(rows); // דוגמה: [{ category: "אלקטרוניקה", count: 5 }, ...]
-  } catch (error) {
-    console.error("שגיאה בשליפת מוצרים לפי קטגוריה:", error);
-    res.status(500).json({ message: "שגיאה בשרת" });
-  }
-});
-
 //סכום מכירות לפי חודש
 router.get("/stats/sales-by-month", async (req, res) => {
   try {
@@ -144,26 +122,29 @@ router.get("/stats/sales-by-month", async (req, res) => {
 });
 
 //מכירות לפי טווח וקיבוץ
-// /api/admin/stats/revenue?from=2025-08-01&to=2025-08-31&group=day|month
 router.get("/stats/revenue", async (req, res) => {
   const { from, to, group = "month", seller_id_number } = req.query;
   try {
     const conn = await db.getConnection();
 
+    // זמן הסיום בפועל של כל מכירה: start_date + end_time (TIME)
+    const endAtExpr = "ADDTIME(p.start_date, COALESCE(p.end_time, '00:00:00'))";
+
+    // קיבוץ לפי יום/חודש, על בסיס זמן הסיום המחושב
     const groupSelect =
       group === "day"
-        ? "DATE(s.end_date) AS bucket"
-        : "CONCAT(YEAR(s.end_date), '-', LPAD(MONTH(s.end_date),2,'0')) AS bucket";
+        ? `DATE(${endAtExpr}) AS bucket`
+        : `CONCAT(YEAR(${endAtExpr}), '-', LPAD(MONTH(${endAtExpr}), 2, '0')) AS bucket`;
 
     let sql = `
       SELECT
         ${groupSelect},
         SUM(s.final_price) AS total_sales,
-        COUNT(*) AS orders_count,
+        COUNT(*)          AS orders_count,
         AVG(s.final_price) AS avg_order_value
       FROM sale s
       JOIN product p ON p.product_id = s.product_id
-      WHERE s.end_date BETWEEN ? AND ?
+      WHERE DATE(${endAtExpr}) BETWEEN ? AND ?
     `;
     const params = [from, to];
 
@@ -182,62 +163,23 @@ router.get("/stats/revenue", async (req, res) => {
   }
 });
 
-//פעילות בידים לפי טווח וקיבוץ
-// /api/admin/stats/bids-activity?from=2025-08-01&to=2025-08-31&group=day|month
-router.get("/stats/bids-activity", async (req, res) => {
-  const { from, to, group = "day", seller_id_number } = req.query;
-  try {
-    const conn = await db.getConnection();
-
-    const groupSelect =
-      group === "month"
-        ? "CONCAT(YEAR(q.bid_time), '-', LPAD(MONTH(q.bid_time),2,'0'))"
-        : "DATE(q.bid_time)";
-
-    let sql = `
-      SELECT
-        ${groupSelect} AS bucket,
-        COUNT(*) AS total_bids,
-        COUNT(DISTINCT q.buyer_id_number) AS unique_bidders,
-        AVG(q.price) AS avg_bid_price,
-        MAX(q.price) AS max_bid_price
-      FROM quotation q
-      JOIN product p ON p.product_id = q.product_id
-      WHERE q.bid_time BETWEEN ? AND ?
-    `;
-    const params = [from, to];
-
-    if (seller_id_number) {
-      sql += " AND p.seller_id_number = ? ";
-      params.push(seller_id_number);
-    }
-
-    sql += " GROUP BY bucket ORDER BY bucket ASC";
-
-    const [rows] = await conn.execute(sql, params);
-    res.json(rows);
-  } catch (err) {
-    console.error("שגיאה בשליפת פעילות בידים:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
-  }
-});
-
 //מכירות לםי קטגוריה בטווח
-// /api/admin/stats/sales-by-category?from=2025-08-01&to=2025-08-31
 router.get("/stats/sales-by-category", async (req, res) => {
   const { from, to, seller_id_number } = req.query;
   try {
     const conn = await db.getConnection();
 
+    const endAtExpr = "ADDTIME(p.start_date, COALESCE(p.end_time, '00:00:00'))";
+
     let sql = `
       SELECT
         c.name AS category,
-        COUNT(s.sale_id) AS sold_count,
+        COUNT(s.sale_id)  AS sold_count,
         SUM(s.final_price) AS total_sales
       FROM sale s
       JOIN product p ON p.product_id = s.product_id
       JOIN categories c ON c.id = p.category_id
-      WHERE s.end_date BETWEEN ? AND ?
+      WHERE ${endAtExpr} BETWEEN ? AND ?
     `;
     const params = [from, to];
 
@@ -256,24 +198,27 @@ router.get("/stats/sales-by-category", async (req, res) => {
   }
 });
 
-
 //מוכרים מובילים בטווח
 // /api/admin/stats/top-sellers?from=2025-08-01&to=2025-08-31&limit=10
 router.get("/stats/top-sellers", async (req, res) => {
   const { from, to, limit = 10, seller_id_number } = req.query;
+
   try {
     const conn = await db.getConnection();
+
+    // זמן הסיום בפועל של המכרז: start_date + end_time (TIME)
+    const endAtExpr = "ADDTIME(p.start_date, COALESCE(p.end_time, '00:00:00'))";
 
     let sql = `
       SELECT
         u.id_number AS seller_id_number,
         CONCAT(u.first_name, ' ', u.last_name) AS seller_name,
-        COUNT(s.sale_id) AS items_sold,
+        COUNT(s.sale_id)   AS items_sold,
         SUM(s.final_price) AS total_sales
       FROM sale s
       JOIN product p ON p.product_id = s.product_id
       LEFT JOIN users u ON u.id_number = p.seller_id_number
-      WHERE s.end_date BETWEEN ? AND ?
+      WHERE DATE(${endAtExpr}) BETWEEN ? AND ?
     `;
     const params = [from, to];
 
@@ -293,6 +238,7 @@ router.get("/stats/top-sellers", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
 
 //משפך מכירות – התחילו / נמכרו / לא נמכרו בטווח
 // /api/admin/stats/auction-funnel?from=2025-08-01&to=2025-08-31
@@ -446,12 +392,7 @@ router.get("/stats/products-status-trend", async (req, res) => {
   }
 });
 
-
-
-
-//ניהול משתמשים
-
-// כל המשתמשים שהם buyer/seller עם סינון אופציונלי ע"פ role
+//מביא את כל המוכרים/קונים לדף סטטיסטיקות וניהול משתמשים של המנהל
 router.get("/users", async (req, res) => {
   const { role } = req.query; // אופציונלי: "buyer" | "seller"
   try {
@@ -478,6 +419,16 @@ router.get("/users", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
+
+
+
+
+
+
+
+
+//ניהול משתמשים
 
 // פרטי משתמש בודד
 router.get("/users/:id", async (req, res) => {
@@ -506,17 +457,296 @@ router.get("/users/:id", async (req, res) => {
 
 
 // עדכון סטטוס משתמש-חסום/לא חסום
+// עדכון סטטוס משתמש-חסום/לא חסום + טיפול במוצרים/הרשמות/מיילים למוכרים
+// עדכון סטטוס משתמש-חסום/לא חסום + טיפול במוצרים/הרשמות/מיילים
 router.put("/users/:id/status", async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status } = req.body; // "active" | "blocked"
+
+  if (!["active", "blocked"].includes(status)) {
+    return res.status(400).json({ error: "status לא תקין" });
+  }
+
+  const conn = await db.getConnection();
   try {
-    const conn = await db.getConnection();
-    const [result] = await conn.query("UPDATE users SET status = ? WHERE id = ?",[status, id]);
-    if (result.affectedRows === 0) {
+    await conn.beginTransaction();
+
+    // 1) המשתמש
+    const [usersRows] = await conn.execute(
+      `SELECT id, role, id_number, email, first_name, last_name, status 
+       FROM users WHERE id = ? LIMIT 1`,
+      [id]
+    );
+    if (!usersRows.length) {
+      await conn.rollback();
       return res.status(404).json({ error: "משתמש לא נמצא" });
     }
-    res.json({ message: "סטטוס עודכן בהצלחה" });
+    const user = usersRows[0];
+
+    // 2) עדכון סטטוס המשתמש
+    const [upd] = await conn.execute(
+      "UPDATE users SET status = ? WHERE id = ?",
+      [status, id]
+    );
+    if (upd.affectedRows === 0) {
+      await conn.rollback();
+      return res.status(404).json({ error: "עדכון סטטוס נכשל" });
+    }
+
+    // אם לא מוכר – אין לוגיקת מוצרים/הרשמות, אך עדיין נשלח מייל סטטוס
+    if (user.role !== "seller") {
+      // שליחת מייל סטטוס לקונה
+      try {
+        if (user.email) {
+          if (status === "blocked") {
+            await sendMail({
+              to: user.email,
+              subject: "עדכון חשבון – החשבון נחסם",
+              text:
+                `שלום ${user.first_name || ""} ${user.last_name || ""},
+
+חשבונך הוגבל ואינו זמין לשימוש, מאחר שאינך עומד/ת בתנאי השימוש של BidSmart.
+במידה ואת/ה סבור/ה שמדובר בטעות או ברצונך להשיב את החשבון לפעילות, נשמח לסייע דרך הדוא״ל: support@bidsmart.com.
+
+בברכה,
+צוות BidSmart`
+            });
+          } else {
+            await sendMail({
+              to: user.email,
+              subject: "עדכון חשבון – החשבון הוחזר לפעילות",
+              text:
+                `שלום ${user.first_name || ""} ${user.last_name || ""},
+
+שמחים לעדכן שחשבונך הוחזר למצב פעיל ותוכלו לשוב ולהשתמש במערכת BidSmart.
+
+אם עולה שאלה כלשהי – אנחנו כאן: support@bidsmart.com.
+
+בברכה,
+צוות BidSmart`
+            });
+          }
+        }
+      } catch (mailErr) {
+        console.error("שליחת מייל סטטוס לקונה נכשלה:", mailErr);
+      }
+
+      await conn.commit();
+      return res.json({ message: "סטטוס עודכן בהצלחה (קונה)", affectedProducts: 0, emailsSent: 1, quotationsDeleted: 0 });
+    }
+
+    // מוכר: יש לוגיקה נוספת
+    const sellerIdNum = user.id_number;
+    if (!sellerIdNum) {
+      // אם אין ת"ז – נשלח רק מייל סטטוס למוכר
+      if (user.email) {
+        try {
+          if (status === "blocked") {
+            await sendMail({
+              to: user.email,
+              subject: "עדכון חשבון מוכר – החשבון נחסם",
+              text:
+                `שלום ${user.first_name || ""} ${user.last_name || ""},
+
+חשבונך כמוכר הוגבל ואינו זמין לשימוש בשל אי-עמידה בתנאי השימוש של BidSmart.
+במהלך תקופת ההגבלה לא ניתן יהיה לנהל מכירות או לקבל הצעות על מוצרים המשויכים לחשבון.
+
+לסיוע בבדיקת הנושא או בקשה להשבת החשבון לפעילות, אנא צרו קשר בכתובת:
+support@bidsmart.com
+
+אנו מתנצלים על אי-הנוחות.
+
+בברכה,
+צוות BidSmart`
+            });
+          } else {
+            await sendMail({
+              to: user.email,
+              subject: "עדכון חשבון מוכר – החשבון הוחזר לפעילות",
+              text:
+                `שלום ${user.first_name || ""} ${user.last_name || ""},
+
+שמחים לעדכן שחשבונך כמוכר הוחזר לפעילות.
+מוצרים שסווגו בעבר כ-"admin blocked" עודכנו בהתאם למועד ההתחלה שהוגדר לכל מוצר.
+
+לכל שאלה: support@bidsmart.com.
+
+בברכה,
+צוות BidSmart`
+            });
+          }
+        } catch (mailErr) {
+          console.error("שליחת מייל סטטוס למוכר נכשלה:", mailErr);
+        }
+      }
+      await conn.commit();
+      return res.json({ message: "סטטוס עודכן (Seller ללא ת״ז)", affectedProducts: 0, emailsSent: 1, quotationsDeleted: 0 });
+    }
+
+    let affectedProducts = 0;
+    let emailsSent = 0;
+    let quotationsDeleted = 0;
+
+    if (status === "blocked") {
+      // --- חסימת מוכר ---
+      // מוצרים שלו
+      const [prodRows] = await conn.execute(
+        `SELECT product_id, product_name 
+           FROM product 
+          WHERE seller_id_number = ?`,
+        [sellerIdNum]
+      );
+      const productIds = prodRows.map(r => r.product_id);
+
+      if (productIds.length > 0) {
+        // 2) עדכן סטטוס מוצרים ל-admin blocked + כיבוי live
+        const placeholders = productIds.map(() => "?").join(",");
+        const [updProducts] = await conn.execute(
+          `UPDATE product 
+             SET product_status = 'admin blocked', is_live = 0 
+           WHERE product_id IN (${placeholders})`,
+          productIds
+        );
+        affectedProducts = updProducts.affectedRows || 0;
+
+        // 2) שליפת נרשמים (קונים) ושליחת מייל ביטול
+        const [buyers] = await conn.execute(
+          `SELECT q.product_id, p.product_name, q.buyer_id_number, u.email
+             FROM quotation q
+             JOIN product p ON p.product_id = q.product_id
+        LEFT JOIN users   u ON u.id_number = q.buyer_id_number
+            WHERE q.product_id IN (${placeholders})`,
+          productIds
+        );
+
+        // סט למניעת כפילויות על אותו (product_id,buyer_id_number)
+        const sentPairs = new Set();
+        for (const row of buyers) {
+          if (!row.email) continue;
+          const key = `${row.product_id}:${row.buyer_id_number}`;
+          if (sentPairs.has(key)) continue;
+          sentPairs.add(key);
+
+          try {
+            await sendMail({
+              to: row.email,
+              subject: "ביטול הרשמה למכירה – BidSmart",
+              text:
+                `שלום,
+
+הרשמתך למכירה על המוצר:
+${row.product_name} (מזהה מוצר: ${row.product_id})
+בוטלה.
+
+הסיבה: חשבון המוכר הוגבל ע״י הנהלת האתר עקב אי-עמידה בתנאי השימוש.
+אנו מתנצלים על אי-הנוחות ונשמח לראותך במכירות אחרות בקרוב.
+
+בברכה,
+צוות BidSmart`
+            });
+            emailsSent++;
+          } catch (mailErr) {
+            console.error("שגיאה בשליחת מייל ביטול לקונה:", mailErr);
+          }
+        }
+
+        // 3) מחיקת כל ההרשמות/הצעות למוצרים אלו
+        const [delQ] = await conn.execute(
+          `DELETE FROM quotation WHERE product_id IN (${placeholders})`,
+          productIds
+        );
+        quotationsDeleted = delQ.affectedRows || 0;
+      }
+
+      // 4) מייל סטטוס למוכר
+      try {
+        if (user.email) {
+          await sendMail({
+            to: user.email,
+            subject: "עדכון חשבון מוכר – החשבון נחסם",
+            text:
+              `שלום ${user.first_name || ""} ${user.last_name || ""},
+
+חשבונך כמוכר הוגבל ואינו זמין לשימוש, מאחר שלא עמד בתנאי השימוש של BidSmart.
+במהלך תקופת ההגבלה לא ניתן יהיה לפרסם מוצרים, לנהל מכירות או לקבל הצעות.
+
+במידה וברצונך לערער או להשיב את החשבון לפעילות, ניתן ליצור קשר בדוא״ל:
+support@bidsmart.com
+
+נשמח לסייע ונעבוד יחד למציאת פתרון.
+בברכה,
+צוות BidSmart`
+          });
+          emailsSent++;
+        }
+      } catch (mailErr) {
+        console.error("שגיאה בשליחת מייל סטטוס למוכר:", mailErr);
+      }
+
+      await conn.commit();
+      return res.json({
+        message: "המוכר נחסם. מוצרים סומנו 'admin blocked', הרשמות נמחקו ונשלחו מיילים.",
+        affectedProducts,
+        emailsSent,
+        quotationsDeleted
+      });
+    } else {
+      // --- החזרה לפעיל ---
+      const [restoreRows] = await conn.execute(
+        `SELECT product_id 
+           FROM product 
+          WHERE seller_id_number = ? AND product_status = 'admin blocked'`,
+        [sellerIdNum]
+      );
+      if (restoreRows.length > 0) {
+        const ids = restoreRows.map(r => r.product_id);
+        const placeholders = ids.map(() => "?").join(",");
+
+        // עדכון לפי start_date
+        const [updBack] = await conn.execute(
+          `UPDATE product
+              SET product_status = CASE 
+                                     WHEN start_date > NOW() THEN 'for sale'
+                                     ELSE 'Not sold'
+                                   END
+            WHERE product_id IN (${placeholders})`,
+          ids
+        );
+        affectedProducts = updBack.affectedRows || 0;
+      }
+
+      // מייל סטטוס למוכר – חזר לפעיל
+      try {
+        if (user.email) {
+          await sendMail({
+            to: user.email,
+            subject: "עדכון חשבון מוכר – החשבון הוחזר לפעילות",
+            text:
+              `שלום ${user.first_name || ""} ${user.last_name || ""},
+
+שמחים לעדכן שחשבונך כמוכר הוחזר לפעילות.
+מוצרים שסווגו בעבר כ-"admin blocked" עודכנו: אם מועד ההתחלה שלהם טרם הגיע – הוחזרו ל-"for sale"; ואם המועד כבר עבר – סווגו כ-"Not sold".
+
+במידה ונדרשת הבהרה נוספת – נשמח לעזור: support@bidsmart.com.
+
+בברכה,
+צוות BidSmart`
+          });
+          emailsSent++;
+        }
+      } catch (mailErr) {
+        console.error("שגיאה בשליחת מייל החזרה לפעיל:", mailErr);
+      }
+
+      await conn.commit();
+      return res.json({
+        message: "המוכר הוחזר לפעיל. מוצרים הושבו בהתאם ל-start_date ונשלח מייל למוכר.",
+        affectedProducts,
+        emailsSent
+      });
+    }
   } catch (error) {
+    await conn.rollback();
     console.error("שגיאה בעדכון סטטוס:", error);
     res.status(500).json({ error: "שגיאה בשרת" });
   }
@@ -524,134 +754,80 @@ router.put("/users/:id/status", async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//פונקציה למחיקת משתמש לצמיתות ע"י המנהל
-// שים לב - עכשיו id (ולא email)
-router.delete("/users/:id", async (req, res) => {
-    console.log("קיבלתי מחיקת משתמש id=", req.params.id);
+// מוצרים של מוכר מסוים לפי ת״ז (למנהל)
+router.get("/seller/:id_number/products", async (req, res) => {
+  const { id_number } = req.params;
+  const conn = await db.getConnection();
   try {
-    const { id } = req.params;
-    const conn = await db.getConnection(); 
-    const [result] = await conn.query("DELETE FROM users WHERE id = ?", [id]);
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "משתמש לא נמצא" });
+    // אותם שדות כמו /products, עם end_time + end_at מחושב
+    const [products] = await conn.query(`
+      SELECT 
+        p.product_id,
+        p.product_name,
+        p.current_price,
+        p.product_status,
+        p.is_live,
+        p.start_date,
+        p.end_time,  -- TIME: משך המכרז
+        ADDTIME(p.start_date, COALESCE(p.end_time, '00:00:00')) AS end_at, -- זמן סיום בפועל
+        p.winner_id_number,
+        c.name AS category_name,
+        s.name AS subcategory_name,
+        u.first_name,
+        u.last_name,
+        u.id_number AS seller_id_number
+      FROM product p
+      LEFT JOIN categories   c ON p.category_id = c.id
+      LEFT JOIN subcategories s ON p.subcategory_id = s.id
+      LEFT JOIN users        u ON p.seller_id_number = u.id_number
+      WHERE p.seller_id_number = ?
+      ORDER BY p.product_id DESC
+    `, [id_number]);
+
+    // שליפת תמונות רק אם יש מוצרים
+    let allImages = [];
+    if (products.length > 0) {
+      const ids = products.map(p => p.product_id);
+      const [imgs] = await conn.query(
+        `SELECT product_id, image_url 
+           FROM product_images
+          WHERE product_id IN (${ids.map(() => "?").join(",")})`,
+        ids
+      );
+      allImages = imgs;
     }
-    res.json({ success: true });
+
+    const enriched = products.map(p => ({
+      ...p,
+      seller_name: [p.first_name, p.last_name].filter(Boolean).join(" "),
+      images: allImages
+        .filter(img => img.product_id === p.product_id)
+        .map(img => img.image_url),
+    }));
+
+    res.json(enriched);
   } catch (err) {
-    res.status(500).json({ error: "שגיאה במחיקת המשתמש" });
-  }
-});
-
-// שליפת כל המשתמשים (ללא סיסמה)
-router.get("/users", async (req, res) => {
-  try {
-    const conn = await db.getConnection();
-    const [rows] = await conn.query(
-      `SELECT 
-        id,
-        id_number, 
-        first_name, 
-        last_name, 
-        email, 
-        role, 
-        status, 
-        id_number, 
-        registered, 
-        phone, 
-        zip, 
-        city, 
-        street, 
-        house_number, 
-        apartment_number, 
-        profile_photo,
-        rating    
-      FROM users`
-    );
-
-    res.json(rows);
-  } catch (err) {
-    console.error("Error fetching users:", err);
-    res.status(500).json({ error: "שגיאה בשליפת משתמשים" });
+    console.error("שגיאה בשליפת מוצרים למוכר:", err);
+    res.status(500).json({ success: false, message: "שגיאה בשליפת מוצרים למוכר" });
   }
 });
 
 
 
-//עריכת משתמש ע"י המנהל מערכת
-router.put("/users/:id", async (req, res) => {
-  const { id } = req.params;
- 
 
-  const {
-    first_name,
-    last_name,
-    phone,
-    role,
-    profile_photo,
-    rating,
-    country,
-    zip,
-    city,
-    street,
-    house_number,
-    apartment_number,
-  } = req.body;
 
-  try {
-    const conn = await db.getConnection();
-    const [result] = await conn.query(
-      `UPDATE users SET
-        first_name = ?,
-        last_name = ?,
-        phone = ?,
-        role = ?,
-        profile_photo = ?,
-        rating = ?,
-        country = ?,
-        zip = ?,
-        city = ?,
-        street = ?,
-        house_number = ?,
-        apartment_number = ?
-      WHERE id = ?`,
-      [
-        first_name,
-        last_name,
-        phone,
-        role,
-        profile_photo,
-        rating,
-        country,
-        zip,
-        city,
-        street,
-        house_number,
-        apartment_number,
-        id, // לא email!
-      ]
-    );
 
-    res.json({ message: "המשתמש עודכן בהצלחה" });
-  } catch (error) {
-    console.error("שגיאה בעדכון משתמש:", error);
-    res.status(500).json({ error: "שגיאה בשרת" });
-  }
-});
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -758,7 +934,7 @@ router.delete("/category/:id", async (req, res) => {
 router.delete("/category/subcategory/:id", async (req, res) => {
   const { id } = req.params;
   const conn = await db.getConnection();
-console.log(id);
+  console.log(id);
   try {
     // שלב 1: הבאת ה־category_id של התת־קטגוריה שמוחקים
     const [subRows] = await conn.query(
@@ -829,500 +1005,12 @@ router.get("/category/:id/subcategories", async (req, res) => {
 
 //ניהול מוצרים
 
-// פונקציה לשליפת מוצר אחד
-router.get("/product/:id", async (req, res) => {
-  try {
-    const conn = await db.getConnection();
 
-    const [products] = await conn.execute(
-      "SELECT * FROM product"
-    );
 
-    //  הוספת תמונות לכל מוצר
-    for (const product of products) {
-      const [images] = await conn.execute(
-        "SELECT image_url FROM product_images WHERE product_id = ?",
-        [product.product_id]
-      );
-      product.images = images.map((img) => img.image_url); // מוסיף product.images
-    }
 
-    res.json(products); //  כאן מחזיר את כל המוצרים ללקוח
-  } catch (e) {
-    console.error("שגיאה בקבלת מוצרים:", e);
-    res.status(500).json({ error: "Failed to fetch product" });
-  }
-});
 
-// שליפת כל המוצרים למנהל
-// שליפת כל המוצרים עם תמונה ראשית, קטגוריה, תת-קטגוריה ומוכר
-router.get("/products", async (req, res) => {
-  const conn = await db.getConnection();
-  try {
-    // שליפת כל המוצרים עם כל השדות המרכזיים
-    const [products] = await conn.query(`
-      SELECT 
-        p.product_id,
-        p.product_name,
-        p.current_price,
-        p.product_status,
-        p.is_live,
-        p.start_date,
-        p.end_date,
-        p.winner_id_number,
-        c.name AS category_name,
-        s.name AS subcategory_name,
-        u.first_name,
-        u.last_name,
-        u.id_number AS seller_id_number
-      FROM product p
-      LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN subcategories s ON p.subcategory_id = s.id
-      LEFT JOIN users u ON p.seller_id_number = u.id_number
-      ORDER BY p.product_id DESC
-    `);
 
-    // שליפת כל התמונות לכל המוצרים במכה אחת
-    const [allImages] = await conn.query(`
-      SELECT product_id, image_url FROM product_images
-    `);
 
-    // בונה לכל מוצר את מערך התמונות שלו
-    const enriched = products.map((p) => ({
-      ...p,
-      seller_name: [p.first_name, p.last_name].filter(Boolean).join(" "),
-      images: allImages
-        .filter((img) => img.product_id === p.product_id)
-        .map((img) => img.image_url),
-    }));
-
-    res.json(enriched);
-    console.log("המוצרים נשלפו בהצלחה, כמות:", enriched.length);
-  } catch (err) {
-    console.error("שגיאה בשליפת מוצרים:", err);
-    res.status(500).json({ success: false, message: "שגיאה בשליפת מוצרים" });
-  }
-});
-
-
-//נתונים כללים של מוצר
-router.get("/product/:id", async (req, res) => {
-  const { id } = req.params;
-  const conn = await db.getConnection();
-  try {
-    const [rows] = await conn.query(
-      `
-      SELECT 
-        p.*, 
-        c.name AS category_name, 
-        s.name AS subcategory_name, 
-        u.first_name, 
-        u.last_name,
-        u.id_number AS seller_id_number
-      FROM product p
-      LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN subcategories s ON p.subcategory_id = s.id
-      LEFT JOIN users u ON p.seller_id_number = u.id_number
-      WHERE p.product_id = ?
-      LIMIT 1
-    `,
-      [id]
-    );
-
-    if (!rows.length) return res.status(404).json({ error: "מוצר לא נמצא" });
-
-    const product = rows[0];
-    // שליפת התמונות עם image_url ו-image_id
-    const [images] = await conn.query(
-      "SELECT image_url, image_id FROM product_images WHERE product_id = ?",
-      [id]
-    );
-    product.images = images;
-    product.seller_name = [product.first_name, product.last_name]
-      .filter(Boolean)
-      .join(" ");
-
-    res.json(product);
-  } catch (err) {
-    console.error("שגיאה בשליפת מוצר:", err);
-    res.status(500).json({ error: "שגיאה בשרת" });
-  }
-});
-
-
-// מחיקת מוצר
-router.delete("/product/:id", async (req, res) => {
-  const productId = req.params.id;
-  const conn = await db.getConnection();
-  await conn.beginTransaction();
-  try {
-    // מחיקת התמונות של המוצר
-    await conn.query("DELETE FROM product_images WHERE product_id = ?", [
-      productId,
-    ]);
-    // מחיקת המוצר עצמו
-    await conn.query("DELETE FROM product WHERE product_id = ?", [productId]);
-    await conn.commit();
-    res.json({ success: true });
-  } catch (err) {
-    await conn.rollback();
-    console.error("שגיאה במחיקת מוצר:", err);
-    res.status(500).json({ success: false, message: "שגיאה במחיקת מוצר" });
-  }
-});
-
-// עדכון מוצר (דוגמה – עדכן שדות עיקריים)
-router.put("/product/:id", async (req, res) => {
-  const productId = req.params.id;
-  const {
-    product_name,
-    price,
-    current_price,
-    category_id,
-    subcategory_id,
-    product_status,
-    description,
-    is_live,
-    start_date,  // מגיע בתצורה "YYYY-MM-DDTHH:MM"
-    end_date,
-  } = req.body;
-
-  // נרמול ל-MySQL (רווח במקום T + שניות)
-  const normalizedStart =
-    start_date ? start_date.replace("T", " ") + ":00" : null;
-
-  const conn = await db.getConnection();
-  try {
-    await conn.query(
-      `UPDATE product SET 
-        product_name   = COALESCE(?, product_name),
-        price          = COALESCE(?, price),
-        current_price  = COALESCE(?, current_price),
-        category_id    = COALESCE(?, category_id),
-        subcategory_id = COALESCE(?, subcategory_id),
-        product_status = COALESCE(?, product_status),
-        description    = COALESCE(?, description),
-        is_live        = COALESCE(?, is_live),
-        start_date     = COALESCE(?, start_date),
-        end_date       = COALESCE(?, end_date)
-      WHERE product_id = ?`,
-      [
-        product_name,
-        price,
-        current_price,
-        category_id,
-        subcategory_id,
-        product_status,
-        description,
-        is_live,
-        normalizedStart,
-        end_date,
-        productId,
-      ]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error("שגיאה בעדכון מוצר:", err);
-    res.status(500).json({ success: false, message: "שגיאה בעדכון מוצר" });
-  }
-});
-
-
-// מחיקת תמונה של מוצר ע"י המנהל
-router.delete("/product/:id/image", async (req, res) => {
-  const { id } = req.params;
-  const { image_url } = req.body;
-  const conn = await db.getConnection();
-  try {
-    await conn.query("DELETE FROM product_images WHERE product_id = ? AND image_url = ?", [id, image_url]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "שגיאה במחיקת תמונה" });
-  }
-});
-// הוספת תמונה למוצר
-router.post("/product/:id/image", upload.single("image"), async (req, res) => {
-  const { id } = req.params;
-  if (!req.file) return res.status(400).json({ error: "לא נשלחה תמונה" });
-  const image_url = "/uploads/" + req.file.filename;
-  const conn = await db.getConnection();
-  await conn.query(
-    "INSERT INTO product_images (product_id, image_url) VALUES (?, ?)",
-    [id, image_url]
-  );
-  res.json({ success: true, image_url });
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//ניהול פניות משתמשים
-
-// קבלת כל הפניות
-router.get("/messages", async (req, res) => {
-  try {
-    const conn = await db.getConnection();
-    const [rows] = await conn.execute(`
-      SELECT 
-        cm.*,
-        u.id_number AS user_id_number,
-        u.status AS user_status
-      FROM contact_messages cm
-      LEFT JOIN users u ON cm.user_id = u.id
-      ORDER BY cm.created_at DESC
-    `);
-
-    res.json(rows);
-  } catch (error) {
-    console.error("Error loading contact messages:", error);
-    res.status(500).json({ message: "שגיאה בטעינת פניות" });
-  }
-});
-//הודעה שמנהל שולח למשתמש 
-router.post("/messages", async (req, res) => {
-  const {
-    email,
-    subject,
-    message,
-    status = "new",
-    admin_reply = "",
-    is_admin_message = 1,
-    sender_role = "admin",
-  } = req.body;
-
-let reply_sent = 0;
-let messageStatus = status;
-
-  if (!email || !subject || !message) {
-    return res.status(400).json({ message: "חובה למלא אימייל, נושא והודעה" });
-  }
-
-  try {
-    const conn = await db.getConnection();
-
-    // בדיקה אם המשתמש קיים בטבלת users
-    let userId = null;
-    let sendEmail = false;
-
-    const [userRows] = await conn.execute(
-      "SELECT id, status FROM users WHERE email = ?",
-      [email]
-    );
-
-    if (userRows.length > 0) {
-      userId = userRows[0].id;
-      const userStatus = userRows[0].status;
-
-      if (userStatus === "blocked" ) {
-        sendEmail = true; // שלח מייל גם אם חסום
-        reply_sent =1;
-        messageStatus = "resolved";
-      }
-    }
-     else {
-      sendEmail = true; // לא קיים בכלל – שלח מייל
-      reply_sent = 1;
-      messageStatus = "resolved";
-    }
-
-    // הכנסת ההודעה למסד הנתונים
-    const [result] = await conn.execute(
-      `INSERT INTO contact_messages 
-        (user_id, email, subject, message, status, reply_sent, admin_reply, created_at, is_admin_message, sender_role) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)`,
-      [
-        userId,
-        email,
-        subject,
-        message,
-        messageStatus,
-        reply_sent,
-        admin_reply,
-        is_admin_message,
-        sender_role,
-      ]
-    );
-
-    // שליחת מייל במידת הצורך
-    if (sendEmail && message&&subject) {
-      console.log("⬅ נכנס לשליחת מייל לאורח:", email);
-      await sendMail({
-        to: email,
-        subject: subject,
-        text: `:נושא\n${subject}\n\n:תשובת הנהלת האתר\n${message}`,
-      });
-      console.log("המייל נשלח ל:", email);
-    }
-
-    const newMessage = {
-      id: result.insertId,
-      user_id: userId,
-      email,
-      subject,
-      message,
-      status,
-      reply_sent,
-      admin_reply,
-      is_admin_message,
-      sender_role,
-      created_at: new Date(),
-    };
-
-    res.status(201).json(newMessage);
-  } catch (err) {
-    console.error("שגיאה ביצירת הודעה חדשה:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
-  }
-});
-//מנהל עונה למשתמש על פנייה קיימת-אם זה אורח התשובה נשלחת למייל שכתב ואם זה משתמש אז להודעות של המשתמש
-// מנהל עונה למשתמש על פנייה קיימת
-router.put("/messages/:id", async (req, res) => {
-  const id = req.params.id;
-  const {
-    email,
-    subject,
-    message,
-    status,
-    admin_reply,
-    reply_sent,
-    is_admin_message,
-    sender_role,
-  } = req.body;
-
-  try {
-    const conn = await db.getConnection();
-
-    // שליפת שורת ההודעה עם סטטוס המשתמש
-    const [rows] = await conn.execute(
-      `SELECT cm.user_id, cm.email, cm.admin_reply, u.status AS user_status
-       FROM contact_messages cm
-       LEFT JOIN users u ON cm.user_id = u.id
-       WHERE cm.id = ?`,
-      [id]
-    );
-
-    const recipient = rows[0];
-
-    console.log("Recipient:", recipient, status);
-    // שלח מייל אם:
-    const shouldSendEmailNew =
-      status === "new" &&
-      recipient &&
-      admin_reply &&
-      (recipient.user_id === null || recipient.user_status === "blocked");
-
-    const shouldSendEmailProgg =
-      status === "in_progress" &&
-      recipient &&
-      admin_reply &&
-      (recipient.user_id === null || recipient.user_status === "blocked");
-
-    console.log(admin_reply !== recipient.admin_reply);
-    console.log(admin_reply, " -", recipient.admin_reply);
-
-    if (shouldSendEmailNew) {
-      console.log("⬅ שליחת מייל ראשון וחדש:", recipient.email);
-      await sendMail({
-        to: recipient.email,
-        subject: subject,
-        text: `הודעתך התקבלה:\n${message}\n\nתשובת הנהלת האתר:\n${admin_reply}`,
-      });
-
-      //לעשות שאם ההודעה שונה זה ישלח אם לא זה לא
-    } else if (
-      shouldSendEmailProgg &&
-      admin_reply?.trim() !== recipient.admin_reply?.trim()
-    ) {
-      console.log("⬅ שליחת מייל שכבר נענתה- שנמצא בטיפול:", recipient.email);
-      console.log(admin_reply !== recipient.admin_reply);
-      console.log(admin_reply, " -", recipient.admin_reply);
-
-      await sendMail({
-        to: recipient.email,
-        subject: subject,
-        text: `בהמשך  לשאלתך: \n${message}\n\nתשובת הנהלת האתר היא: \n${admin_reply}`,
-      });
-    }
-
-    // עדכון הפנייה
-    const updateFields = [
-      email,
-      subject,
-      message,
-      status,
-      admin_reply,
-      reply_sent,
-      sender_role,
-      id,
-    ];
-
-    let updateQuery = `
-      UPDATE contact_messages
-      SET email = ?, subject = ?, message = ?, status = ?, admin_reply = ?, reply_sent = ?, sender_role = ?
-      WHERE id = ?`;
-
-    if (sender_role !== "user") {
-      updateQuery = `
-        UPDATE contact_messages
-        SET email = ?, subject = ?, message = ?, status = ?, admin_reply = ?, reply_sent = ?, is_admin_message = ?, sender_role = ?
-        WHERE id = ?`;
-      updateFields.splice(7, 0, is_admin_message);
-    }
-
-    await conn.execute(updateQuery, updateFields);
-
-    console.log("הודעה עודכנה בהצלחה");
-    res.json({ message: "עודכן בהצלחה" });
-  } catch (err) {
-    console.error("שגיאה בעדכון הודעה:", err);
-    res.status(500).json({ message: "שגיאת שרת" });
-  }
-});
-//שליפת כל מיילים של המשתמשים
-router.get("/messages/user-emails", async (req, res) => {
-  try {
-    const conn = await db.getConnection();
-    const [rows] = await conn.execute("SELECT email FROM users");
-    const emails = rows.map((row) => row.email);
-    res.json(emails);
-  } catch (err) {
-    console.error("שגיאה בשליפת מיילים:", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
-  }
-});
-// מחיקת הודעה לפי ID
-router.delete("/messages/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const conn = await db.getConnection();
-
-    const [result] = await conn.execute(
-      "DELETE FROM contact_messages WHERE id = ?",
-      [id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "ההודעה לא נמצאה" });
-    }
-
-    res.json({ message: "ההודעה נמחקה בהצלחה" });
-  } catch (err) {
-    console.error("שגיאה במחיקת ההודעה:", err);
-    res.status(500).json({ message: "שגיאה בשרת בעת המחיקה" });
-  }
-});
 
 
 

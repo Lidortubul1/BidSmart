@@ -1,12 +1,22 @@
+// server/quotation.router.js  (או היכן שהקובץ הזה נמצא אצלך)
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
 const nodemailer = require("nodemailer");
 
-//להוריד שדה קומפליט
+// עזר לנרמול ערך is_paid מכל סוג (0/1, yes/no, true/false, מחרוזות)
+function normalizePaid(val) {
+if (val === null || val === undefined) return false;
+  const s = String(val).trim().toLowerCase();
+  return val === true || val === 1 || s === "1" || s === "yes" || s === "true";
+}
+
+
+
+
 // שליחת הרשמה או הצעת מחיר
 router.post("/", async (req, res) => {
-  const { product_id, buyer_id_number, price } = req.body;
+const { product_id, buyer_id_number, price } = req.body;
 
   console.log(" קיבלנו בקשת הצעה/הרשמה:", {
     product_id,
@@ -104,6 +114,7 @@ router.post("/", async (req, res) => {
         .json({ success: false, message: "הצעה נמוכה ממחיר פתיחה" });
     }
 
+
     //  בדיקת הצעה קיימת
     const [existingBid] = await conn.execute(
       "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
@@ -148,7 +159,6 @@ router.post("/", async (req, res) => {
 });
 
 
-
 // שליפת כל ההצעות של משתמש לפי תעודת זהות
 router.get("/user/:id_number", async (req, res) => {
   const idNumber = req.params.id_number;
@@ -180,6 +190,91 @@ router.get("/user/:id_number", async (req, res) => {
     res.status(500).json({ error: "שגיאה בשליפת הצעות למשתמש" });
   }
 });
+
+/* 🆕 ----------------------------------------------------
+   סטטוס תשלום (ישיר לבידר / לזוכה של המוצר)
+   שים לב: חייב לבוא לפני הראוט הכללי '/:product_id'
+------------------------------------------------------ */
+// סטטוס תשלום לבידר מסוים במוצר
+
+router.get("/:product_id/paid/:buyer_id", async (req, res) => {
+  const { product_id, buyer_id } = req.params;
+  try {
+    const [rows] = await db.execute(
+      `SELECT is_paid
+         FROM quotation
+        WHERE product_id = ? AND buyer_id_number = ?
+        ORDER BY bid_time DESC, quotation_id DESC
+        LIMIT 1`,
+      [product_id, buyer_id]
+    );
+
+    if (!rows.length) {
+      return res.json({ success: true, found: false, paid: false });
+    }
+
+    const paid = normalizePaid(rows[0]?.is_paid);
+    return res.json({ success: true, found: true, paid });
+  } catch (err) {
+    console.error("שגיאה בבדיקת סטטוס תשלום לבידר:", err.message);
+    return res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
+
+// סטטוס תשלום לזוכה של המוצר (לפי winner_id_number בטבלת product)
+router.get("/:product_id/paid", async (req, res) => {
+  const { product_id } = req.params;
+  try {
+    const [pRows] = await db.execute(
+      "SELECT winner_id_number FROM product WHERE product_id = ?",
+      [product_id]
+    );
+    if (!pRows.length) {
+      return res.status(404).json({ success: false, message: "מוצר לא נמצא" });
+    }
+
+    const winnerId = pRows[0]?.winner_id_number;
+    if (!winnerId) {
+      return res.json({
+        success: true,
+        found: false,
+        paid: false,
+        buyer_id_number: null,
+      });
+    }
+
+    const [rows] = await db.execute(
+      `SELECT is_paid
+         FROM quotation
+        WHERE product_id = ? AND buyer_id_number = ?
+        ORDER BY bid_time DESC, quotation_id DESC
+        LIMIT 1`,
+      [product_id, winnerId]
+    );
+
+    if (!rows.length) {
+      return res.json({
+        success: true,
+        found: false,
+        paid: false,
+        buyer_id_number: winnerId,
+      });
+    }
+
+    const paid = normalizePaid(rows[0]?.is_paid);
+    return res.json({
+      success: true,
+      found: true,
+      paid,
+      buyer_id_number: winnerId,
+    });
+  } catch (err) {
+    console.error("שגיאה בבדיקת סטטוס תשלום לזוכה:", err.message);
+    return res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
+
+/* ---------------------------------------------------- */
 
 // שליפת הצעות לפי product_id
 router.get("/:product_id", async (req, res) => {
@@ -234,9 +329,6 @@ router.delete("/:productId/:buyerId", async (req, res) => {
   }
 });
 
-
 //פונקציה שמחשבת כמה אנשים נרשמו למוצר 
-
-
 
 module.exports = router;

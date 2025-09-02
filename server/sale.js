@@ -328,7 +328,7 @@ router.post("/use-saved-address", async (req, res) => {
 
 
 
-// סימון מוצר כהתקבל
+//  סימון מוצר כהתקבל ע"י הקונה
 router.put("/mark-delivered", async (req, res) => {
   const { product_id } = req.body;
 
@@ -339,7 +339,7 @@ router.put("/mark-delivered", async (req, res) => {
   try {
     const conn = await db.getConnection();
     const [result] = await conn.execute(
-      "UPDATE sale SET is_delivered = 1, sent= 'yes' WHERE product_id = ?",
+      "UPDATE sale SET is_delivered= 1, sent= 'yes' WHERE product_id = ?",
       [product_id]
     );
 

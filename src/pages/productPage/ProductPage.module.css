@@ -10,8 +10,7 @@
   font-family: "Heebo", sans-serif;
 }
 .adminSection {
-  width: 100%;
-  max-width: 1000px;  /* תיאום לרוחב המקסימלי של .content */
+  max-width: min(95vw, 1600px);
 }
 
 .content {
@@ -80,7 +79,6 @@
   justify-content: center;
 }
 
-
 .image {
   width: 100%;
   height: 300px; /* גובה קבוע */
@@ -90,7 +88,6 @@
   cursor: zoom-in;
   background-color: #fff; /* רקע לבן לאזור התמונה */
 }
-
 
 .gallery {
   text-align: center;
@@ -251,6 +248,7 @@
 .cancel:hover {
   color: #000;
 }
+
 .imageControls {
   display: flex;
   justify-content: center;
@@ -281,35 +279,170 @@
   font-weight: 500;
   color: #333;
 }
+
 .notice { background:#fff; border:1px dashed #cbd5e1; border-radius:12px; padding:12px 14px; color:#475569; }
 
-/* פרטי הזמנה לקונה הזוכה */
+/* ================================
+   OrderDetails – RTL & layout
+   ================================ */
+
+/* כרטיס הפרטים */
 .orderCard {
   margin-top: 14px;
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 14px;
+  padding: 14px 16px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  direction: rtl;        /* עברית */
+  text-align: right;     /* יישור טקסט לימין */
 }
-.orderTitle { margin: 0 0 10px; font-size: 1.1rem; font-weight: 700; }
-.orderRow:last-child { border-bottom: 0; }
+
+/* כותרת הכרטיס */
+.orderTitle {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* שורת פריט (תווית + ערך) */
 .orderRow {
   display: flex;
-  justify-content: flex-end; /* מיישר את כל התוכן לימין */
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between; /* תווית בימין, ערך בשמאל (ב־RTL) */
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
   text-align: right;
 }
 
+/* ללא קו אחרון */
+.orderRow:last-child {
+  border-bottom: 0;
+}
+
+/* תווית */
 .orderLabel {
-  font-weight: bold;
-  margin-left: 0.5rem;
-  text-align: right;
+  font-weight: 700;
+  color: #0f172a;
+  margin-inline-start: 0; /* לוגי ל־RTL/LTR */
+  min-width: 140px;       /* שומר יישור אחיד */
 }
 
+/* ערכים */
 .orderRow span {
   text-align: right;
+  color: #334155;
 }
 
-.badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+/* תג סטטוס */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+/* גוונים לסטטוס */
 .toneGreen { background: #ecfdf5; color: #047857; }
 .toneAmber { background: #fffbeb; color: #b45309; }
+
+/* רספונסיביות: בערוצים צרים מציגים את התווית מעל הערך */
+@media (max-width: 600px) {
+  .orderRow {
+    flex-direction: column;
+    align-items: flex-start; /* לימין ב־RTL */
+    gap: 4px;
+  }
+  .orderLabel {
+    min-width: auto;
+  }
+}
+
+
+/* ===== Admin panel (ProductPage) ===== */
+.adminPanel {
+  border: 1px solid #e7ebf0;
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  direction: rtl;
+  background: #fff;
+  max-width: none;      /* מבטל כל הגבלה פנימית אם קיימת */
+  width: 100%;
+  margin-inline: auto;
+}
+
+.adminPanelTitle {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-align: center;
+}
+/* גורם לפריט ב-grid לתפוס רוחב מלא (מעמודה 1 עד הסוף) */
+.adminItemFull {
+  grid-column: 1 / -1;
+}
+
+.adminGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* שלושה טורים */
+  gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .adminGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 750px) {
+  .adminGrid { grid-template-columns: 1fr; }
+}
+@media (min-width: 1500px) {
+  .adminGrid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* שורה של כותרת + כפתור + כרטיס פרטים – הכל לרוחב */
+.userRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap; /* כדי שלא יגלוש במסכים צרים */
+}
+
+/* כפתור קטן ניטרלי */
+.smallBtn {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  background: #f6f8fa;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.smallBtn:hover { background: #eef1f4; }
+
+/* הקופסה שבה מוצג AdminUserDetails */
+.userDetailsBox {
+  border: 1px solid #e7ebf0;
+  border-radius: 12px;
+  padding: 12px;
+   flex: 0 1 900px; 
+  background: #fafbfc;
+  min-width: 320px;   /* רוחב נח למניעת שבירה */
+  max-width: 100%;
+}
+
+/* תיבת כרטיסי הדיווח */
+.ticketsBox {
+  margin-top: 16px;
+}
+
+/* טקסט שגיאה כללי בפאנל */
+.errorText {
+  color: crimson;
+  margin-top: 8px;
+}

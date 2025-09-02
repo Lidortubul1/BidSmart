@@ -23,6 +23,7 @@ import AdminCategories from "../pages/AdminCategories/AdminCategories.jsx";
 import AdminProductsPage from "../pages/AdminProductsPage/AdminProductsPage.jsx";
 import AdminMessages from "../pages/AdminMessages/AdminMessages.jsx"
 import AdminStatistics from "../pages/AdminStatistics/AdminStatistics.jsx";
+import AdminSellerProductsPage from "../pages/AdminProductsPage/AdminSellerProductsPage.jsx";
 
 // קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
@@ -36,6 +37,8 @@ import AdminProductDetails from "../components/AdminProductDetails/AdminProductD
 import BuyerDashboard from "../pages/home/BuyerDashboard";
 import SellerDashboard from "../pages/home/SellerDashboard.jsx";
 import AdminDashboard from "../pages/home/AdminDashboard";
+//ניתוב נכון לדף הבית לפי תפקיד
+import RoleRoute from "../components/RoleRoute/RoleRoute.jsx";
 
 import "./App.css";
 
@@ -54,9 +57,18 @@ const isAdmin = user && user.role === "admin";
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardRouter />} />
-          <Route path="/buyer" element={<BuyerDashboard />} />
-          <Route path="/seller" element={<SellerDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+  path="/buyer"
+  element={<RoleRoute element={<BuyerDashboard />} roles={["buyer"]} />}
+/>
+<Route
+   path="/seller"
+  element={<RoleRoute element={<SellerDashboard />} roles={["seller"]} />}
+/>
+<Route
+  path="/admin"
+  element={<RoleRoute element={<AdminDashboard />} roles={["admin"]} />}
+/>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -83,7 +95,7 @@ const isAdmin = user && user.role === "admin";
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/messages" element={<AdminMessages />} />
           <Route path="/admin/stats" element={<AdminStatistics />} />
-
+          <Route path="/admin/sellers/:id_number/products" element={<AdminSellerProductsPage />} />
           <Route
             path="/admin/products/:productId"
             element={<AdminProductDetails />}

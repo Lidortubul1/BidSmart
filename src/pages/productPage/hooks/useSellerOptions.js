@@ -2,7 +2,11 @@
 import { useEffect, useState } from "react";
 import { getSellerDeliveryOptions } from "../../../services/productApi"
 
-export function useSellerOptions(productId) {
+
+
+
+//מחזיר את אפשרויות המשלוח של המוכר
+export default function useSellerOptions(productId) {
   const [loading, setLoading] = useState(true);
   const [option, setOption] = useState("delivery");
   const [pickupAddressText, setPickupText] = useState("");

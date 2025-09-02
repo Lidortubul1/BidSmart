@@ -1,6 +1,9 @@
 // src/pages/ProductPage/hooks/useStartCountdown.js
 import { useEffect, useState } from "react";
 
+
+
+// הוק שמחזיר ספירה לאחור בשניות עד לזמן התחלה נתון (startIso), מתעדכן כל שנייה ומחזיר null אם אין תאריך
 export function useStartCountdown(startIso) {
   const [sec, setSec] = useState(null);
 

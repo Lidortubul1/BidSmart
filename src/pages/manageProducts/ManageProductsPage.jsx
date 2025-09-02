@@ -13,7 +13,7 @@ const FILTERS = [
   { value: "sent",    label: "מוצרים שנשלחו לרוכש" },
   { value: "pending", label: "מוצרים שטרם חלה המכירה" },
   { value: "unsold",  label: "מוצרים שלא נמכרו" },
-  { value: "blocked", label: "מוצרים חסומים" }, // ⬅️ חדש
+  { value: "blocked" , label: "מוצרים חסומים" }, // ⬅️ חדש
 ];
 
 export default function ManageProductsPage() {

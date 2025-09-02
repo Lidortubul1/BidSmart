@@ -1,20 +1,48 @@
 @import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap");
 
+/* ========= Theme Vars ========= */
 :root {
   --primary: #1a89ff;
   --secondary: #14b8a6;
   --accent: #ffa502;
   --danger: #ff6b6b;
-  --ink: #1a233a;
-  --bg: #f8fafc;
+
+  --ink: #0f172a;           /* כיתוב כהה וברור */
+  --muted: #64748b;
+  --bg: #f5f7fb;
   --card: #ffffff;
   --border: #e8eef5;
+
+  --ring: 0 0 0 3px rgba(26, 137, 255, 0.15);
+  --radius: 16px;
+  --radius-lg: 20px;
   --shadow: 0 12px 30px rgba(26, 35, 58, 0.12);
+  --shadow-soft: 0 10px 20px rgba(26, 35, 58, 0.08);
 }
 
+/* Dark Mode אוטומטי לפי מערכת */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e5e7eb;
+    --muted: #9aa3af;
+    --bg: #0b1220;
+    --card: #0f172a;
+    --border: #1f2a44;
+    --shadow: 0 12px 30px rgba(2, 6, 23, 0.5);
+    --shadow-soft: 0 10px 20px rgba(2, 6, 23, 0.35);
+    --ring: 0 0 0 3px rgba(20, 184, 166, 0.25);
+  }
+}
+
+/* נגישות למשתמשי reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ========= Page Shell ========= */
 .container {
   direction: rtl;
-  font-family: "Heebo", system-ui, sans-serif;
+  font-family: "Heebo", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   padding: 2rem;
   max-width: 1300px;
   margin: auto;
@@ -25,8 +53,9 @@
   border-radius: 24px;
 }
 
+/* כותרת ראשית – גרדיאנט טיפוגרפי */
 .title {
-  font-size: 2rem;
+  font-size: clamp(1.6rem, 1.2rem + 1.2vw, 2rem);
   font-weight: 800;
   text-align: center;
   margin-bottom: 1.5rem;
@@ -38,19 +67,23 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* סרגל מסננים עליון */
+/* ========= Filters Bar ========= */
 .filtersRow {
+  position: sticky;
+  top: 12px;
+  z-index: 5;
   display: flex;
   gap: 1rem;
   align-items: center;
   justify-content: center;
-  background: var(--card);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   padding: 0.75rem 1rem;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   margin: 0 auto 1.75rem;
   flex-wrap: wrap;
+  backdrop-filter: blur(8px);
 }
 
 .filterGroup {
@@ -62,117 +95,76 @@
 .filtersRow label {
   font-weight: 600;
   color: var(--ink);
+  font-size: 0.95rem;
 }
 
+/* Inputs */
 .filtersRow input[type="date"],
 .filtersRow select {
-  padding: 0.45rem 0.75rem;
+  padding: 0.5rem 0.8rem;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: #fbfdff;
+  color: var(--ink);
   outline: none;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.08s ease;
+}
+@media (prefers-color-scheme: dark) {
+  .filtersRow input[type="date"],
+  .filtersRow select {
+    background: #0b1220;
+  }
 }
 
+.filtersRow input[type="date"]:hover,
+.filtersRow select:hover {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
 .filtersRow input[type="date"]:focus,
 .filtersRow select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(26, 137, 255, 0.15);
-}
-
-/* גריד כרטיסים */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.5rem;
-}
-
-/* כרטיס */
-.card {
-  position: relative;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  box-shadow: var(--shadow);
-  padding: 1.2rem 1.2rem 1rem;
-  overflow: hidden; 
-   display:flex;
-  flex-direction:column;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-  opacity: 0.9;
-}
-
-.cardTitle {
-  margin: 0 0 0.75rem;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: 0.2px;
-}
-
-/* אזור גרף */
-.chart {
-  width: 100%;
-  height: 260px; /* ResponsiveContainer מקבל את הגובה מכאן */
-  flex: 1;
-  min-height: 260px;
-}
-
-.inlineFilters {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 0.75rem;
-}
-
-.inlineFilters label {
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.inlineFilters select {
-  padding: 0.4rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fbfdff;
-}
-
-.subTitle {
-  margin-top: 0.75rem;
-  color: #334155;
-  font-weight: 600;
-}
-
-.conv {
-  margin-top: 0.6rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-/* הובר נחמד לכרטיס */
-.card:hover {
+  box-shadow: var(--ring);
   transform: translateY(-1px);
-  transition: transform 0.18s ease;
 }
 
-.section {
-  margin-bottom: 2rem;
+/* כפתור "כל הזמנים" – אחיד במקום אינליין סטיילים */
+.allTimeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #ffffff, #f9fbff);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
+.allTimeBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+.allTimeBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ========= Sections ========= */
+.section { margin-bottom: 2rem; }
 
 .sectionHeader {
   display: flex;
-  align-items: center;
+  align-items: end;
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
 .sectionTitle {
@@ -184,11 +176,159 @@
 
 .sectionSub {
   margin: 0;
-  color: #64748b;
+  color: var(--muted);
   font-size: 0.95rem;
 }
-/* גורם לעמודות/פרוסות להיראות לחיצות. ב־CSS Modules צריך :global */
+
+/* ========= Cards Grid ========= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: clamp(1rem, 1vw, 1.5rem);
+}
+
+/* ברירת מחדל: קלף ברוחב 6 עמודות במחשבים, 12 במובייל */
+.card {
+  grid-column: span 4;
+  position: relative;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.2rem 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.18s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+/* במסכים בינוניים – 2 בשורה */
+@media (max-width: 1200px) {
+  .card { grid-column: span 6; }
+}
+
+/* במובייל – אחד בשורה */
+@media (max-width: 700px) {
+  .card { grid-column: span 12; }
+}
+
+/* וריאנט קלף מלא-רוחב אם תרצו לשנות ב־JSX (לא חובה) */
+/* .card--wide { grid-column: span 12; } */
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+  opacity: 0.95;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  box-shadow: 0 14px 40px rgba(26, 35, 58, 0.16);
+}
+
+.cardTitle {
+  margin: 0 0 0.75rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.2px;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .5rem;
+}
+
+/* אזור גרף */
+.chart {
+  width: 100%;
+  height: 260px; /* ResponsiveContainer מקבל את הגובה מכאן */
+  flex: 1;
+  min-height: 260px;
+}
+
+/* פילטרים פנימיים בכרטיס */
+.inlineFilters {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.inlineFilters label {
+  font-weight: 600;
+  color: var(--ink);
+}
+.inlineFilters select {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fbfdff;
+  color: var(--ink);
+}
+@media (prefers-color-scheme: dark) {
+  .inlineFilters select { background: #0b1220; }
+}
+
+.subTitle {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.conv {
+  margin-top: 0.6rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* ========= Recharts helpers ========= */
+/* גורם לעמודות/פרוסות להיראות לחיצות */
 :global(.recharts-rectangle),
 :global(.recharts-sector) {
   cursor: pointer;
 }
+
+/* כיתוב צירים וטיקים – מעט חד וברור יותר */
+:global(.recharts-cartesian-axis-tick text) {
+  fill: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* גריד עדין יותר */
+:global(.recharts-cartesian-grid-horizontal line),
+:global(.recharts-cartesian-grid-vertical line) {
+  stroke: color-mix(in srgb, var(--border) 65%, transparent);
+}
+
+/* ========= Small polish ========= */
+::selection {
+  background: color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+/* היילייט לפוקוסי מקלדת */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-color: var(--primary);
+}
+
+/* מיקרו־אנימציה עדינה בקארד־בר */
+@keyframes pulseBar {
+  0% { opacity: .7; transform: translateX(-10%); }
+  50% { opacity: 1; transform: translateX(0%); }
+  100% { opacity: .7; transform: translateX(10%); }
+}
+.card::before { animation: pulseBar 7s ease-in-out infinite alternate; }

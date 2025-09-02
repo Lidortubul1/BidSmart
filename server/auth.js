@@ -481,9 +481,6 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
 
 
 
-
-
-
 // שינוי סיסמה
 router.put("/change-password", async (req, res) => {
   const { email, currentPassword, newPassword } = req.body;
