@@ -1,3 +1,4 @@
+//LiveAuction\LiveAuction.jsx
 import styles from "./LiveAuction.module.css";
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
@@ -165,7 +166,7 @@ const onAuctionStarted = () => {
   setAuctionEnded(false);
   setStartCountdown(null);
 
-  // ⛔️ לא מפעילים 15ש׳ לפני הצעה ראשונה
+  //  לא מפעילים 15ש׳ לפני הצעה ראשונה
   setRoundTimeLeft(null);
 
   setAuctionTimeLeft((prev) => {
@@ -290,7 +291,7 @@ useEffect(() => {
       console.error("שגיאה בסיום מכירה:", err);
     }
   }
-
+  //שליחת ההצעה לשרת
   function handleBid(amount = 10) {
     if (!isLive || auctionEnded || !canBid) return;
     socket.emit("placeBid", { productId, buyerId, customAmount: amount });
@@ -350,7 +351,7 @@ useEffect(() => {
                   </button>
                 </>
               ) : (
-                <p className={styles.loser}>❌ המכירה הסתיימה. לא זכית.</p>
+                <p className={styles.loser}> המכירה הסתיימה. לא זכית.</p>
               )}
             </div>
           </div>
