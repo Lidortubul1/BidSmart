@@ -1,3 +1,4 @@
+//LiveAuction\LiveAuction.jsx
 import styles from "./LiveAuction.module.css";
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
@@ -31,7 +32,7 @@ function formatDateAndTime(dateStr) {
     hour: "2-digit",
     minute: "2-digit",
   });
-  
+
   return `${formattedDate} בשעה ${formattedTime}`;
 }
 
@@ -41,9 +42,10 @@ function fmtHMS(total) {
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
   return d > 0
-    ? `${d} ימים ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(
-        s
-      ).padStart(2, "0")}`
+    ? `${d} ימים ${String(h).padStart(2, "0")}:${String(m).padStart(
+        2,
+        "0"
+      )}:${String(s).padStart(2, "0")}`
     : `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(
         s
       ).padStart(2, "0")}`;
@@ -74,13 +76,12 @@ function LiveAuction() {
   // לוג צ'אט (אופציונלי)
   const [chatLog, setChatLog] = useState([]);
   const anonymizedUsers = useRef({});
-// בתוך הקומפוננטה LiveAuction, אחרי ש יש product/currentPrice/lastBidder:
-const openingPrice = Number(product?.price) || 0;
-const hasFirstBid  = (Number(currentPrice) > openingPrice) || !!lastBidder;
-// מי היה המציע האחרון ומה מצב הכפתור
-const isMyLastBid = lastBidder && String(lastBidder) === String(buyerId);
-const isBidDisabled = !isLive || auctionEnded || !canBid || isMyLastBid;
-
+  // בתוך הקומפוננטה LiveAuction, אחרי ש יש product/currentPrice/lastBidder:
+  const openingPrice = Number(product?.price) || 0;
+  const hasFirstBid = Number(currentPrice) > openingPrice || !!lastBidder;
+  // מי היה המציע האחרון ומה מצב הכפתור
+  const isMyLastBid = lastBidder && String(lastBidder) === String(buyerId);
+  const isBidDisabled = !isLive || auctionEnded || !canBid || isMyLastBid;
 
   // מודאל
   const [modalVisible, setModalVisible] = useState(false);
@@ -92,12 +93,26 @@ const isBidDisabled = !isLive || auctionEnded || !canBid || isMyLastBid;
     onConfirm: null,
     onCancel: null,
   });
-  const showModal = ({ title, message, confirmText, cancelText, onConfirm, onCancel }) => {
-    setModalContent({ title, message, confirmText, cancelText, onConfirm, onCancel });
+  const showModal = ({
+    title,
+    message,
+    confirmText,
+    cancelText,
+    onConfirm,
+    onCancel,
+  }) => {
+    setModalContent({
+      title,
+      message,
+      confirmText,
+      cancelText,
+      onConfirm,
+      onCancel,
+    });
     setModalVisible(true);
   };
 
-  // טעינת מוצר + חישוב מצב ראשוני 
+  // טעינת מוצר + חישוב מצב ראשוני
   useEffect(() => {
     let mounted = true;
 
@@ -107,56 +122,56 @@ const isBidDisabled = !isLive || auctionEnded || !canBid || isMyLastBid;
 
       setProduct(data);
 
-     const startMs = new Date(data.start_date).getTime();
-const auctionLenSec = timeToSeconds(data.end_time);
-const endMs = startMs + auctionLenSec * 1000;
-const now = Date.now();
+      const startMs = new Date(data.start_date).getTime();
+      const auctionLenSec = timeToSeconds(data.end_time);
+      const endMs = startMs + auctionLenSec * 1000;
+      const now = Date.now();
 
-// נגמרה אם כבר יש זוכה או שהזמן עבר
-const ended = (data.winner_id_number != null) || (now >= endMs);
+      // נגמרה אם כבר יש זוכה או שהזמן עבר
+      const ended = data.winner_id_number != null || now >= endMs;
 
-// לייב רק אם is_live=1 וגם לא נגמרה
-const live = (data.is_live === 1) && !ended;
+      // לייב רק אם is_live=1 וגם לא נגמרה
+      const live = data.is_live === 1 && !ended;
 
-setIsLive(live);
-setAuctionEnded(ended);
-setWinnerId(data.winner_id_number || null);
+      setIsLive(live);
+      setAuctionEnded(ended);
+      setWinnerId(data.winner_id_number || null);
 
-setCurrentPrice(Number(data.current_price) || 0);
- // נעדכן רק אם יש לנו זוכה (נגמר) או אם השרת מחזיר "מציע אחרון"
-const apiLastBidder =
-   data.last_bidder_id_number ??
-   data.lastBidderId ??
-   data.last_bidder ??
-   null;
+      setCurrentPrice(Number(data.current_price) || 0);
+      // נעדכן רק אם יש לנו זוכה (נגמר) או אם השרת מחזיר "מציע אחרון"
+      const apiLastBidder =
+        data.last_bidder_id_number ??
+        data.lastBidderId ??
+        data.last_bidder ??
+        null;
 
-setLastBidder((prev) => {
-   if (ended) return data.winner_id_number || prev; // בסוף מכירה – הזוכה
-   return apiLastBidder ?? prev;                    // אחרת – נעדכן רק אם השרת סיפק מזהה
- });
+      setLastBidder((prev) => {
+        if (ended) return data.winner_id_number || prev; // בסוף מכירה – הזוכה
+        return apiLastBidder ?? prev; // אחרת – נעדכן רק אם השרת סיפק מזהה
+      });
 
-// לאפשר הצעות כברירת מחדל
-// אם ממש רוצים לנעול בסוף מכירה:
- if (ended) setCanBid(false);
+      // לאפשר הצעות כברירת מחדל
+      // אם ממש רוצים לנעול בסוף מכירה:
+      if (ended) setCanBid(false);
 
-// אם המכירה בלייב אבל טרם הייתה הצעה – לא מפעילים טיימר סבב
-if ((data.is_live === 1) && !ended) {
-  const opening = Number(data.price) || 0;
-  const curr = Number(data.current_price) || 0;
-  if (curr <= opening) {
-    setRoundTimeLeft(null);
-  }
-}
+      // אם המכירה בלייב אבל טרם הייתה הצעה – לא מפעילים טיימר סבב
+      if (data.is_live === 1 && !ended) {
+        const opening = Number(data.price) || 0;
+        const curr = Number(data.current_price) || 0;
+        if (curr <= opening) {
+          setRoundTimeLeft(null);
+        }
+      }
 
-// טיימרים
-setAuctionTimeLeft(Math.max(Math.floor((endMs - now) / 1000), 0));
+      // טיימרים
+      setAuctionTimeLeft(Math.max(Math.floor((endMs - now) / 1000), 0));
 
-if (!live && !ended && now < startMs) {
-  const untilStart = Math.max(Math.floor((startMs - now) / 1000), 0);
-  setStartCountdown(untilStart);
-} else {
-  setStartCountdown(null);
-}
+      if (!live && !ended && now < startMs) {
+        const untilStart = Math.max(Math.floor((startMs - now) / 1000), 0);
+        setStartCountdown(untilStart);
+      } else {
+        setStartCountdown(null);
+      }
     };
     load();
     const interval = setInterval(load, 10000); // פולינג עדין
@@ -172,32 +187,31 @@ if (!live && !ended && now < startMs) {
     // מצטרפים לחדר המכירה
     socket.emit("joinAuction", { productId });
 
-// כשהשרת מודיע שהמכירה התחילה
-// היה: setRoundTimeLeft(15);
-const onAuctionStarted = () => {
-  setIsLive(true);
-  setAuctionEnded(false);
-  setStartCountdown(null);
+    // כשהשרת מודיע שהמכירה התחילה
+    // היה: setRoundTimeLeft(15);
+    const onAuctionStarted = () => {
+      setIsLive(true);
+      setAuctionEnded(false);
+      setStartCountdown(null);
 
-  // ⛔️ לא מפעילים 15ש׳ לפני הצעה ראשונה
-  setRoundTimeLeft(null);
+      //  לא מפעילים 15ש׳ לפני הצעה ראשונה
+      setRoundTimeLeft(null);
 
-  setAuctionTimeLeft((prev) => {
-    if (!product) return prev;
-    const startMs = new Date(product.start_date).getTime();
-    const endMs = startMs + timeToSeconds(product.end_time) * 1000;
-    return Math.max(Math.floor((endMs - Date.now()) / 1000), 0);
-  });
-};
+      setAuctionTimeLeft((prev) => {
+        if (!product) return prev;
+        const startMs = new Date(product.start_date).getTime();
+        const endMs = startMs + timeToSeconds(product.end_time) * 1000;
+        return Math.max(Math.floor((endMs - Date.now()) / 1000), 0);
+      });
+    };
 
-
- // כשהשרת מודיע שהמכירה הסתיימה
-const onAuctionEnded = ({ winnerId, finalPrice }) => {
-  setAuctionEnded(true);
-  setIsLive(false);
-  setWinnerId(winnerId || null);
-  setCurrentPrice(Number(finalPrice) || 0);
-};
+    // כשהשרת מודיע שהמכירה הסתיימה
+    const onAuctionEnded = ({ winnerId, finalPrice }) => {
+      setAuctionEnded(true);
+      setIsLive(false);
+      setWinnerId(winnerId || null);
+      setCurrentPrice(Number(finalPrice) || 0);
+    };
 
     socket.on("auctionStarted", onAuctionStarted);
     socket.on("auctionEnded", onAuctionEnded);
@@ -211,39 +225,38 @@ const onAuctionEnded = ({ winnerId, finalPrice }) => {
 
   // מאזין להצעות חדשות
   useEffect(() => {
-  const onNewBid = ({ price, buyerId: bidderId }) => {
-  setCurrentPrice(price);
-  setLastBidder(bidderId);
-  setRoundTimeLeft(15);
+    const onNewBid = ({ price, buyerId: bidderId }) => {
+      setCurrentPrice(price);
+      setLastBidder(bidderId);
+      setRoundTimeLeft(15);
 
-  // פותחים את הכפתור רק אם מישהו אחר הציע
-  setCanBid(bidderId !== buyerId);
+      // פותחים את הכפתור רק אם מישהו אחר הציע
+      setCanBid(bidderId !== buyerId);
 
-  const { name, color } = getAnon(bidderId);
-  setChatLog((prev) => [...prev, { text: `${name} הציע ${price} ₪`, color }]);
-};
-
+      const { name, color } = getAnon(bidderId);
+      setChatLog((prev) => [
+        ...prev,
+        { text: `${name} הציע ${price} ₪`, color },
+      ]);
+    };
 
     socket.on("newBid", onNewBid);
     return () => socket.off("newBid", onNewBid);
   }, [buyerId]);
 
-// טיימר סבב 15 שניות
-useEffect(() => {
-  // לא מריצים לפני הצעה ראשונה
-  if (!isLive || auctionEnded || !hasFirstBid) return;
+  // טיימר סבב 15 שניות
+  useEffect(() => {
+    // לא מריצים לפני הצעה ראשונה
+    if (!isLive || auctionEnded || !hasFirstBid) return;
 
-  if (roundTimeLeft == null) return; // עדיין לא הופעל
-  if (roundTimeLeft <= 0) {
-    finishAuctionOnServer();
-    return;
-  }
-  const t = setInterval(() => setRoundTimeLeft((v) => v - 1), 1000);
-  return () => clearInterval(t);
-}, [isLive, auctionEnded, hasFirstBid, roundTimeLeft]);
-
-
-
+    if (roundTimeLeft == null) return; // עדיין לא הופעל
+    if (roundTimeLeft <= 0) {
+      finishAuctionOnServer();
+      return;
+    }
+    const t = setInterval(() => setRoundTimeLeft((v) => v - 1), 1000);
+    return () => clearInterval(t);
+  }, [isLive, auctionEnded, hasFirstBid, roundTimeLeft]);
 
   // קאונטדאון לתחילת מכירה
   useEffect(() => {
@@ -262,7 +275,9 @@ useEffect(() => {
         if (product) {
           const startMs = new Date(product.start_date).getTime();
           const endMs = startMs + timeToSeconds(product.end_time) * 1000;
-          setAuctionTimeLeft(Math.max(Math.floor((endMs - Date.now()) / 1000), 0));
+          setAuctionTimeLeft(
+            Math.max(Math.floor((endMs - Date.now()) / 1000), 0)
+          );
         }
       }, 2000);
       return () => clearTimeout(t);
@@ -299,7 +314,9 @@ useEffect(() => {
     try {
       const data = await endAuction(productId);
       setWinnerId(data.winnerId || null);
-      setCurrentPrice(data.finalPrice != null ? Number(data.finalPrice) : currentPrice);
+      setCurrentPrice(
+        data.finalPrice != null ? Number(data.finalPrice) : currentPrice
+      );
       setAuctionEnded(true);
       setIsLive(false);
     } catch (err) {
@@ -307,15 +324,14 @@ useEffect(() => {
     }
   }
 
-function handleBid(amount = 10) {
-  if (!isLive || auctionEnded || !canBid) return;
-  // נועלים מיידית ומסמנים שההצעה האחרונה שלי (אופטימית)
-  setCanBid(false);
-  setLastBidder(buyerId);
+  function handleBid(amount = 10) {
+    if (!isLive || auctionEnded || !canBid) return;
+    // נועלים מיידית ומסמנים שההצעה האחרונה שלי (אופטימית)
+    setCanBid(false);
+    setLastBidder(buyerId);
 
-  socket.emit("placeBid", { productId, buyerId, customAmount: amount });
-}
-
+    socket.emit("placeBid", { productId, buyerId, customAmount: amount });
+  }
 
   if (!product) return <p>טוען מוצר...</p>;
 
@@ -355,7 +371,9 @@ function handleBid(amount = 10) {
                         onConfirm: async () => {
                           try {
                             const data = await createOrder(productId);
-                            const approveUrl = data?.links?.find((l) => l.rel === "approve")?.href;
+                            const approveUrl = data?.links?.find(
+                              (l) => l.rel === "approve"
+                            )?.href;
                             if (approveUrl) window.location.href = approveUrl;
                             else alert("שגיאה בקבלת קישור לתשלום");
                           } catch {
@@ -370,7 +388,7 @@ function handleBid(amount = 10) {
                   </button>
                 </>
               ) : (
-                <p className={styles.loser}>❌ המכירה הסתיימה. לא זכית.</p>
+                <p className={styles.loser}> המכירה הסתיימה. לא זכית.</p>
               )}
             </div>
           </div>
@@ -418,13 +436,19 @@ function handleBid(amount = 10) {
 
             {/* מרכז: מתי מתחילה + קאונטדאון + כפתור מנוטרל */}
             <div className={styles.centerPanel}>
-              <p className={styles.currentPrice}>מחיר פתיחה: {product.price} ₪</p>
+              <p className={styles.currentPrice}>
+                מחיר פתיחה: {product.price} ₪
+              </p>
               <p className={styles.startText}>
-               המכירה תחל בתאריך{" "}
-                {product.start_date ? formatDateAndTime(product.start_date) : "תאריך לא זמין"}
+                המכירה תחל בתאריך{" "}
+                {product.start_date
+                  ? formatDateAndTime(product.start_date)
+                  : "תאריך לא זמין"}
               </p>
               {startCountdown != null && (
-                <p className={styles.countdownToStart}>ספירה לאחור: {fmtHMS(startCountdown)}</p>
+                <p className={styles.countdownToStart}>
+                  ספירה לאחור: {fmtHMS(startCountdown)}
+                </p>
               )}
               <button className={styles.bidButton} disabled>
                 ההגשה תיפתח בתחילת המכירה
@@ -448,7 +472,8 @@ function handleBid(amount = 10) {
   }
 
   // ===== מסך "לייב" =====
-  const minutesLeft = auctionTimeLeft != null ? Math.floor(auctionTimeLeft / 60) : 0;
+  const minutesLeft =
+    auctionTimeLeft != null ? Math.floor(auctionTimeLeft / 60) : 0;
   const secondsLeft = auctionTimeLeft != null ? auctionTimeLeft % 60 : 0;
 
   return (
@@ -470,65 +495,61 @@ function handleBid(amount = 10) {
             </div>
           </div>
 
-     <div className={styles.centerPanel}>
-  <p className={styles.currentPrice}>
-    מחיר נוכחי: {currentPrice} ₪
-  </p>
+          <div className={styles.centerPanel}>
+            <p className={styles.currentPrice}>מחיר נוכחי: {currentPrice} ₪</p>
 
-  {/* הודעת סטטוס על ההצעות */}
-  <p className={styles.lastBidInfo}>
-    {!hasFirstBid
-      ? "טרם הוגשה הצעה. היה/י הראשון/ה להגיש!"
-      : (lastBidder === buyerId
-          ? "נתת את ההצעה האחרונה!"
-          : "ניתנה הצעה ממשתמש! לחץ הגש הצעה כדי לזכות!")}
-  </p>
+            {/* הודעת סטטוס על ההצעות */}
+            <p className={styles.lastBidInfo}>
+              {!hasFirstBid
+                ? "טרם הוגשה הצעה. היה/י הראשון/ה להגיש!"
+                : lastBidder === buyerId
+                ? "נתת את ההצעה האחרונה!"
+                : "ניתנה הצעה ממשתמש! לחץ הגש הצעה כדי לזכות!"}
+            </p>
 
-  {/* טיימר 15ש׳ – רק אחרי הצעה ראשונה */}
-  {hasFirstBid && roundTimeLeft != null && (
-    <>
-      <div className={styles.timerBar}>
-        <div
-          className={styles.timerFill}
-          style={{ width: `${(roundTimeLeft / 15) * 100}%` }}
-        />
-      </div>
-      <p className={styles.timeText}>
-        ⌛ זמן להגשת הצעה: {roundTimeLeft} שניות
-      </p>
-    </>
-  )}
+            {/* טיימר 15ש׳ – רק אחרי הצעה ראשונה */}
+            {hasFirstBid && roundTimeLeft != null && (
+              <>
+                <div className={styles.timerBar}>
+                  <div
+                    className={styles.timerFill}
+                    style={{ width: `${(roundTimeLeft / 15) * 100}%` }}
+                  />
+                </div>
+                <p className={styles.timeText}>
+                  ⌛ זמן להגשת הצעה: {roundTimeLeft} שניות
+                </p>
+              </>
+            )}
 
-  {/* כפתור הגשה – טקסט משתנה לפני/אחרי ההצעה הראשונה */}
-<button
-  className={styles.bidButton}
-  disabled={isBidDisabled}
-  title={
-    isMyLastBid
-      ? "הצעת כבר — ממתינים להצעה נגדית"
-      : !canBid
-      ? "ממתינים לאישור/עדכון מהשרת"
-      : ""
-  }
-  onClick={() => handleBid(Number(product.bid_increment))}
->
-  {hasFirstBid
-    ? isMyLastBid
-      ? "ממתינים להצעה נגדית…"
-      : `הגש הצעה של +${product.bid_increment} ₪`
-    : ` הגש הצעה ראשונה של +${product.bid_increment} ₪`}
-</button>
+            {/* כפתור הגשה – טקסט משתנה לפני/אחרי ההצעה הראשונה */}
+            <button
+              className={styles.bidButton}
+              disabled={isBidDisabled}
+              title={
+                isMyLastBid
+                  ? "הצעת כבר — ממתינים להצעה נגדית"
+                  : !canBid
+                  ? "ממתינים לאישור/עדכון מהשרת"
+                  : ""
+              }
+              onClick={() => handleBid(Number(product.bid_increment))}
+            >
+              {hasFirstBid
+                ? isMyLastBid
+                  ? "ממתינים להצעה נגדית…"
+                  : `הגש הצעה של +${product.bid_increment} ₪`
+                : ` הגש הצעה ראשונה של +${product.bid_increment} ₪`}
+            </button>
 
-
-  {/* טיימר כללי של המכירה */}
-  {auctionTimeLeft != null && auctionTimeLeft > 0 && (
-    <p className={styles.timeRemaining}>
-      המכירה תסתיים בעוד {String(minutesLeft).padStart(2, "0")}:
-      {String(secondsLeft).padStart(2, "0")} דקות
-    </p>
-  )}
-</div>
-
+            {/* טיימר כללי של המכירה */}
+            {auctionTimeLeft != null && auctionTimeLeft > 0 && (
+              <p className={styles.timeRemaining}>
+                המכירה תסתיים בעוד {String(minutesLeft).padStart(2, "0")}:
+                {String(secondsLeft).padStart(2, "0")} דקות
+              </p>
+            )}
+          </div>
 
           <div className={styles.chatPanel}>
             <h4>הצעות בזמן אמת:</h4>
