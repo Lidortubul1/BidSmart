@@ -47,8 +47,10 @@ router.post("/login", async (req, res) => {
       street: user.street,
       house_number: user.house_number,
       apartment_number: user.apartment_number,
-      status: user.status, // הוסף את זה!
+      status: user.status,
+      delivery_options: user.delivery_options, // ← חדש
     };
+
 
     res.json({ success: true, user: req.session.user });
   } catch (err) {
@@ -60,9 +62,8 @@ router.post("/login", async (req, res) => {
 
 //session בדיקת
 router.get("/session", (req, res) => {
-  if (req.session.user) 
-   {
-     console.log(req.session.user)
+  if (req.session.user) {
+    console.log(req.session.user)
     res.json({ loggedIn: true, user: req.session.user });
   } else {
     res.json({ loggedIn: false });
@@ -108,7 +109,7 @@ router.post("/register", async (req, res) => {
       "SELECT first_name, last_name, email, role FROM users WHERE email = ?",
       [email]
     );
-    
+
     const newUser = userRows[0];
 
     // שמירת המשתמש ב-session
@@ -126,51 +127,57 @@ router.post("/register", async (req, res) => {
 });
 
 // הוספה לבסיס נתונים צילום ת"ז ות"ז של המשתמש אם לא קיים והוא רוצה להרשם להצעה
-router.put("/save-id-info",upload.single("id_card_photo"),async (req, res) => {
-    const { id_number, email } = req.body;
-    const idCardPath = req.file?.filename;
+router.put("/save-id-info", upload.single("id_card_photo"), async (req, res) => {
+  const { id_number, email } = req.body;
+  const idCardPath = req.file?.filename;
 
-    if (!id_number || !email || !idCardPath) {
-      return res
-        .status(400)
-        .json({ message: "נא למלא את כל השדות כולל קובץ" });
-    }
-
-    try {
-      const conn = await db.getConnection();
-
-      const [users] = await conn.execute(
-        "SELECT * FROM users WHERE email = ?",
-        [email]
-      );
-
-      if (users.length === 0) {
-        return res.status(404).json({ message: "משתמש לא נמצא" });
-      }
-
-      await conn.execute(
-        "UPDATE users SET id_number = ?, id_card_photo = ? WHERE email = ?",
-        [id_number, idCardPath, email]
-      );
-
-      // עדכון session
-      const [updated] = await conn.execute(
-        "SELECT * FROM users WHERE email = ?",
-        [email]
-      );
-      req.session.user = updated[0];
-
-      res.json({ success: true, message: "עודכן בהצלחה", user: updated[0] });
-    } catch (err) {
-      console.error("שגיאה בהעלאת תז", err);
-      res.status(500).json({ message: "שגיאה בשרת" });
-    }
+  if (!id_number || !email || !idCardPath) {
+    return res
+      .status(400)
+      .json({ message: "נא למלא את כל השדות כולל קובץ" });
   }
+
+  try {
+    const conn = await db.getConnection();
+
+    const [users] = await conn.execute(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "משתמש לא נמצא" });
+    }
+
+    await conn.execute(
+      "UPDATE users SET id_number = ?, id_card_photo = ? WHERE email = ?",
+      [id_number, idCardPath, email]
+    );
+
+    // עדכון session
+    const [updated] = await conn.execute(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+    req.session.user = updated[0];
+
+    res.json({ success: true, message: "עודכן בהצלחה", user: updated[0] });
+  } catch (err) {
+    console.error("שגיאה בהעלאת תז", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+}
 );
 
 
 //עדכון פרופיל כללי
-router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount: 1 },{ name: "profile_photo", maxCount: 1 },]),async (req, res) => {
+router.put(
+  "/update-profile",
+  upload.fields([
+    { name: "id_card_photo", maxCount: 1 },
+    { name: "profile_photo", maxCount: 1 },
+  ]),
+  async (req, res) => {
     const {
       email: currentEmail,
       new_email,
@@ -185,6 +192,7 @@ router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount:
       street,
       house_number,
       apartment_number,
+      delivery_options, // ← חדש: קבלת שיטת משלוח
     } = req.body;
 
     if (!currentEmail) {
@@ -200,7 +208,7 @@ router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount:
 
       const conn = await db.getConnection();
 
-      // 🆕 שליפה מהמסד
+      // שליפה מהמסד
       const [existingUsers] = await conn.execute(
         "SELECT * FROM users WHERE email = ?",
         [currentEmail]
@@ -213,15 +221,15 @@ router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount:
           .json({ success: false, message: "משתמש לא נמצא" });
       }
 
-      // 🆕 מניעת שינוי/מחיקת ת"ז
+      // מניעת שינוי/מחיקת ת"ז
       if (existingUser.id_number && existingUser.id_number !== id_number) {
         return res.status(400).json({
           success: false,
           message: "לא ניתן לשנות או למחוק את תעודת הזהות לאחר שהוזנה",
         });
       }
-      
 
+      // ולידציית טלפון
       if (phone) {
         if (!/^\+9725\d{1}\d{7}$/.test(phone)) {
           return res.status(400).json({
@@ -231,30 +239,63 @@ router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount:
           });
         }
       }
-      
-      let query = `
-        UPDATE users SET
-        first_name = ?, last_name = ?, id_number = ?, phone = ?, country = ?,
-        zip = ?, city = ?, street = ?, house_number = ?, apartment_number = ?
-      `;
-      const values = [
-        first_name,
-        last_name,
-        id_number,
-        phone,
-        country,
-        zip,
-        city,
-        street,
-        house_number,
-        apartment_number,
-      ];
+      // --- לוגיקת שיטת משלוח (ללא מחיקת כתובת) ---
+      const allowed = ["delivery", "delivery+pickup"];
+      const deliveryValue = allowed.includes(delivery_options)
+        ? delivery_options
+        : (existingUser.delivery_options || "delivery");
 
+      // אם רוצים לאפשר איסוף עצמי – חייבים כתובת מלאה
+      if (deliveryValue === "delivery+pickup") {
+        const hasFullAddress = [country, zip, city, street, house_number, apartment_number]
+          .every((v) => v !== undefined && v !== null && String(v).trim() !== "");
+        if (!hasFullAddress) {
+          return res.status(400).json({
+            success: false,
+            message:
+              "כדי לאפשר 'משלוח + איסוף עצמי' יש למלא את כל פרטי הכתובת (מדינה, מיקוד, יישוב, רחוב, מספר בית ומספר דירה).",
+          });
+        }
+      }
+
+      let query = `
+  UPDATE users SET
+  first_name = ?, last_name = ?, id_number = ?, phone = ?
+`;
+      const values = [first_name, last_name, id_number, phone];
+
+      /**
+       * שינוי כאן:
+       * אם delivery+pickup – מעדכנים את כל הכתובת (כבר ולידצנו שהיא מלאה).
+       * אם delivery בלבד – לא נוגעים בכתובת בכלל, אלא אם המשתמש סיפק ערכים חדשים כלשהם.
+       * (אין ניקוי ל-NULL).
+       */
+      if (deliveryValue === "delivery+pickup") {
+        query += `,
+    country = ?, zip = ?, city = ?, street = ?, house_number = ?, apartment_number = ?
+  `;
+        values.push(country, zip, city, street, house_number, apartment_number);
+      } else {
+        // delivery: עדכון כתובת רק אם נשלח ערך לא-ריק לשדה
+        const setIfProvided = (field, val) => {
+          if (typeof val !== "undefined" && String(val).trim() !== "") {
+            query += `, ${field} = ?`;
+            values.push(val);
+          }
+        };
+        setIfProvided("country", country);
+        setIfProvided("zip", zip);
+        setIfProvided("city", city);
+        setIfProvided("street", street);
+        setIfProvided("house_number", house_number);
+        setIfProvided("apartment_number", apartment_number);
+      }
+
+      // קבצים (ללא שינוי)
       if (id_card_photo) {
         query += ", id_card_photo = ?";
         values.push(id_card_photo);
       }
-
       if (profile_photo) {
         query += ", profile_photo = ?";
         values.push(profile_photo);
@@ -262,21 +303,26 @@ router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount:
       if (removeProfilePhoto) {
         query += ", profile_photo = NULL";
       }
-      
+
+      // סיסמה (ללא שינוי)
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
         query += ", password = ?";
         values.push(hashedPassword);
       }
 
+      // אימייל חדש (ללא שינוי)
       if (new_email) {
         query += ", email = ?";
         values.push(new_email);
       }
 
+      // תמיד לעדכן את שיטת המשלוח
+      query += ", delivery_options = ?";
+      values.push(deliveryValue);
+
       query += " WHERE email = ?";
       values.push(currentEmail);
-
       await conn.execute(query, values);
 
       const [updated] = await conn.execute(
@@ -293,6 +339,7 @@ router.put("/update-profile", upload.fields([ { name: "id_card_photo", maxCount:
     }
   }
 );
+
 
 
 
@@ -324,7 +371,6 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
     phone,
   } = req.body;
 
-  // קובץ ת"ז (אם נשלח)
   const idCardPath = req.file ? req.file.filename : null;
 
   if (!email) {
@@ -332,9 +378,7 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
   }
 
   const allowed = ["delivery", "delivery+pickup"];
-  const deliveryValue = allowed.includes(delivery_options)
-    ? delivery_options
-    : "delivery";
+  const deliveryValue = allowed.includes(delivery_options) ? delivery_options : "delivery";
 
   // נרמול טלפון לספרות בלבד
   const phoneValueRaw = typeof phone === "string" ? phone.replace(/\D/g, "") : "";
@@ -352,7 +396,7 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
 
     // קיום משתמש + בדיקת KYC קיים
     const [rows] = await conn.execute(
-      "SELECT id, id_number, id_card_photo FROM users WHERE email = ?",
+      "SELECT id, email, id_number, id_card_photo FROM users WHERE email = ?",
       [email]
     );
     if (rows.length === 0) {
@@ -360,12 +404,28 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
     }
     const hasKycAlready = !!(rows[0].id_number && rows[0].id_card_photo);
 
-    // אם אין KYC במערכת – חובה לשלוח ת"ז + קובץ
+    // אם אין KYC – חובה לשלוח ת"ז + קובץ
     if (!hasKycAlready) {
       if (!idNumberNorm || !idCardPath) {
         return res
           .status(400)
           .json({ success: false, message: "נא למלא תעודת זהות ולצרף קובץ" });
+      }
+    }
+
+    // ✅ בדיקת כפילות ת״ז לפני עדכון (אם מנסים לשים/לעדכן ת״ז)
+    if (idNumberNorm) {
+      const [dup] = await conn.execute(
+        "SELECT 1 FROM users WHERE id_number = ? AND email <> ? LIMIT 1",
+        [idNumberNorm, email]
+      );
+      if (dup.length > 0) {
+        return res.status(409).json({
+          success: false,
+          code: "DUP_ID",
+          field: "id_number",
+          message: "קיים כבר מספר תעודת זהות זה במערכת. להמשך בירור פנה לצוות התמיכה",
+        });
       }
     }
 
@@ -383,19 +443,15 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
       `,
       [
         deliveryValue,
-
         // id_number
         idNumberNorm !== null,
         idNumberNorm,
-
         // id_card_photo
         idCardPath !== null,
         idCardPath,
-
         // phone
         phoneValue !== null,
         phoneValue,
-
         email,
       ]
     );
@@ -442,7 +498,6 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
     );
     const u = updatedRows[0];
 
-    // שמירה ב-session כדי שההרשאות יעבדו מיד
     req.session.user = {
       email: u.email,
       role: u.role,
@@ -462,7 +517,6 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
       delivery_options: u.delivery_options,
     };
 
-    // שמירה מפורשת (אופציונלי; מועיל ב-dev)
     req.session.save((err) => {
       if (err) console.error("session save error:", err);
     });
@@ -474,9 +528,21 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
     });
   } catch (err) {
     console.error("שגיאה בעדכון משתמש:", err);
+
+    // ✅ טיפול בגלגול של ייחודיות במסד (למקרה שיש אינדקס ייחודי ונתפס בשכבה זו)
+    if (err?.code === "ER_DUP_ENTRY" || err?.errno === 1062) {
+      return res.status(409).json({
+        success: false,
+        code: "DUP_ID",
+        field: "id_number",
+        message: "קיים כבר מספר תעודת זהות זה במערכת. להמשך בירור פנה לצוות התמיכה",
+      });
+    }
+
     return res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
+
 
 
 
@@ -506,7 +572,7 @@ router.put("/change-password", async (req, res) => {
     const passwordFromDb = String(user.password); // ← המרה בטוחה ל-string
 
     const isMatch = await bcrypt.compare(currentPassword, passwordFromDb);
-        if (!isMatch) {
+    if (!isMatch) {
       return res
         .status(401)
         .json({ success: false, message: "הסיסמה הנוכחית שגויה" });
@@ -535,7 +601,7 @@ router.put("/change-password", async (req, res) => {
     req.session.user = updated[0]; // ← רענון ה-session עם המשתמש החדש
 
     res.status(200).json({ success: true, message: "הסיסמה עודכנה בהצלחה" });
-      } catch (err) {
+  } catch (err) {
     console.error("שגיאה בשינוי סיסמה:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }

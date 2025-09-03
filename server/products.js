@@ -36,7 +36,10 @@ router.get("/", async (req, res) => {
 
 
 
-// בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי
+// בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי- וייבוא פרטי המוכר
+// בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי (כולל דירוג המוכר)
+// server (routes for /api/product)
+
 // בדיקה האם מוכר בחר משלוח או משלוח+איסוף עצמי (כולל דירוג המוכר)
 router.get("/seller-delivery-options/:productId", async (req, res) => {
   const { productId } = req.params;
@@ -53,7 +56,11 @@ router.get("/seller-delivery-options/:productId", async (req, res) => {
          u.apartment_number, 
          u.zip, 
          u.country,
-         u.rating
+         u.rating,
+       u.first_name,
+        u.last_name,
+        u.email       AS seller_email,
+        u.phone       AS seller_phone
        FROM product p
        JOIN users u ON u.id_number = p.seller_id_number
        WHERE p.product_id = ?`,
@@ -68,14 +75,12 @@ router.get("/seller-delivery-options/:productId", async (req, res) => {
 
     const r = rows[0];
 
-    // נירמול ערך האפשרות
     const raw = (r.option_value || "delivery").toString().trim().toLowerCase();
     const option =
       raw === "delivery+pickup" || raw === "delivery_pickup"
         ? "delivery+pickup"
         : "delivery";
 
-    // כתובת איסוף (אם רלוונטי)
     let pickupAddress = null;
     if (option === "delivery+pickup") {
       pickupAddress = {
@@ -92,15 +97,20 @@ router.get("/seller-delivery-options/:productId", async (req, res) => {
       if (allEmpty) pickupAddress = null;
     }
 
-    // דירוג מוכר
     const rating = typeof r.rating === "number" ? r.rating : Number(r.rating) || 0;
 
-    return res.json({ option, pickupAddress, rating });
+  const sellerContact = {
+     name: [r.first_name, r.last_name].filter(Boolean).join(" ").trim() || null,
+     email: r.seller_email || null,
+     phone: r.seller_phone || null,
+  };
+
+  return res.json({ option, pickupAddress, rating, sellerContact });
   } catch (err) {
     console.error("שגיאה בבדיקת אפשרויות משלוח/איסוף:", err);
     return res
       .status(500)
-      .json({ option: "delivery", pickupAddress: null, rating: 0 });
+    .json({ option: "delivery", pickupAddress: null, rating: 0, sellerContact: null });
   }
 });
 

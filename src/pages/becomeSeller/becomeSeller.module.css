@@ -76,3 +76,34 @@
 .button:hover {
   background-color: #333;
 }
+.phoneRow {
+  display: flex;
+  gap: 8px;
+  direction: ltr;          /* מקלדת/ספרות משמאל לימין */
+  flex-direction: row-reverse; /* הופך סדר ויזואלי: input מימין, select משמאל */
+}
+
+/* ה־select נשאר בגודל הנוכחי (לפי התוכן) ולא נמתח */
+.phonePrefix {
+  flex: 0 0 auto;
+  width: auto !important;
+}
+
+/* ה־input יתפוס את כל השאר */
+.phoneNumber {
+  flex: 1 1 auto;
+}
+
+/* קו אדום לשדה עם שגיאה */
+.error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, .15) !important;
+}
+
+/* טקסט שגיאה קטן מתחת לשדה */
+.fieldError {
+  color: #ef4444;
+  font-size: 0.9rem;
+  margin-top: 6px;
+  line-height: 1.2;
+}

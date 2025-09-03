@@ -7,14 +7,16 @@ import { getSellerProducts } from "../../services/ManagementApi.js";
 import { exportProductsToExcel } from "../../utils/exportProductsToExcel.jsx"
 
 const FILTERS = [
-  { value: "all",     label: "כל המוצרים" },
-  { value: "sold",    label: "כל המוצרים שנמכרו" },
-  { value: "toShip",  label: "מוצרים שמיועדים לשליחה" },
-  { value: "sent",    label: "מוצרים שנשלחו לרוכש" },
-  { value: "pending", label: "מוצרים שטרם חלה המכירה" },
-  { value: "unsold",  label: "מוצרים שלא נמכרו" },
-  { value: "blocked" , label: "מוצרים חסומים" }, // ⬅️ חדש
+  { value: "all",          label: "כל המוצרים" },
+  { value: "forSale",      label: "מוצרים שטרם חלה המכירה" },  // status = for_sale
+  { value: "sold",         label: "כל המוצרים שנמכרו" },       // status = sale
+  { value: "soldDelivery", label: "נמכרו - משלוח" },           // status = sale + delivery_method = delivery
+  { value: "soldPickup",   label: "נמכרו - איסוף עצמי" },      // status = sale + delivery_method = pickup
+  { value: "notSold",      label: "מוצרים שלא נמכרו" },        // status = Not sold
+  { value: "blocked",      label: "מוצרים חסומים על ידי" },     // status = blocked
+  { value: "adminBlocked", label: "מוצרים חסומים על ידי ההנהלה" } // status = admin blocked
 ];
+
 
 export default function ManageProductsPage() {
   const [products, setProducts] = useState([]);
@@ -53,9 +55,9 @@ export default function ManageProductsPage() {
   );
 
   const currentFilterLabel = FILTERS.find(f => f.value === filter)?.label || "";
-  function exportToExcel() {
-  const currentFilterLabel = FILTERS.find(f => f.value === filter)?.label || "";
-  exportProductsToExcel(filteredProducts, { viewer: "seller", filterLabel: currentFilterLabel });
+function exportToExcel() {
+  const label = FILTERS.find(f => f.value === filter)?.label || "";
+  exportProductsToExcel(filteredProducts, { viewer: "seller", filterLabel: label });
 }
   return (
     <div className={styles.page}>

@@ -16,15 +16,17 @@ export default function WinnerSection({
   onContinueToPayment,
   sellerOption: sellerOptionProp,
   pickupAddressText: pickupAddressTextProp,
+  sellerContact: sellerContactProp,
 }) {
   const canPay = isUnpaidWinner && (secondsLeft ?? 0) > 0; // האם ניתן עדיין לשלם
 
   const productId = product?.product_id;
-  const { option: sellerOptionHook, pickupAddressText: pickupFromHook } =
+  const { option: sellerOptionHook, pickupAddressText: pickupFromHook, sellerContact: sellerContactHook } =
     useSellerOptions(productId); // שליפת אפשרויות משלוח מהמוכר דרך hook
 
   const sellerOption = sellerOptionProp ?? sellerOptionHook; // קביעת אופציית משלוח בפועל
   const pickupAddressText = pickupAddressTextProp ?? pickupFromHook; // קביעת טקסט כתובת בפועל
+const sellerContact = sellerContactProp ?? sellerContactHook; // ← fallback
 
   const handlePay = async () => {
     if (onContinueToPayment) return onContinueToPayment(); // אם הועברה פונקציה חיצונית – מפעיל אותה
@@ -85,6 +87,7 @@ export default function WinnerSection({
      isWinner={true}
      sellerView={false}
      adminView={false}
+     sellerContact={sellerContact}
    />
 )}
 

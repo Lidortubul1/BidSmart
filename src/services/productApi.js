@@ -68,26 +68,36 @@ export async function getProductById(productId) {
 }
 
 
-//שליפת בחירת אופציית משלוח של מוכר אם משלוח או גם משלוח וגם איסוף עצמי
+//שליפת בחירת אופציית משלוח והפרטים של מוכר אם משלוח או גם משלוח וגם איסוף עצמי
+// src/services/productApi.js
 export async function getSellerDeliveryOptions(productId) {
   const { data } = await axios.get(`/api/product/seller-delivery-options/${productId}`);
 
   const raw = (data?.option || "delivery").toString().trim().toLowerCase();
-  const option =
-    raw === "delivery+pickup" || raw === "delivery_pickup"
-      ? "delivery+pickup"
-      : "delivery";
+  const option = (raw === "delivery+pickup" || raw === "delivery_pickup") ? "delivery+pickup" : "delivery";
 
   const pickupAddress = data?.pickupAddress || null;
   const pickupAddressText = formatPickupAddress(pickupAddress);
 
-  return { 
-    option, 
-    pickupAddress, 
-    pickupAddressText, 
-    rating: data?.rating ?? 0 
+  // ✅ קח קודם את האובייקט המוחזר מהשרת, ואם אין – נפולבק לשדות שטוחים אם יהיו
+  const sellerContact =
+    data?.sellerContact
+      ? data.sellerContact
+      : ((data?.seller_phone || data?.seller_email)
+          ? { phone: data.seller_phone || null, email: data.seller_email || null, name: data.seller_name || null }
+          : null);
+
+  return {
+    option,
+    pickupAddress,
+    pickupAddressText,
+    rating: data?.rating ?? 0,
+    sellerContact, // ← עכשיו זה באמת ימולא
   };
 }
+
+
+
 
 
 /** מעצב אובייקט כתובת לטקסט תצוגה נעים */

@@ -1,188 +1,161 @@
-/* .page {
-  background: linear-gradient(to bottom, #f7f9fc, #ffffff);
-  min-height: 100vh;
-  padding: 60px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+/* =========================================================================
+   ProfilePage.module.css — Tech Admin Theme (unique .pf* names)
+   ========================================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap");
+
+.pfPage {
+  --pf-ink: #0f172a;
+  --pf-muted: #64748b;
+  --pf-card: #ffffff;
+  --pf-bg: #f8fafc;
+  --pf-border: #e5e7eb;
+  --pf-primary: #1a89ff;
+  --pf-accent: #14b8a6;
+  --pf-danger: #ef4444;
+  --pf-ok: #10b981;
+
+  --pf-ring: 0 0 0 4px rgba(26, 137, 255, .18);
+  --pf-shadow-1: 0 8px 22px rgba(15, 23, 42, .06);
+  --pf-shadow-2: 0 12px 28px rgba(15, 23, 42, .10);
+  --pf-radius-lg: 16px;
+  --pf-radius: 12px;
+  --pf-radius-sm: 10px;
+
   direction: rtl;
-  font-family: "Heebo", sans-serif;
+  min-height: 100%;
+  font-family: "Heebo", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--pf-ink);
+  padding: 30px;
+  padding-top: max(56px, calc(env(safe-area-inset-top) + 32px));
+  background:
+    radial-gradient(1200px 600px at 110% -10%, rgba(20, 184, 166, .06), transparent 60%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(26, 137, 255, .07), transparent 60%),
+    var(--pf-bg);
 }
 
-.card {
-  background-color: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: row-reverse;
-  padding: 40px;
-  gap: 40px;
-  max-width: 1000px;
-  width: 100%;
+.pfCard {
+  background: var(--pf-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-lg);
+  box-shadow: var(--pf-shadow-2);
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: 16px;
 }
 
-.form {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-}
-
-.form h2 {
-  margin-bottom: 30px;
-  text-align: right;
-  font-size: 1.8rem;
-  color: #222;
-}
-
-.inputGroup {
+.pfMedia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
   margin-bottom: 16px;
+}
+
+.pfBox {
+  background: #fbfdff;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  padding: 12px;
+  box-shadow: var(--pf-shadow-1);
   display: flex;
   flex-direction: column;
-}
-
-.inputGroup label {
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: #333;
-}
-
-.inputGroup input,
-.inputGroup select {
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-}
-
-.inputGroup input:focus,
-.inputGroup select:focus {
-  outline: none;
-  border-color: #007bff;
-}
-
-button[type="submit"] {
-  margin-top: 30px;
-  background-color: #2196f3;
-  color: white;
-  font-weight: bold;
-  padding: 14px;
-  border: none;
-  border-radius: 30px;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
-  cursor: pointer;
-  max-width: 250px;
-  width: 100%;
-  align-self: center;
-}
-
-button[type="submit"]:hover {
-  background-color: #1976d2;
-}
-
-.phoneRow {
-  display: flex;
   gap: 10px;
-  flex-direction: row-reverse;
-  align-items: flex-end;
 }
 
-.phoneRow select {
-  flex: 0.5;
+.pfLabel { font-weight: 700; color: var(--pf-ink); }
+.pfFile {
+  padding: 10px 12px;
+  border: 1px dashed var(--pf-border);
+  border-radius: var(--pf-radius-sm);
+  background: #fff;
+}
+.pfProfileImage {
+  width: 160px; height: 160px; object-fit: cover;
+  border-radius: 14px; border: 1px solid var(--pf-border);
+  box-shadow: var(--pf-shadow-1);
+}
+.pfIdImage {
+  width: 180px; height: auto;
+  border-radius: 10px; border: 1px solid var(--pf-border);
+  box-shadow: var(--pf-shadow-1);
+}
+.pfMuted { color: var(--pf-muted); font-size: .92rem; }
+
+/* Form */
+.pfForm {
+  background: var(--pf-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  box-shadow: var(--pf-shadow-1);
+  padding: 16px;
+}
+.pfTitle {
+  margin: 0 0 12px;
+  font-weight: 800; font-size: 1.2rem; letter-spacing: .2px; color: var(--pf-ink);
 }
 
-.phoneRow input {
-  flex: 1;
+.pfColumns { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.pfInputsCol { display: flex; flex-direction: column; gap: 12px; }
+
+
+/* כל שדה בשורה נפרדת */
+.pfGroup { display: flex; flex-direction: column; gap: 6px; }
+
+/* Inputs */
+.pfInput, .pfSelect {
+  height: 42px; padding: 10px 12px; border-radius: var(--pf-radius-sm);
+  border: 1px solid var(--pf-border); background: #fff; color: var(--pf-ink);
+  outline: none; transition: box-shadow .15s ease, border-color .15s ease, transform .06s ease;
+}
+.pfInput::placeholder { color: var(--pf-muted); opacity: .9; }
+.pfInput:focus, .pfSelect:focus { border-color: var(--pf-primary); box-shadow: var(--pf-ring); transform: translateY(-1px); }
+
+/* מצבי קריאה בלבד נראים "כבויים" אך ניתנים ללחיצה (לא טריגר שינוי) */
+.pfReadOnly {
+  background: #f8fafc !important;
+  color: var(--pf-muted) !important;
+  cursor: not-allowed !important;
 }
 
-.phoneNumberInput {
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 1rem;
-  width: 100%;
-}
-
-.error {
-  border: 2px solid red !important;
-}
-
-.media {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  justify-content: flex-start;
+/* טלפון: פריפיקס + מספר בשורה אחת */
+.pfPhoneRow {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 8px;
   align-items: center;
+  direction: ltr; /* ← הופך את סדר עמודות הגריד כך שהעמודה הראשונה משמאל */
+}
+.pfPhoneInput { letter-spacing: .4px; }
+
+/* הודעת עזרה/רמז */
+.pfHint { margin-top: 6px; color: var(--pf-muted); font-size: .9rem; }
+
+/* Error */
+.pfError { border-color: #fda4a4 !important; box-shadow: 0 0 0 4px rgba(239, 68, 68, .15) !important; }
+
+/* כפתורים */
+.pfPrimaryBtn {
+  padding: 11px 16px; border-radius: 999px; border: 1px solid var(--pf-primary);
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  color: var(--pf-ink); font-weight: 800; cursor: pointer;
+  transition: transform .06s, box-shadow .15s, filter .15s, border-color .15s;
+}
+.pfPrimaryBtn:hover { transform: translateY(-1px); box-shadow: var(--pf-ring); }
+.pfGhostBtn {
+  align-self: start; padding: 9px 14px; border-radius: 999px;
+  border: 1px solid var(--pf-border); background: #fff; color: var(--pf-ink); font-weight: 800; cursor: pointer;
+  transition: transform .06s, box-shadow .15s, border-color .15s;
+}
+.pfGhostBtn:hover { border-color: var(--pf-primary); box-shadow: var(--pf-ring); transform: translateY(-1px); }
+
+.pfActions { display: flex; justify-content: flex-end; margin-top: 14px; }
+
+/* רספונסיבי */
+@media (max-width: 720px) {
+  .pfPage { padding: 16px; padding-top: max(44px, calc(env(safe-area-inset-top) + 20px)); }
+  .pfPhoneRow { grid-template-columns: 1fr 1fr; }
 }
 
-.box {
-  border: 2px dashed #ccc;
-  border-radius: 16px;
-  padding: 20px;
-  width: 100%;
-  max-width: 240px;
-  text-align: center;
-  background-color: #fafafa;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+/* A11y focus */
+:where(.pfInput, .pfSelect, .pfPrimaryBtn, .pfGhostBtn):focus-visible {
+  outline: none; border-color: var(--pf-primary); box-shadow: var(--pf-ring);
 }
-
-.box label {
-  font-weight: bold;
-  display: block;
-  margin-bottom: 10px;
-  color: #333;
-}
-
-.box input[type="file"] {
-  margin-bottom: 10px;
-}
-
-.profileImagePreview {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #2196f3;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.changePasswordButton {
-  background-color: #000;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 30px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  max-width: 150px;
-}
-
-.changePasswordButton:hover {
-  background-color: #333;
-}
-
-@media (max-width: 768px) {
-  .card {
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-  }
-
-  .media {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  .box {
-    max-width: 100%;
-  }
-
-  .form {
-    width: 100%;
-  }
-} */

@@ -7,6 +7,19 @@ axios.defaults.withCredentials = true;
 
 const BASE_QUOTATION_URL = "/api/quotation";
 
+//כמה נרשמו לכל מוצר 
+export async function getRegistrationsCount(productId) {
+  const { data } = await axios.get(`${BASE_QUOTATION_URL}/count`, {
+    params: { product_id: productId },
+    withCredentials: true,
+  });
+  console.log("data",{data},"id", productId)
+  // מחזיר רק את המספר לשימוש נוח בקומפוננטה
+  return Number(data?.count || 0);
+}
+
+
+
 // בדיקת הרשמה למוצר
 export async function getQuotationsByProductId(productId) {
   const response = await axios.get(`${BASE_QUOTATION_URL}/${productId}`);

@@ -1,40 +1,66 @@
 // src/pages/ProductPage/hooks/useSellerOptions.js
 import { useEffect, useState } from "react";
-import { getSellerDeliveryOptions } from "../../../services/productApi"
+import { getSellerDeliveryOptions } from "../../../services/productApi";
 
-
-
-
-//מחזיר את אפשרויות המשלוח של המוכר
+/**
+ * מחזיר אפשרויות משלוח של המוכר.
+ * נשארים אותם שדות ישנים: { loading, option, pickupAddressText, rating }
+ * ונוספו שדות חדשים אופציונליים: { pickupAddress, sellerContact }
+ */
 export default function useSellerOptions(productId) {
-  const [loading, setLoading] = useState(true);
-  const [option, setOption] = useState("delivery");
-  const [pickupAddressText, setPickupText] = useState("");
-  const [rating, setRating] = useState(0);
+  const [state, setState] = useState({
+    loading: true,
+    option: "delivery",
+    pickupAddressText: "",
+    rating: 0,
+    // חדשים (לא שוברים קוד קיים)
+    pickupAddress: null,     // האובייקט המפורק של הכתובת
+    sellerContact: null,     // { name?, phone?, email? }
+  });
 
   useEffect(() => {
     let alive = true;
+
     (async () => {
-      setLoading(true);
+      // התחלת טעינה
+      if (alive) setState((s) => ({ ...s, loading: true }));
+
       try {
-        const { option, pickupAddressText, rating } = await getSellerDeliveryOptions(productId);
-        if (alive) {
-          setOption(option);
-          setPickupText(option === "delivery+pickup" ? (pickupAddressText || "") : "");
-          setRating(rating);
-        }
+        // שים לב: אם ה־API עדיין לא שולח את השדות החדשים – ניפול לערכי ברירת מחדל
+        const res = await getSellerDeliveryOptions(productId);
+
+        if (!alive) return;
+
+        const option = res?.option || "delivery";
+        const pickupAddressText =
+          option === "delivery+pickup" ? (res?.pickupAddressText || "") : "";
+
+        setState({
+          loading: false,
+          option,
+          pickupAddressText,
+          rating: res?.rating ?? 0,
+
+          // חדשים – לא חובה שה־API יחזיר, לכן מגינים עם null
+          pickupAddress: res?.pickupAddress ?? null,
+          sellerContact: res?.sellerContact ?? null, // { phone, email, name } אם יש
+        });
       } catch {
-        if (alive) {
-          setOption("delivery");
-          setPickupText("");
-          setRating(0);
-        }
-      } finally {
-        if (alive) setLoading(false);
+        if (!alive) return;
+        setState({
+          loading: false,
+          option: "delivery",
+          pickupAddressText: "",
+          rating: 0,
+          pickupAddress: null,
+          sellerContact: null,
+        });
       }
     })();
+
     return () => { alive = false; };
   }, [productId]);
 
-  return { loading, option, pickupAddressText, rating };
+  // נשמרים שמות ההחזרה הישנים + החדשים
+  return state;
 }

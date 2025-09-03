@@ -12,7 +12,26 @@ if (val === null || val === undefined) return false;
 }
 
 
+// פונקציה שמחשבת כמה אנשים נרשמו לכל מוצר לפי המזהה שלו 
+router.get("/count", async (req, res) => {
+  const productId = Number(req.query.product_id || 0);
+  if (!productId) {
+    return res.status(400).json({ message: "product_id נדרש" });
+  }
 
+  try {
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(
+      "SELECT COUNT(*) AS cnt FROM quotation WHERE product_id = ?",
+      [productId]
+    );
+    const count = rows?.[0]?.cnt || 0;
+    res.json({ product_id: productId, count });
+  } catch (err) {
+    console.error("quotation count error:", err);
+    res.status(500).json({ message: "שגיאה בשרת" });
+  }
+});
 
 // שליחת הרשמה או הצעת מחיר
 router.post("/", async (req, res) => {
@@ -329,6 +348,6 @@ router.delete("/:productId/:buyerId", async (req, res) => {
   }
 });
 
-//פונקציה שמחשבת כמה אנשים נרשמו למוצר 
+
 
 module.exports = router;

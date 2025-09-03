@@ -6,8 +6,8 @@ import { markProductAsSent, markProductDelivered, rateSeller } from "../../../se
 import CustomModal from "../../../components/CustomModal/CustomModal";
 import StarRater from "../../../components/StarRater/StarRater";
 
-export default function OrderDetails({ sale, isWinner, sellerView, adminView }) {
-  // --- Hooks first ---
+export default function OrderDetails({ sale, isWinner, sellerView, adminView, sellerContact }) {
+  // --- state ---
   const [pending, setPending] = useState(false);
   const [localSale, setLocalSale] = useState(sale || null);
 
@@ -16,6 +16,7 @@ export default function OrderDetails({ sale, isWinner, sellerView, adminView }) 
   const [rateValue, setRateValue] = useState(0);
   const [savingRating, setSavingRating] = useState(false);
 
+  // סנכרון props -> state
   useEffect(() => {
     setLocalSale(sale || null);
   }, [sale]);
@@ -29,6 +30,57 @@ export default function OrderDetails({ sale, isWinner, sellerView, adminView }) 
   const winDateText = localSale.end_date ? formatDateTimeHe(localSale.end_date) : "-";
   const methodText  = method === "pickup" ? "איסוף עצמי" : "משלוח";
 
+  // ----- פרטי קשר -----
+  // מוכר (מה-hook אם קיים; אחרת מה-sale)
+  const sellerPhone =
+    sellerContact?.phone ??
+    localSale.seller_phone ??
+    localSale.sellerPhone ??
+    localSale.product_owner_phone ??
+    localSale.owner_phone ??
+    localSale.seller?.phone ??
+    null;
+
+  const sellerEmail =
+    sellerContact?.email ??
+    localSale.seller_email ??
+    localSale.sellerEmail ??
+    localSale.product_owner_email ??
+    localSale.owner_email ??
+    localSale.seller?.email ??
+    null;
+
+  // קונה (מה-sale)
+  const buyerPhone =
+    localSale.phone ??
+    localSale.buyer_phone ??
+    localSale.buyerPhone ??
+    localSale.buyer?.phone ??
+    null;
+
+  const buyerEmail =
+    localSale.email ??
+    localSale.buyer_email ??
+    localSale.buyerEmail ??
+    localSale.buyer?.email ??
+    null;
+
+  // מי מוצג לצופה?
+  let contactPhone, contactEmail;
+  if (isWinner) {
+    // הקונה רואה את פרטי המוכר
+    contactPhone = sellerPhone ?? "-";
+    contactEmail = sellerEmail ?? "-";
+  } else if (sellerView) {
+    // המוכר רואה את פרטי הקונה
+    contactPhone = buyerPhone ?? "-";
+    contactEmail = buyerEmail ?? "-";
+  } else {
+    // ניטרלי/אדמין – פרטי קונה
+    contactPhone = buyerPhone ?? "-";
+    contactEmail = buyerEmail ?? "-";
+  }
+
   // ----- האם חסרים פרטי משלוח כששיטה היא משלוח? -----
   const addressMissing =
     method === "delivery" &&
@@ -39,59 +91,35 @@ export default function OrderDetails({ sale, isWinner, sellerView, adminView }) 
 
   // ----- טקסט סטטוס לפי צופה -----
   let statusText;
-if (isWinner) {
-  // זוכה (קונה)
-  if (method === "delivery" && addressMissing && !delivered) {
-    statusText = "נא למלא פרטי משלוח";
-  } else if (method === "pickup" && !delivered) {
-    statusText = shipped
-      ? "המוכר אישר את איסוף המכירה — נא לחץ אישור מסירה"
-      : "אישור מסירה";
-  } else if (method === "pickup" && delivered) {
-    statusText = "✅ המוצר נאסף";
+  if (isWinner) {
+    if (method === "delivery" && addressMissing && !delivered) {
+      statusText = "נא למלא פרטי משלוח";
+    } else if (method === "pickup" && !delivered) {
+      statusText = shipped ? "המוכר אישר את איסוף המכירה — נא לחץ אישור מסירה" : "אישור מסירה";
+    } else if (method === "pickup" && delivered) {
+      statusText = "✅ המוצר נאסף";
+    } else {
+      statusText = delivered ? "✅ נמסר" : (shipped ? "📦 המוצר נשלח אלייך" : "⌛ ממתין לשליחת המוכר");
+    }
+  } else if (sellerView) {
+    if (method === "delivery" && addressMissing && !delivered) {
+      statusText = "הרוכש טרם מילא את פרטי המשלוח";
+    } else if (method === "pickup") {
+      statusText = delivered ? "✅ הקונה אסף את המוצר" : (shipped ? "סומן שנאסף, מחכה לאישור הרוכש" : "⌛ ממתין לאיסוף ע\"י הקונה");
+    } else if (method === "delivery") {
+      statusText = delivered ? "✅ המוצר סומן כנמסר" : (shipped ? "📦 המוצר נשלח על ידך" : "⌛ ממתין לשליחה שלך");
+    }
+  } else if (adminView) {
+    if (method === "delivery" && addressMissing && !delivered) {
+      statusText = "הרוכש טרם מילא את פרטי המשלוח";
+    } else if (method === "pickup") {
+      statusText = delivered ? "✅ הקונה אסף את המוצר" : (shipped ? "סומן שנאסף, מחכה לאישור הרוכש" : "⌛ ממתין לאיסוף הקונה");
+    } else {
+      statusText = delivered ? "✅ המוצר נמסר לקונה" : (shipped ? "📦 המוכר שלח את המוצר" : "⌛ ממתין שהמוכר ישלח את המוצר");
+    }
   } else {
-    // delivery רגיל
-    statusText = delivered
-      ? "✅ נמסר"
-      : (shipped ? "📦 המוצר נשלח אלייך" : "⌛ ממתין לשליחת המוכר");
+    statusText = "מכרז הסתיים";
   }
-} else if (sellerView) {
-  // מוכר
-  if (method === "delivery" && addressMissing && !delivered) {
-    statusText = "הרוכש טרם מילא את פרטי המשלוח";
-  } else if (method === "pickup") {
-    statusText = delivered
-      ? "✅ הקונה אסף את המוצר"
-      : shipped
-        ? "סומן שנאסף, מחכה לאישור הרוכש"
-        : '⌛ ממתין לאיסוף ע"י הקונה';
-  } else if (method === "delivery") {
-    statusText = delivered
-      ? "✅ המוצר סומן כנמסר"
-      : shipped
-        ? "📦 המוצר נשלח על ידך"
-        : "⌛ ממתין לשליחה שלך";
-  }
-} else if (adminView) {
-  // מנהל (סיכום ניטרלי)
-  if (method === "delivery" && addressMissing && !delivered) {
-    statusText = "הרוכש טרם מילא את פרטי המשלוח";
-  } else if (method === "pickup") {
-    statusText = delivered
-      ? "✅ הקונה אסף את המוצר"
-      : shipped
-        ? "סומן שנאסף, מחכה לאישור הרוכש"
-        : "⌛ ממתין לאיסוף הקונה";
-  } else {
-    statusText = delivered
-      ? "✅ המוצר נמסר לקונה"
-      : shipped
-        ? "📦 המוכר שלח את המוצר"
-        : "⌛ ממתין שהמוכר ישלח את המוצר";
-  }
-} else {
-  statusText = "מכרז הסתיים";
-}
 
   // ----- פעולות -----
   const doMarkSent = async () => {
@@ -115,7 +143,6 @@ if (isWinner) {
       setLocalSale(prev => ({ ...prev, is_delivered: 1 })); // עדכון אופטימי
       await markProductDelivered(localSale.product_id);
 
-      // פתיחת דירוג – כמו ב־MyBidsPage
       if (isWinner) {
         setRateValue(0);
         setRateOpen(true);
@@ -175,8 +202,14 @@ if (isWinner) {
 
       <div className={styles.orderRow}>
         <span className={styles.orderLabel}>טלפון ליצירת קשר:</span>
-        <span>{localSale.phone || "-"}</span>
+        <span>{contactPhone}</span>
       </div>
+     {!sellerView &&
+      <div className={styles.orderRow}>
+        <span className={styles.orderLabel}>אימייל ליצירת קשר:</span>
+        <span>{contactEmail || "-"}</span>
+      </div>
+     } 
 
       <div className={styles.orderRow}>
         <span className={styles.orderLabel}>הערות:</span>
@@ -186,35 +219,33 @@ if (isWinner) {
       {/* כפתורי פעולה לפי תפקיד */}
       <div className={styles.orderRow} style={{ gap: 8, flexWrap: "wrap" }}>
         {/* מוכר */}
-{/* מוכר */}
-{sellerView && !delivered && (
-  <>
-    {/* משלוח: "נשלח" רק אם הכתובת מלאה וטרם נשלח */}
-    {method === "delivery" && !addressMissing && !shipped && (
-      <button
-        type="button"
-        onClick={doMarkSent}
-        disabled={pending}
-        className={`${styles.primaryBtn} ${styles.bidButton}`}
-      >
-        {pending ? "מעבד..." : "סימון שהמוצר נשלח"}
-      </button>
-    )}
+        {sellerView && !delivered && (
+          <>
+            {/* משלוח: "נשלח" רק אם הכתובת מלאה וטרם נשלח */}
+            {method === "delivery" && !addressMissing && !shipped && (
+              <button
+                type="button"
+                onClick={doMarkSent}
+                disabled={pending}
+                className={`${styles.primaryBtn} ${styles.bidButton}`}
+              >
+                {pending ? "מעבד..." : "סימון שהמוצר נשלח"}
+              </button>
+            )}
 
-    {/* PICKUP: המוכר מסמן "נאסף" => sent="yes"  (רק אם עדיין לא סומן) */}
-    {method === "pickup" && !shipped && (
-      <button
-        type="button"
-        onClick={doMarkSent}  // שים לב: doMarkSent (לא doMarkDelivered)
-        disabled={pending}
-        className={`${styles.primaryBtn} ${styles.bidButton}`}
-      >
-        {pending ? "מעבד..." : "סימון שהמוצר נאסף"}
-      </button>
-    )}
-  </>
-)}
-
+            {/* PICKUP: המוכר מסמן "נאסף" => sent="yes" (רק אם עדיין לא סומן) */}
+            {method === "pickup" && !shipped && (
+              <button
+                type="button"
+                onClick={doMarkSent}
+                disabled={pending}
+                className={`${styles.primaryBtn} ${styles.bidButton}`}
+              >
+                {pending ? "מעבד..." : "סימון שהמוצר נאסף"}
+              </button>
+            )}
+          </>
+        )}
 
         {/* קונה זוכה */}
         {isWinner && !delivered && (
@@ -224,7 +255,7 @@ if (isWinner) {
                 type="button"
                 onClick={doMarkDelivered}
                 disabled={pending}
-                className={styles.primaryBtn || styles.bidButton}
+                className={`${styles.primaryBtn} ${styles.bidButton}`}
               >
                 {pending ? "מעבד..." : "סמן כבוצע"}
               </button>
@@ -234,7 +265,7 @@ if (isWinner) {
                 type="button"
                 onClick={doMarkDelivered}
                 disabled={pending}
-                className={styles.primaryBtn || styles.bidButton}
+                className={`${styles.primaryBtn} ${styles.bidButton}`}
               >
                 {pending ? "מעבד..." : "סמן שנאסף"}
               </button>

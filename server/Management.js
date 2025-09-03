@@ -36,104 +36,128 @@ router.get("/products", requireSellerOrAdmin, async (req, res) => {
   try {
     const conn = await db.getConnection();
 
-    // בסיס WHERE: למנהל אין סינון לפי מוכר, אלא אם ביקש seller_id_number; למוכר – רק שלו.
+    // בסיס WHERE:
+    // מנהל – הכל, אפשר לצמצם עפ"י seller_id_number; מוכר – רק שלו.
     let where = req.isAdmin ? "WHERE 1=1" : "WHERE p.seller_id_number = ?";
-    const params = req.isAdmin ? [] : [req.sellerId];
+    const params = req.isAdmin ? [] : [String(req.sellerId)];
 
     if (req.isAdmin && sellerIdParam) {
       where += " AND p.seller_id_number = ?";
       params.push(sellerIdParam);
     }
 
-    // פילטרים
-    if (filterRaw === "blocked") {
-      // רק חסומים
-      where += " AND LOWER(p.product_status) = 'blocked'";
-    } else {
-      // מוכר: אל תציג חסומים בברירת מחדל (כמו שהיה).
-      // מנהל: רואה הכל (כולל חסומים) כברירת מחדל.
-      if (!req.isAdmin) {
-        where += " AND LOWER(p.product_status) <> 'blocked'";
-      }
+    // מסננים לפי הבקשה
+    switch (filterRaw) {
+      case "forsale":
+        // מוצרים שטרם חלה המכירה (status = for_sale)
+        where += " AND LOWER(p.product_status) = 'for sale'";
+        break;
 
-      if (filterRaw === "sold") {
+      case "sold":
+        // כל המוצרים שנמכרו (status = sale)
         where += " AND LOWER(p.product_status) = 'sale'";
-      } else if (filterRaw === "sent") {
-        where += " AND LOWER(p.product_status) = 'sale' AND LOWER(COALESCE(s.sent,'')) = 'yes'";
-      } else if (filterRaw === "pending") {
-        where += " AND p.is_live = 0";
-      } else if (filterRaw === "unsold") {
-        where += " AND p.is_live = 1 AND p.winner_id_number IS NULL";
-      } else if (filterRaw === "toship") {
-        // מיועדים לשליחה (נמכר, משלוח, טרם נשלח/נמסר)
+        break;
+
+      case "solddelivery":
+        // נמכרו + משלוח
         where += `
           AND LOWER(p.product_status) = 'sale'
           AND LOWER(COALESCE(s.delivery_method, '')) = 'delivery'
-          AND (s.is_delivered IS NULL OR s.is_delivered = 0)
-          AND (s.sent IS NULL OR LOWER(s.sent) IN ('no','0'))
         `;
-      }
-      // "all" – אין תנאי נוסף
+        break;
+
+      case "soldpickup":
+        // נמכרו + איסוף עצמי
+        where += `
+          AND LOWER(p.product_status) = 'sale'
+          AND LOWER(COALESCE(s.delivery_method, '')) = 'pickup'
+        `;
+        break;
+
+      case "notsold":
+        // מוצרים שלא נמכרו (status = Not sold → lower = 'not sold')
+        where += " AND LOWER(p.product_status) = 'not sold'";
+        break;
+
+      case "blocked":
+        // מוצרים חסומים על ידי (status = blocked)
+        where += " AND LOWER(p.product_status) = 'blocked'";
+        break;
+
+      case "adminblocked":
+        // מוצרים חסומים על ידי ההנהלה (status = admin blocked)
+        where += " AND LOWER(p.product_status) = 'admin blocked'";
+        break;
+
+      case "all":
+      default:
+        // ללא תנאי סטטוס – מציג הכל
+        break;
     }
 
-  // server/seller.js  (במסלול GET /products)
-const sqlProducts = `
-SELECT
-  p.product_id,
-  p.product_name,
-  p.price,
-  p.current_price,
-  p.start_date,
-  p.description,
-  p.product_status AS status,
-  p.is_live,
-  p.winner_id_number,
+    const sqlProducts = `
+      SELECT
+        p.product_id,
+        p.product_name,
+        p.price,
+        p.current_price,
+        p.start_date,
+        p.description,
+        p.product_status AS status,
+        p.is_live,
+        p.winner_id_number,
 
-  -- משלוח/מכירה
-  s.sent,
-  s.is_delivered,
-  s.delivery_method,
-  s.city, s.street, s.house_number, s.apartment_number, s.zip, s.notes,
+        -- נתוני מכירה/משלוח
+        s.sent,
+        s.is_delivered,
+        s.delivery_method,
+        s.city, s.street, s.house_number, s.apartment_number, s.zip, s.notes,
 
-  -- מידע נוסף לתצוגה/אקסל
-  p.category_id, p.subcategory_id,
-  c.name  AS category_name,
-  sc.name AS subcategory_name,
+        -- נתוני תצוגה/אקסל
+        p.category_id, p.subcategory_id,
+        c.name  AS category_name,
+        sc.name AS subcategory_name,
 
-  u.id_number AS seller_id_number,
-
-  u.first_name, u.last_name,
-  CONCAT(u.first_name, ' ', u.last_name) AS seller_name
-FROM product p
-LEFT JOIN sale s           ON s.product_id = p.product_id
-LEFT JOIN categories c     ON p.category_id = c.id
-LEFT JOIN subcategories sc ON p.subcategory_id = sc.id
-LEFT JOIN users u          ON u.id_number = p.seller_id_number
-${where}
-ORDER BY p.start_date DESC
-`;
-
+        u.id_number AS seller_id_number,
+        u.first_name, u.last_name,
+        CONCAT(u.first_name, ' ', u.last_name) AS seller_name
+      FROM product p
+      LEFT JOIN sale s           ON s.product_id = p.product_id
+      LEFT JOIN categories c     ON p.category_id = c.id
+      LEFT JOIN subcategories sc ON p.subcategory_id = sc.id
+      LEFT JOIN users u          ON u.id_number = p.seller_id_number
+      ${where}
+      ORDER BY p.start_date DESC
+    `;
 
     const [rows] = await conn.execute(sqlProducts, params);
-    if (!rows.length) return res.json([]);
-
-    const ids = rows.map(r => r.product_id);
-    const placeholders = ids.map(() => "?").join(",");
-    const [imagesRows] = await conn.execute(
-      `SELECT product_id, image_url
-       FROM product_images
-       WHERE product_id IN (${placeholders})
-       ORDER BY product_id, image_id`,
-      ids
-    );
-
-    const imgsMap = new Map();
-    for (const r of imagesRows) {
-      if (!imgsMap.has(r.product_id)) imgsMap.set(r.product_id, []);
-      imgsMap.get(r.product_id).push(r.image_url);
+    if (!rows || rows.length === 0) {
+      return res.json([]);
     }
 
-    const withImages = rows.map(p => ({ ...p, images: imgsMap.get(p.product_id) || [] }));
+    // תמונות (רק אם יש מזהים)
+    const ids = rows.map(r => r.product_id);
+    let withImages = rows;
+
+    if (ids.length > 0) {
+      const placeholders = ids.map(() => "?").join(",");
+      const [imagesRows] = await conn.execute(
+        `SELECT product_id, image_url
+         FROM product_images
+         WHERE product_id IN (${placeholders})
+         ORDER BY product_id, image_id`,
+        ids
+      );
+
+      const imgsMap = new Map();
+      for (const r of imagesRows) {
+        if (!imgsMap.has(r.product_id)) imgsMap.set(r.product_id, []);
+        imgsMap.get(r.product_id).push(r.image_url);
+      }
+
+      withImages = rows.map(p => ({ ...p, images: imgsMap.get(p.product_id) || [] }));
+    }
+
     res.json(withImages);
   } catch (err) {
     console.error("שגיאה בשליפת מוצרים:", err);

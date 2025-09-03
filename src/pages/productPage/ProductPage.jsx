@@ -1,5 +1,5 @@
 // src/pages/productPage/ProductPage.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState ,useEffect} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./ProductPage.module.css";
 
@@ -38,17 +38,21 @@ export default function ProductPage() {
 
   /* ---------- טעינת נתוני מוצר ואפשרויות מוכר ---------- */
   const { product, setProduct } = useProductData(id); // הבאת מוצר ועדכון לאחר רענון
-  const {
-    loading,
-    option: sellerOption,
-    pickupAddressText,
-    rating: sellerRating,
-  } = useSellerOptions(id);                           // משלוח/איסוף + דירוג מוכר
+const {
+  loading,
+  option: sellerOption,
+  pickupAddressText,
+  rating: sellerRating,
+  sellerContact,                   // ← הוסף
+} = useSellerOptions(id);                      // משלוח/איסוף + דירוג מוכר
 
   /* ---------- סטטוס מכירה/זכייה ---------- */
   const { saleForProduct, saleInfo } = useSaleState(id, user?.id_number); // מצב מכירה ושורת מכירה אם קיימת
   const [showPickup, setShowPickup] = useState(false);                    // הצגת/הסתרת כתובת איסוף
-
+// הוסף ממש אחרי זה:
+useEffect(() => {
+  console.log("saleInfo →", saleInfo);
+}, [saleInfo]);
   /* ---------- זיהוי תפקיד הצופה ---------- */
   const isAdmin = user?.role === "admin";                                      // האם אדמין
   const isOwner =
@@ -64,6 +68,12 @@ export default function ProductPage() {
     String(winnerIdProduct).trim() !== "" &&
     String(winnerIdProduct) === String(currentUserId);
 
+
+
+
+
+
+    
   // בדיקת זכייה לפי שורת המכירה (saleInfo) אם קיימת
   const saleWinnerId = saleInfo?.buyer_id_number ?? saleInfo?.winner_id_number ?? null;
   const isWinnerBySale =
@@ -90,6 +100,14 @@ export default function ProductPage() {
 
   const isEnded = !!saleForProduct || endedByTime;                      // הסתיימה המכירה (לפי זמן או לפי מכירה בפועל)
   const startCountdownSec = useStartCountdown(product?.start_date);     // שניות עד תחילת מכירה (אם טרם החלה)
+// האם התחילה (הטיימר הגיע ל-0 או מתחת) ויש start_date
+const hasStarted = !!product?.start_date && (startCountdownSec ?? 0) <= 0;
+
+// “מכירה מתקיימת”: התחילה, טרם הסתיימה, ובסטטוס שמאפשר מכירה
+const isLive =
+  hasStarted &&
+  !isEnded &&
+  status === "for sale";
 
   // הרשמה אפשרית רק אם: סטטוס פעיל, אין זוכה, ולא הסתיים
   const noWinner = product?.winner_id_number == null || String(product?.winner_id_number).trim() === "";
@@ -324,8 +342,27 @@ if (status === "not sold") {
             deadlineText={deadlineText}
             sellerOption={sellerOption}
             pickupAddressText={pickupAddressText}
+            sellerContact={sellerContact} 
           />
         )}
+{/* הצגת כתובת המוכר גם לזוכה שבחר איסוף עצמי */}
+{String(saleInfo?.delivery_method || "").toLowerCase() === "pickup" && (
+  <div className={styles.infoNote} style={{ marginTop: 12 }}>
+    <button
+      type="button"
+      className={`${styles.linkLikeButton} ${showPickup ? styles.linkLikeButtonActive : ""}`}
+      onClick={() => setShowPickup((v) => !v)}
+    >
+      הצג/הסתר כתובת המוכר
+    </button>
+
+    {showPickup && (
+      <div className={styles.pickupBox}>
+        {pickupAddressText || <small>(כתובת המוכר לא זמינה כרגע)</small>}
+      </div>
+    )}
+  </div>
+)}
 
       </ProductLayout>
     );
@@ -374,9 +411,20 @@ if (status === "not sold") {
             )}
 
             {/* טיימר לתחילת מכירה */}
-            {(startCountdownSec ?? 0) > 0 && (
-              <p className={styles.countdown}>המכירה תחל בעוד {formatCountdown(startCountdownSec)}</p>
-            )}
+          {(startCountdownSec ?? 0) > 0 && (
+  <p className={styles.countdown}>
+    המכירה תחל בעוד {formatCountdown(startCountdownSec)}
+  </p>
+)}
+
+{isLive && (
+  <p
+    className={styles.countdown}
+   
+  >
+    המכירה מתקיימת ברגעים אלו
+  </p>
+)}
 
             {/* בלוק הרשמה – רק אם הצופה אינו המוכר ובאפשרות להירשם */}
             {String(user?.id_number) !== String(product.seller_id_number) && canRegister && (
