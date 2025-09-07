@@ -1,7 +1,7 @@
 // src/pages/ProductPage/hooks/useStartCountdown.js
+// useStartCountdown: הוק שמחשב ומחזיר שניות עד תחילת מכירה לפי תאריך התחלה (startIso). אם אין startIso מוחזר null. מתעדכן כל שנייה באמצעות setInterval, ומפסיק ספירה כשהמכירה התחילה (ערך 0).
+
 import { useEffect, useState } from "react";
-
-
 
 // הוק שמחזיר ספירה לאחור בשניות עד לזמן התחלה נתון (startIso), מתעדכן כל שנייה ומחזיר null אם אין תאריך
 export function useStartCountdown(startIso) {

@@ -1,5 +1,7 @@
 // src/pages/ProductPage/utils/editForm.js
-
+// editForm.js: בנאי/מאמת טופס עריכת מוצר
+// `buildPayload(state)` – יוצר אובייקט לשליחה לשרת: start\_date/end\_time, חישוב מחיר לפני/כולל מע״מ, קובע price/current\_price/price\_before\_vat, דגל `vat_included` ("true"/"false") ו־`bid_increment`.
+// `validateRequired(state, BID_STEPS)` – ולידציה לשדות חובה, מחיר חיובי (לפי מצב מע״מ), סכום עליית הצעה מתוך BID\_STEPS, ותאריך/שעת התחלה לא בעבר; מחזיר מחרוזת שגיאה בעברית או null אם תקין.
 
 // בונה אובייקט נתונים לשליחה לשרת מתוך ערכי הטופס, כולל חישוב מחיר לפני/כולל מע״מ וסכום עליית הצעה
 export function buildPayload(state) {

@@ -1,3 +1,6 @@
+//src\pages\profile\ProfilePage.jsx
+// ProfilePage: ניהול פרטי משתמש (שם, טלפון, כתובת), שינוי סיסמה ותמונת פרופיל, כולל ולידציות, בחירת עיר/רחוב, ושינוי שיטת משלוח למוכר – עם מודאלים לאישורים/שגיאות.
+
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import styles from "./ProfilePage.module.css";

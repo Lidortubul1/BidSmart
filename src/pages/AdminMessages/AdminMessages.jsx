@@ -1,3 +1,8 @@
+//src\pages\AdminMessages\AdminMessages.jsx
+// דף ניהול פניות (Admin):
+// מציג למנהל את לוח הפניות (TicketsBoard) עם סינון, צפייה ומענה לדיווחים/פניות כלליות,
+// כולל כותרת עמוד, כפתור רענון מהיר (מעדכן key ללוח), ובקרת גישה — מציג מסך "אין הרשאה" למי שאינו מנהל.
+
 import React, { useState } from "react";
 import TicketsBoard from "../../components/tickets/TicketsBoard";
 import { useAuth } from "../../auth/AuthContext";

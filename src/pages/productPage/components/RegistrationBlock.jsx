@@ -1,4 +1,6 @@
 // src/pages/ProductPage/components/RegistrationBlock.jsx
+// בלוק הרשמה למכירה: למשתמשים שאינם אדמין/בעלים – ספירת זמן עד ההתחלה, בדיקת הרשמה קיימת, תהליך KYC (ת"ז + צילום) במידת הצורך, הרשמה/ביטול למכרז, הודעות מודאל, והפניה למכירה החיה; מציג משך מכירה וכפתורי פעולה בהתאם למצב.
+
 import React, { useEffect, useState } from "react";
 import styles from "../ProductPage.module.css";
 import {

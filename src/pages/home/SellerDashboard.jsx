@@ -1,4 +1,6 @@
 // src/pages/home/SellerDashboard.jsx
+// דשבורד מוכר (SellerDashboard): עמוד ייעודי למוכרים — כולל בר קטגוריות (CategoryBar), כותרת וברכת ברוך הבא, כפתורי פעולה להוספת מוצר חדש ולצפייה בדוחות מכירה, אזור נציגת AI, חיפוש מוצרים, ורשימת כל המוצרים (ProductList).
+
 import ProductList from "../../components/productList/productList";
 import CategoryBar from "../../components/CategoryBar/CategoryBar";
 import { Link } from "react-router-dom";

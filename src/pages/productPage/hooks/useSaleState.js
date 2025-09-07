@@ -1,4 +1,6 @@
 // src/pages/ProductPage/hooks/useSaleState.js
+// useSaleState: הוק שמבצע שליפה של כל המכירות (getAllSales), מוצא את המכירה של המוצר לפי productId, ושומר ב־state; בנוסף בודק אם userIdNumber תואם ל־buyer\_id\_number של המכירה ומחזיר isWinner; התוצאה היא אובייקט { saleInfo, saleForProduct, isWinner } עם טיפול בביטול טעינה.
+
 import { useEffect, useState } from "react";
 import { getAllSales } from "../../../services/saleApi";
 

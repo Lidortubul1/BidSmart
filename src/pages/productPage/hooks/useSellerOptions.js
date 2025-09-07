@@ -1,4 +1,6 @@
 // src/pages/ProductPage/hooks/useSellerOptions.js
+// useSellerOptions: הוק שמבצע שליפה של אפשרויות המשלוח מהמוכר דרך getSellerDeliveryOptions לפי productId, ושומר ב־state. מחזיר את השדות הישנים (loading, option, pickupAddressText, rating) וגם שדות חדשים אופציונליים (pickupAddress, sellerContact). מטפל גם בערכי ברירת מחדל במקרה של שגיאה או אם ה־API לא מחזיר את כל השדות.
+
 import { useEffect, useState } from "react";
 import { getSellerDeliveryOptions } from "../../../services/productApi";
 

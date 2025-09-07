@@ -1,3 +1,6 @@
+//src\pages\ForgotPassword\ForgotPasswordPage.jsx
+// שכחתי סיסמה (ForgotPasswordPage): טופס בקשת איפוס סיסמה, מקבל אימייל מהמשתמש, שולח דרך `sendResetPasswordEmail` לשרת; מציג הודעת הצלחה אם הקישור נשלח או הודעת שגיאה במקרה תקלה.
+
 import { useState } from "react";
 import styles from "./ForgotPasswordPage.module.css";
 import { sendResetPasswordEmail } from "../../services/authApi";

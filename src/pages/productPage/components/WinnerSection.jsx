@@ -1,4 +1,6 @@
 // src/pages/ProductPage/components/WinnerSection.jsx
+// אזור זוכה: מציג פרטי הזמנה (OrderDetails) אם קיימים או זרימת תשלום כשטרם שולם — כולל דדליין/טיימר 24ש׳, כפתור “המשך לתשלום” (createOrder→redirect), והערת אפשרויות משלוח/איסוף מהמוכר דרך useSellerOptions; תומך ב־onContinueToPayment חיצוני וב־sellerContact.
+
 import React from "react";
 import styles from "../ProductPage.module.css";
 import OrderDetails from "./OrderDetails";

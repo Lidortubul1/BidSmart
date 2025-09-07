@@ -1,3 +1,6 @@
+//src\pages\productPage\hooks\useLoginModal.js
+// useLoginModal: הוק לניהול חלונית התחברות – מנהל סטייט של מודאל ושל טופס התחברות, מספק פונקציות לפתיחת מודאל כללי (openModal) ולדרישת התחברות (askLogin) עם אפשרות להרשמה או התחברות; מחזיר את כל הסטייטים וה־API לשימוש בקומפוננטות.
+
 import { useState } from "react";
 
 export function useLoginModal(navigate) {

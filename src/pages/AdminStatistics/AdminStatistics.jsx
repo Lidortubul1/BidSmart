@@ -1,4 +1,6 @@
 // src/pages/AdminStatistics/AdminStatistics.jsx
+// סטטיסטיקות מנהל: דשבורד עם מסנני טווח ותצוגת יום/חודש, גרפים כלליים (פילוח משתמשים, הרשמות, הכנסות/משפך, סטטוס מוצרים, מכירות לפי קטגוריה, מוכרים מובילים) + פילוח לפי מוכר נבחר; כולל מודאל פרטים בלחיצה ועזרי פורמט, מבוסס Recharts וקריאות adminApi.
+
 import { useEffect, useState, useMemo } from "react";
 import styles from "./AdminStatistics.module.css";
 import {

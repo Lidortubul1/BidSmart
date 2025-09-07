@@ -1,4 +1,6 @@
 // src/pages/productPage/ProductPage.jsx
+// ProductPage: דף מוצר דינמי לפי תפקיד (אדמין/מוכר/זוכה/משתמש/אורח); כולל הבאת נתונים, חישוב סטטוס וזמנים, טפסי עריכה/משלוח, הרשמה למכירה, פרטי הזמנה, דירוג ודיווח, עם מודאלים לניהול הודעות והתחברות.
+
 import React, { useMemo, useState ,useEffect} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./ProductPage.module.css";

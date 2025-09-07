@@ -1,4 +1,10 @@
 // src/pages/ProductPage/utils/datetime.js
+// datetime.js: פונקציות שירות לעיצוב תאריכים ושעות בעברית  
+// `formatDateTimeHe` – ממיר ISO לטקסט מלא "DD/MM/YYYY בשעה HH:MM"  
+// `formatDate` – מחזיר רק תאריך בפורמט "DD/MM/YYYY"  
+// `formatTime` – מחזיר רק שעה בפורמט "HH:MM"  
+// `todayStr` – מחזיר תאריך היום בפורמט "YYYY-MM-DD" (לטפסי date)  
+// `nowTimeStr` – מחזיר שעה נוכחית בפורמט "HH:MM" (לטפסי time)
 
 // מעצב תאריך־ושעה ממחרוזת ISO לתצוגה "DD/MM/YYYY בשעה HH:MM" בעברית
 export function formatDateTimeHe(iso) {

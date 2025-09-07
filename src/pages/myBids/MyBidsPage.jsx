@@ -1,4 +1,6 @@
 // src/pages/MyBidsPage/MyBidsPage.jsx
+// דף "ההצעות שלי": מציג שתי תצוגות — הצעות שנרשמתי ומוצרים שזכיתי בהם — עם תפריט בחירה, חיפוש, וכרטיס אחיד לכל פריט; כולל אישור מסירה (משלוח/איסוף) עם מודאל ועדכון אופטימי, פתיחת מודאל דירוג למוכר (StarRater), ומימוש טעינת נתונים דרך quotationApi/getUserBids ו-saleApi (getAllSales, markProductDelivered, rateSeller).
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./MyBidsPage.module.css";

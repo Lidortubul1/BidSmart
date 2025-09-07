@@ -1,4 +1,6 @@
 // src/pages/ProductPage/hooks/useProductData.js
+// useProductData: הוק שמביא נתוני מוצר לפי productId בעזרת getProductById, שומר אותם ב־state ומחזיר אובייקט { product, setProduct, error }; כולל טיפול בביטול טעינה כדי למנוע עדכון סטייט אחרי שהקומפוננטה הוסרה.
+
 import { useEffect, useState } from "react";
 import { getProductById } from "../../../services/productApi";
 

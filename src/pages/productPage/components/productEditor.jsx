@@ -1,3 +1,6 @@
+//src\pages\productPage\components\productEditor.jsx
+// עורך מוצר (מוכר/אדמין): טוען מוצר וקטגוריות, בודק הרשאות, מאפשר עריכה מלאה או “רליסט” למוצר שלא נמכר (כולל תמונות עם useImagesManager), בחירת תאריך/שעה/משך, תמחור ברוטו/נטו (מע״מ), מדרגות הצעה קבועות, שמירה/פרסום מחדש עם validateRequired+buildPayload, ביטול מכירה (ל־for\_sale), ותצוגת “זוכה טרם שילם” דרך OwnerUnpaidSection; כל הפעולות עם מודאלים דרך useModal.
+
 import { useEffect, useMemo, useState } from "react";
 import CustomModal from "../../../components/CustomModal/CustomModal";
 import { useAuth } from "../../../auth/AuthContext";

@@ -1,3 +1,6 @@
+//src\pages\productPage\hooks\useImagesManager.js
+// useImagesManager: הוק לניהול תמונות מוצר – מעלה תמונה (מיידית או כ“ממתינה” במצב רליסט), מוחק תמונה קיימת מהשרת, מרענן את נתוני המוצר ומדווח שגיאות דרך onError; מחזיר סטייטים (images, pendingImages) ו־API (onAddImage, removePendingImage, onDeleteImage).
+
 import { useState } from "react";
 import { uploadProductImage, removeProductImage } from "../../../services/productApi";
 

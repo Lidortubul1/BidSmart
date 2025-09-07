@@ -1,10 +1,13 @@
+//src\pages\becomeSeller\becomeSeller.jsx
+// הפוך למוכר (BecomeSellerPage): טופס שדרוג משתמש ל־seller עם אימות טלפון ישראלי (קידומת +9725X + 7 ספרות), KYC אם חסר (ת״ז+צילום), בחירת אפשרויות משלוח (משלוח/איסוף עצמי) כולל כתובת מרשימת יישובים/רחובות, עדכון פרופיל ושמירה ב־Auth + ניווט ל״הוספת מוצר״; כולל מודאלי שגיאה/הצלחה.
+
 import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { upgradeUserRole } from "../../services/authApi";
 import styles from "./becomeSeller.module.css";
 import CustomModal from "../../components/CustomModal/CustomModal";
-import citiesData from "../../assets/data/cities_with_streets.json"; // ⬅️ חדש
+import citiesData from "../../assets/data/cities_with_streets.json"; 
 
 
 // מפענח טלפון לפורמט prefix:+9725X  ו-number: 7 ספרות

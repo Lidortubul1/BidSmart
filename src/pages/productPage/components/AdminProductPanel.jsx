@@ -1,4 +1,6 @@
 // src/pages/ProductPage/components/AdminProductPanel.jsx
+// פאנל ניהול מוצר (אדמין): טוען נתוני מוצר וסטטוס (adminFetchProduct) כולל ספירת נרשמים (getRegistrationsCount), מציג כפתורי פתיחה/סגירה לפרטי המוכר והזוכה עם מיפוי ת״ז→users.id (adminFetchUserByIdNumber) והטמעת AdminUserDetails, ומציג שרשור דיווחים/פניות למוצר (TicketCard); כולל דגלי טעינה/שגיאות וניקוי מצבים בעת החלפת מוצר.
+
 import React, { useEffect, useState } from "react";
 import { adminFetchProduct } from "../../../services/productApi";
 import { adminFetchUserByIdNumber } from "../../../services/userApi";
@@ -12,7 +14,7 @@ export default function AdminProductPanel({ productId }) {
   const [status, setStatus] = useState("");
   const [err, setErr] = useState("");
 
-  // 🆕 ספירת נרשמים
+  // ספירת נרשמים
   const [regCount, setRegCount] = useState(null); // null=טוען, מספר=תוצאה
   const [regErr, setRegErr] = useState("");
 
@@ -47,7 +49,7 @@ export default function AdminProductPanel({ productId }) {
         setSellerIdErr("");
         setWinnerIdErr("");
 
-        // 🆕 טען ספירת נרשמים
+        //  טען ספירת נרשמים
         setRegErr("");
         setRegCount(null);
         try {
@@ -128,7 +130,7 @@ export default function AdminProductPanel({ productId }) {
           {data.created_at && <div>נוצר ב: {new Date(data.created_at).toLocaleString("he-IL")}</div>}
           {data.start_date && <div>תאריך התחלה: {new Date(data.start_date).toLocaleString("he-IL")}</div>}
 
-          {/* 🆕 כמות נרשמים */}
+          {/*  כמות נרשמים */}
           <div style={{ marginTop: 6 }}>
             כמות נרשמים:{" "}
             <strong>

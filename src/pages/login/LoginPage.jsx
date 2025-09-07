@@ -1,3 +1,6 @@
+//src\pages\login\LoginPage.jsx
+// דף התחברות (LoginPage): עוטף את טופס ההתחברות עם ניתוב לפי תפקיד (מנהל/מוכר/קונה), שומר את המשתמש ב-localStorage, מציג קישורים לאיפוס סיסמה/הרשמה ומנהל הודעות שגיאה במודאל.
+
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import styles from "./LoginPage.module.css";

@@ -1,4 +1,6 @@
 // src/pages/ProductPage/hooks/usePaymentDeadline.js
+// usePaymentDeadline: הוק שמחשב דדליין לתשלום (24 שעות מהצעת הזוכה) ומחזיר secondsLeft ו־deadlineText; מנהל טיימר שמעדכן כל שנייה, מציג טקסט מועד אחרון בעברית, ומבצע expireUnpaidProduct כאשר הזמן נגמר, עם מנגנון למניעת קריאות כפולות.
+
 import { useEffect, useRef, useState } from "react";
 import { expireUnpaidProduct } from "../../../services/productApi";
 import { formatDateTimeHe } from "../utils/datetime";

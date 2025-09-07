@@ -1,3 +1,6 @@
+//src\pages\payment-success\payment-success.jsx
+// דף אישור תשלום: בטעינה מאמת תשלום מול השרת (confirmPayment) לפי \:id מה־URL; בהצלחה מנווט ל־/shipping/\:id, ובכישלון מציג מודאל שגיאה עם כפתור חזרה לדף הבית (ניהול דרך useEffect + CustomModal).
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { confirmPayment } from "../../services/paymentApi";
@@ -72,7 +75,7 @@ function PaymentSuccess() {
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>✔️ תודה על התשלום!</h2>
+      <h2> תודה על התשלום!</h2>
       <p>מעבד את ההזמנה שלך...</p>
 
       {modalVisible && (

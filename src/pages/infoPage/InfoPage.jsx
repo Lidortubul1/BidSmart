@@ -1,4 +1,6 @@
 // InfoPage.jsx
+// דף מידע (InfoPage): מציג סקירה על BidSmart — על האתר, סוגי משתמשים, כיצד זה עובד וטכנולוגיות; כולל state ופונקציות לטופס יצירת קשר (שאינו מוצג כרגע), מעוצב עם CSS Modules.
+
 import React, { useState } from "react";
 import styles from "./infoPage.module.css"
 import Contacts from "../../components/contacts/contacts";

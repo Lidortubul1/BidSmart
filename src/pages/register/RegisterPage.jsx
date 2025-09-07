@@ -1,3 +1,6 @@
+//src\pages\register\RegisterPage.jsx
+// RegisterPage: עמוד הרשמה שמציג טופס RegisterForm, תומך במצב רגיל או כמודאל ומבצע הפניה לאחר הרשמה.
+
 import styles from "./RegisterPage.module.css";
 import RegisterForm from "../../components/RegisterForm/RegisterForm";
 

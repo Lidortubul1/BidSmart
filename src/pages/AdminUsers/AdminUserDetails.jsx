@@ -1,4 +1,6 @@
 // src/pages/AdminUsers/AdminUserDetails.jsx
+// ניהול משתמש (AdminUserDetails): כרטיס פרטים מפורט למשתמש לפי userId עם מצבי טעינה/שגיאה; מציג נתוני בסיס, כתובת ותמונות, מאפשר ניווט לדף פריטי המוכר (למוכר עם ת״ז) וטוגל חסימה/החזרה בעדכון אופטימי; בנוי עם CSS מודולרי ו־react-router.
+
 import { useEffect, useState } from "react";              // Hooks לניהול state וטעינה
 import { getUserById } from "../../services/adminApi";    // קריאת API לשליפת משתמש
 import styles from "./AdminUsers.module.css";             // מודול CSS לעיצוב כרטיס פרטי המשתמש

@@ -1,4 +1,7 @@
- import styles from "./AdminDashboard.module.css";
+//src\pages\home\AdminDashboard.jsx
+// לוח בקרה מנהל (AdminDashboard): מציג מסך ניהול ראשי עם כותרת BIDSMART, סטטיסטיקות מנהל (AdminStatistics) ורשימת פניות אחרונות שלא נקראו (RecentUnreadTickets); כולל טעינת נתוני סיכום כלליים מה־adminApi.
+
+import styles from "./AdminDashboard.module.css";
  import { useEffect, useState } from "react";
  import { getAdminStats } from "../../services/adminApi";
  

@@ -1,4 +1,6 @@
 // src/pages/productPage/hooks/useWinnerPaymentStatus.js
+// useWinnerPaymentStatus: הוק שבודק אם הזוכה שילם (isPaid), מחשב אם יש זוכה שלא שילם (isUnpaidWinner), בודק למוכר אם הקונה הספציפי שילם (buyerPaid) ומאתר אם חסרים פרטי משלוח כשנבחר משלוח (sellerSeesMissingAddress) — מבוסס שליפת הצעות (quotations) ושדות is\_paid, ומחזיר גם setIsPaid.
+
 import { useEffect, useState } from "react";
 import { getQuotationsByProductId } from "../../../services/quotationApi";
 

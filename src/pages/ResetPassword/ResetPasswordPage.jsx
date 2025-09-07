@@ -1,3 +1,6 @@
+//src\pages\ResetPassword\ResetPasswordPage.jsx
+// ResetPasswordPage: עמוד לאיפוס סיסמה לפי טוקן מה־URL, כולל ולידציה בסיסית, שמירת סיסמה חדשה והפניה לדף התחברות לאחר הצלחה.
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { resetPassword } from "../../services/authApi";

@@ -1,4 +1,6 @@
 // src/pages/home/BuyerDashboard.jsx
+// דשבורד קונה (BuyerDashboard): מציג עמוד בית ייעודי לרוכש — כולל בר קטגוריות (CategoryBar), כותרת וברכה אישית, כפתור מעבר ל"הפוך למוכר", חיפוש מוצרים, ורשימת כל המוצרים (ProductList); מגיב לתפקיד המשתמש דרך useAuth ומבצע הפניות בהתאם.
+
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import ProductList from "../../components/productList/productList";

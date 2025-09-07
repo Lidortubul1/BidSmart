@@ -1,4 +1,8 @@
 // src/pages/ProductPage/utils/time.js
+// time.js: עזרי זמן למכירה
+// `parseDurationToMs(timeStr)` – ממיר מחרוזת משך ("HH\:MM\:SS" / "MM\:SS" / "MM") למילישניות; מחזיר null אם לא תקין.
+// `formatCountdown(total)` – ממיר שניות לספירה לאחור בפורמט "HH\:MM\:SS", או "X ימים HH\:MM\:SS" אם יש ימים.
+// `durationToMinutesDisplay(timeStr)` – ממיר מחרוזת משך למספר דקות (מעוגל) כמחרוזת; אם לא תקין מחזיר "".
 
 // ממיר מחרוזת משך זמן (שעות:דקות:שניות / דקות:שניות / דקות) למילישניות ומחזיר לנאל אם לא תקין
 export function parseDurationToMs(timeStr) {

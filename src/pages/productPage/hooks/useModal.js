@@ -1,3 +1,6 @@
+//src\pages\productPage\hooks\useModal.js
+// useModal: הוק לניהול מודאל כללי – שומר דגל פתיחה/סגירה (modalOpen), תצורת מודאל דינמית (modalCfg), ומצביע לטיימר סגירה אוטומטית (autoCloseTimerRef); מספק פונקציות showModal לפתיחה עם תצורה מעודכנת ו־closeModal לסגירה; מחזיר את כל הממשק לשימוש בקומפוננטות.
+
 import { useRef, useState } from "react";
 
 

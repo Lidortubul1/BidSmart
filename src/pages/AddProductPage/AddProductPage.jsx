@@ -1,3 +1,7 @@
+//src\pages\AddProductPage\AddProductPage.jsx
+// עמוד הוספת מוצר (מוכר בלבד): מציג טופס ProductForm, מרכיב payload (כולל seller_id_number ו-product_status='for sale'),
+// שולח ל־addProduct, ומציג מודאל הצלחה/שגיאה עם ניתוב חזרה ללוח המוכר.
+
 import { useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { useNavigate } from "react-router-dom";

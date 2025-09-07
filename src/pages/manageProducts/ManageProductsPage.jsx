@@ -1,4 +1,6 @@
 // pages/manageProducts/ManageProductsPage.jsx
+// דף ניהול מוצרים (ManageProductsPage): מציג למוכר את כל מוצריו עם תפריט מסננים (סטטוסים שונים), חיפוש טקסטואלי, ייצוא לאקסל, ופתיחת כרטיס מוצר מפורט במודאל; הנתונים נטענים מ-getSellerProducts ומוצגים כ-ProductCardUnified.
+
 import { useState, useEffect, useRef } from "react";
 import styles from "./ManageProductsPage.module.css";
 import ProductCardUnified from "../../components/ProductCardUnified/ProductCardUnified"

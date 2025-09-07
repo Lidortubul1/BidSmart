@@ -1,4 +1,6 @@
 // src/pages/productPage/components/OrderDetails.jsx
+// פרטי הזמנה: מציג נתוני המכירה לקונה/מוכר/אדמין (תאריך, מחיר, שיטת מסירה וכתובת), קובע סטטוס חכם (נשלח/נאסף/נמסר/חסר כתובת), מציג פרטי קשר בהתאם לצופה, ומספק כפתורי פעולה: למוכר סימון “נשלח/נאסף” (markProductAsSent) ולקונה סימון “נמסר/נאסף” (markProductDelivered). לאחר אישור קבלה פותח מודאל דירוג עם StarRater ושומר דירוג (rateSeller). כולל עדכון אופטימי, סנכרון props→state, ובדיקת חוסר כתובת במשלוח.
+
 import React, { useEffect, useState } from "react";
 import styles from "../ProductPage.module.css";
 import { formatDateTimeHe } from "../utils/datetime";

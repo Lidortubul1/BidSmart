@@ -1,3 +1,8 @@
+//src\pages\AdminCategories\AdminCategories.jsx
+// ניהול קטגוריות למנהל: טעינת קטגוריות ותתי־קטגוריות, פתיחה/סגירה לצפייה,
+// הוספת קטגוריה (כולל יצירת תת־קטגוריה ברירת־מחדל "אחר"), הוספה/מחיקה של תתי־קטגוריות,
+// מחיקת קטגוריה שלמה עם אישור במודאל, ומניעת כפילויות בשם — הכל עם רענון רשימות בזמן אמת.
+
 import { useEffect, useState } from "react";
 import styles from "./AdminCategories.module.css";
 import {

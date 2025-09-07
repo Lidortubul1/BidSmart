@@ -1,4 +1,6 @@
 // src/pages/ProductPage/components/ReportIssue.jsx
+// דיווח על מוצר: כפתור “נתקלת בבעיה?” (דורש התחברות) שפותח טופס Contacts במצב report (קומפקטי, עם שדות משתמש לקריאה בלבד); לאחר שליחה נסגר ומוצגת הודעת תודה, נמנעת שליחה חוזרת.
+
 import React, { useState } from "react";
 import styles from "../ProductPage.module.css";
 import Contacts from "../../../components/contacts/contacts";

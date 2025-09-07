@@ -1,4 +1,6 @@
 // src/pages/ProductPage/components/ProductGallery.jsx
+// גלריית תמונות מוצר: מציגה את התמונה הנוכחית עם חיצים לדפדוף ומספר תמונה כולל, מאפשרת לפתוח תצוגה מוגדלת (modal overlay) בלחיצה; מקבלת מערך נתיבי תמונות ומנהלת מצב פנימי של אינדקס נבחר ופתיחה.
+
 import React, { useState } from "react";
 import styles from "../ProductPage.module.css";
 //גלריית תמונות

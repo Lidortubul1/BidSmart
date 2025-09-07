@@ -1,4 +1,6 @@
 // src/pages/home/HomePage.jsx
+// דף הבית (HomePage): עמוד נחיתה כללי לכלל המשתמשים — כולל בר קטגוריות (CategoryBar), כותרת שיווקית, קישורי התחברות/הרשמה, אזור הצגת נציגת AI, שדה חיפוש, ורשימת כל המוצרים (ProductList); מתאים למבקרים שאינם מחוברים.
+
 import ProductList from "../../components/productList/productList";
 import CategoryBar from "../../components/CategoryBar/CategoryBar";
 import { Link } from "react-router-dom";

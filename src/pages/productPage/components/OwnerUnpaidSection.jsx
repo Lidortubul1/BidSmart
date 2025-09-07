@@ -1,3 +1,6 @@
+//src\pages\productPage\components\OwnerUnpaidSection.jsx
+// בעל המוצר – “זוכה טרם שילם”: מציג גלריית תמונות ופרטי מוצר, טוען אפשרויות משלוח של המוכר (כולל כתובת איסוף) דרך useSellerOptions, מחשב דד־ליין לתשלום (24ש׳ מאז הצעת הזוכה) דרך usePaymentDeadline ומראה ספירה לאחור; כל עוד ניתן לשלם מציג אזהרה עם הזמן שנותר, ואם פג הזמן מציג הודעת ביטול זכייה והפריט ייחשב “לא נמכר”.
+
 import React from "react";
 import pageStyles from "../ProductPage.module.css";
 import ProductGallery from "./ProductGallery";
