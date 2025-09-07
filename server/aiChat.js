@@ -1,3 +1,6 @@
+//server\aiChat.js
+// צ'אט AI: קבלת הודעה מהמשתמש, שליחה ל־OpenAI עם הקשר קבוע, וקבלת תשובה חכמה מהמודל.
+
 const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");

@@ -1,3 +1,6 @@
+//server\admin.js
+// ממשק ניהול: סטטיסטיקות, ניהול משתמשים (חסימה/שחרור עם טיפול במוצרים/הרשמות ומיילים), שליפת מוצרים למוכר, וניהול קטגוריות (הוספה/מחיקה עם העברת מוצרים)
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
@@ -421,13 +424,6 @@ router.get("/users", async (req, res) => {
 });
 
 
-
-
-
-
-
-
-
 //ניהול משתמשים
 
 // פרטי משתמש בודד
@@ -812,37 +808,6 @@ router.get("/seller/:id_number/products", async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //ניהול קטגוריות
 
 // הוספת קטגוריה
@@ -993,27 +958,5 @@ router.get("/category/:id/subcategories", async (req, res) => {
   );
   res.json(rows);
 });
-
-
-
-
-
-
-
-
-
-
-//ניהול מוצרים
-
-
-
-
-
-
-
-
-
-
-
 
 module.exports = router;

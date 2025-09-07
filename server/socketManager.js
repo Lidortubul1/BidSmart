@@ -1,4 +1,6 @@
 // server/socketManager.js
+// מכירה חיה: טיימרים להתחלה/סיום, קביעת זוכה, עדכון הצעות מחיר, ניהול הצעות בזמן אמת, ושידור אירועים דרך Socket.IO.
+
 const db = require("./database");
 
 // טיימרים ונעילות
@@ -337,7 +339,7 @@ function setupSocket(io) {
         }
         // בדיקה: האם המכירה לא פעילה (לא לייב)
         if (!product.is_live) {
-          console.log("⌛ auction is not live");
+          console.log(" auction is not live");
           return;
         }
         // בדיקה: האם טרם התחיל הזמן שהוגדר להתחלה

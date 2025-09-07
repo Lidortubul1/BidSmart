@@ -1,4 +1,10 @@
 // server/liveChecker.js
+// מודול ניהול "זמן אמת" למכרזים:
+// - שולח מייל תזכורת ~10 דקות לפני התחלה לנרשמים למוצר.
+// - מפעיל מכרזים שהגיע מועד התחלתם (is_live=1) ומשדר דרך Socket.IO.
+// - סוגר מכרזים שהסתיימו לפי start_date+end_time (endAuction).
+// מיועד להרצה מחזורית (setInterval) מתוך server.js.
+
 const db = require("./database");
 const nodemailer = require("nodemailer");
 const { startAuction,endAuction } = require("./socketManager");
@@ -56,7 +62,7 @@ async function sendEmailReminder(email, product) {
       }
     }
   } catch (err) {
-    console.error("❌ שגיאה בשליחת התראות מוקדמות:", err.message);
+    console.error(" שגיאה בשליחת התראות מוקדמות:", err.message);
   }
 }
 
@@ -79,7 +85,7 @@ async function checkIsLiveProducts(io) {
       await startAuction(io, product_id, { force: true });
     }
   } catch (err) {
-    console.error("❌ checkIsLiveProducts error:", err.message);
+    console.error(" checkIsLiveProducts error:", err.message);
   }
 }
 

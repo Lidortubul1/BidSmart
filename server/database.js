@@ -1,4 +1,6 @@
 // server/routes/database.js
+// מנהל חיבור יחיד למסד הנתונים  עם הרצת שאילתות בתור (סדרתיות) וטיפול בניתוק/חיבור מחדש
+
 const mysql = require("mysql2/promise");
 
 let conn = null;

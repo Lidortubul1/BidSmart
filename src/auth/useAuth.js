@@ -1,3 +1,6 @@
+//src\auth\useAuth.js
+// הוק מותאם אישית: מחלץ את המשתמש מתוך LocalStorage בהעלאת הקומפוננטה ומחזיר אותו כמצב מקומי (user).
+
 import { useEffect, useState } from "react";
 
 export default function useAuth() {

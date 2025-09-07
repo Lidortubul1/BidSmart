@@ -1,4 +1,6 @@
 // server/Management.js
+// שליפת מוצרים למוכר/מנהל עם מסנני סטטוס/משלוח, כולל נתוני מכירה ותמונות
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");

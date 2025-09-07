@@ -1,4 +1,7 @@
 // components/ProtectedRoute/ProtectedRoute.jsx
+// מסלול מוגן: מוודא שמשתמש מחובר ולו תפקיד מתאים; אם לא – מפנה ל־Login או לדף הבית.  
+// תומך גם בטעינת סשן (loading) לפני החלטה על ניתוב.
+
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 

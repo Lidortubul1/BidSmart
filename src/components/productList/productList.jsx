@@ -1,3 +1,4 @@
+//src\components\productList\productList.jsx
 import { useEffect, useState } from "react";
 import Product from "../productCard/product";
 import styles from "./productList.module.css";

@@ -1,3 +1,6 @@
+//src\components\ChangePassword\ChangePassword.jsx
+// חלונית שינוי סיסמה: בדיקה שהסיסמה החדשה עומדת בדרישות, אימות כפול, שליחת בקשה לשרת, טיפול בשגיאות והצגת הצלחה/ביטול.
+
 import { useState } from "react";
 import styles from "./ChangePassword.module.css";
 import { changePassword } from "../../services/authApi";

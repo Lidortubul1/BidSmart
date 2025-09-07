@@ -1,4 +1,7 @@
 // src/components/tickets/RecentUnreadTickets.jsx
+// ווידג'ט “פניות אחרונות שלא נקראו”: טוען שלוש תיבות (כללי/אדמין-מוכר/דיווחים מאוחדים),
+// ממזג ומסנן כפילויות, מציג את 5 האחרונות עם TicketCard, ומעדכן סטטוס/מונה כשמסומנות כנקראו.
+
 import { useEffect, useMemo, useState } from "react";
 import { fetchTickets } from "../../services/contactApi";
 import TicketCard from "./TicketCard";
@@ -17,7 +20,7 @@ export default function RecentUnreadTickets() {
         setLoading(true);
         setErr("");
 
-        // ✅ מביאים כל סוג בנפרד:
+        //  מביאים כל סוג בנפרד:
         // general + admin_seller כרגיל, ו-report כהורים בלבד (כמו בדף הניהול)
         const [gen, admin, reports] = await Promise.all([
           fetchTickets({ type: "general", status: "unread" }),

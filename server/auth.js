@@ -1,3 +1,6 @@
+//server\auth.js
+// אימות ומשתמש: התחברות/הרשמה/התנתקות, בדיקת session, שינוי/איפוס סיסמה במייל, עדכון פרופיל (תמונות/כתובת/שיטת משלוח), העלאת ת"ז, ושדרוג לקוח→מוכר עם ולידציות.
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
@@ -413,7 +416,7 @@ router.put("/upgrade-role", upload.single("id_card_photo"), async (req, res) => 
       }
     }
 
-    // ✅ בדיקת כפילות ת״ז לפני עדכון (אם מנסים לשים/לעדכן ת״ז)
+    //  בדיקת כפילות ת״ז לפני עדכון (אם מנסים לשים/לעדכן ת״ז)
     if (idNumberNorm) {
       const [dup] = await conn.execute(
         "SELECT 1 FROM users WHERE id_number = ? AND email <> ? LIMIT 1",

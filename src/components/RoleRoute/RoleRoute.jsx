@@ -1,3 +1,7 @@
+//src\components\RoleRoute\RoleRoute.jsx
+// ניתוב לפי תפקיד: מציג קומפוננטה רק אם המשתמש מחזיק בתפקיד מתאים (roles).  
+// אם אין הרשאה → מפנה אוטומטית ללוח התפקיד שלו, או לדף הבית כברירת מחדל.  
+
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 

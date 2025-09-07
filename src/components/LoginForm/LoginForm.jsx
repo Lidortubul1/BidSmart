@@ -1,4 +1,6 @@
 // src/components/LoginForm/LoginForm.jsx
+// טופס התחברות: אימות אימייל/סיסמה, בדיקת חסימת משתמש, שמירת session בלוקאל סטורג', והצגת מודאל במקרה של שגיאה או חסימה.
+
 import { useState } from "react";
 import styles from "./LoginForm.module.css";
 import { useAuth } from "../../auth/AuthContext";

@@ -1,3 +1,6 @@
+//server\sale.js
+// ניהול מכירות ומשלוחים: עדכון כתובות/טלפון, שימוש בכתובת שמורה, סיכום הזמנה ותשלום, סימון נמסר/נשלח, שליפות ודירוג מוכר
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
@@ -76,14 +79,14 @@ if (!phone) {
         delivery_method,
         notes || null,
         winnerId,
-        phone,                      // 🆕
+        phone,                      
         product_id,
       ]
     );
 
     res.json({ success: true, message: "הפרטים עודכנו בהצלחה בטבלת sale" });
   } catch (err) {
-    console.error("❌ שגיאה בטיפול בפרטי המשלוח:", err);
+    console.error(" שגיאה בטיפול בפרטי המשלוח:", err);
     res.status(500).json({
       success: false,
       message: "שגיאה בשרת",
@@ -136,7 +139,7 @@ router.post("/update-user-address", async (req, res) => {
 
     res.json({ success: true, message: "כתובת נשמרה בפרופיל המשתמש" });
   } catch (err) {
-    console.error("❌ שגיאה בעדכון כתובת בפרופיל:", err.message);
+    console.error("שגיאה בעדכון כתובת בפרופיל:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בעדכון כתובת בפרופיל" });
   }
 });
@@ -176,7 +179,7 @@ router.post("/update-user-phone", async (req, res) => {
 
     return res.json({ success: true, message: "הטלפון נשמר בפרופיל המשתמש" });
   } catch (err) {
-    console.error("❌ שגיאה בעדכון טלפון:", err.message);
+    console.error(" שגיאה בעדכון טלפון:", err.message);
     return res.status(500).json({ success: false, message: "שגיאה בעדכון טלפון בפרופיל" });
   }
 });
@@ -321,7 +324,7 @@ router.post("/use-saved-address", async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("❌ שגיאה בשליחה אוטומטית:", err.message);
+    console.error(" שגיאה בשליחה אוטומטית:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
@@ -351,7 +354,7 @@ router.put("/mark-delivered", async (req, res) => {
 
     res.json({ success: true, message: "עודכן כבוצע בהצלחה" });
   } catch (err) {
-    console.error("❌ שגיאה בעדכון is_delivered:", err);
+    console.error(" שגיאה בעדכון is_delivered:", err);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
@@ -382,7 +385,7 @@ router.get("/all", async (req, res) => {
 
     res.json(formatted);
   } catch (err) {
-    console.error("❌ שגיאה בשליפת מכירות:", err.message);
+    console.error(" שגיאה בשליפת מכירות:", err.message);
     res.status(500).json({ error: "שגיאה בשליפת מכירות" });
   }
 });
@@ -401,7 +404,7 @@ router.get("/user/:id_number", async (req, res) => {
     );
     res.json(results);
   } catch (err) {
-    console.error("❌ שגיאה בשליפת מכירות למשתמש:", err.message);
+    console.error(" שגיאה בשליפת מכירות למשתמש:", err.message);
     res.status(500).json({ error: "שגיאה בשליפת מכירות למשתמש" });
   }
 });
@@ -467,7 +470,7 @@ router.post("/save-order-summary", async (req, res) => {
 
     res.json({ success: true, paypalUrl: approveUrl });
   } catch (err) {
-    console.error("❌ שגיאה בשמירת סיכום ההזמנה:", err.message);
+    console.error(" שגיאה בשמירת סיכום ההזמנה:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
@@ -483,7 +486,7 @@ router.put("/mark-as-sent/:productId", async (req, res) => {
     ]);
     res.json({ message: "עודכן בהצלחה" });
   } catch (error) {
-    console.error("❌ שגיאה בעדכון sent:", error);
+    console.error(" שגיאה בעדכון sent:", error);
     res.status(500).json({ message: "שגיאה בעדכון" });
   }
 });
@@ -494,7 +497,7 @@ router.put("/mark-as-sent/:productId", async (req, res) => {
 router.get("/seller-delivery-options/:productId", async (req, res) => {
   try {
     const { productId } = req.params;
-    const conn = await db.getConnection(); // ✨ כמו בשאר הפונקציות
+    const conn = await db.getConnection(); 
 
     const [rows] = await conn.query(
       `SELECT 
@@ -538,7 +541,7 @@ router.get("/seller-delivery-options/:productId", async (req, res) => {
 
     res.json({ option, pickupAddress });
   } catch (err) {
-    console.error("❌ seller-delivery-options error:", err.message);
+    console.error(" seller-delivery-options error:", err.message);
     res.status(500).json({ option: "delivery", pickupAddress: null });
   }
 });
@@ -618,7 +621,7 @@ router.post("/rate-seller", async (req, res) => {
       seller_avg: sellerAvg,
     });
   } catch (err) {
-    console.error("❌ rate-seller error:", err.message || err);
+    console.error(" rate-seller error:", err.message || err);
     return res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });

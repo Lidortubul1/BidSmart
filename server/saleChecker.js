@@ -1,8 +1,11 @@
+//server\saleChecker.js
+// בדיקת מכירות שלא שולמו: קידום הזוכה למקום 2/3 ועדכון/התראה במייל לזוכה או למוכר
+
 const db = require("./database");
 const nodemailer = require("nodemailer");
 
 async function checkUnpaidWinners() {
-  console.log("🔍 בודק תשלומים שלא בוצעו...");
+  console.log(" בודק תשלומים שלא בוצעו...");
 
   try {
     const conn = await db.getConnection();
@@ -42,13 +45,13 @@ async function checkUnpaidWinners() {
       }
     }
   } catch (err) {
-    console.error("❌ שגיאה בבדיקת תשלומים:", err);
+    console.error(" שגיאה בבדיקת תשלומים:", err);
   }
 }
 
 async function promoteWinner(conn, sale, newWinnerId) {
   console.log(
-    `🔁 מעבירים זכייה ל־${newWinnerId} עבור product_id ${sale.product_id}`
+    ` מעבירים זכייה ל־${newWinnerId} עבור product_id ${sale.product_id}`
   );
 
   await conn.query(
@@ -65,7 +68,7 @@ async function promoteWinner(conn, sale, newWinnerId) {
 
 async function notifySeller(conn, sale) {
   console.log(
-    `📩 אף אחד לא שילם עבור product_id ${sale.product_id}, שולחים למוכר`
+    ` אף אחד לא שילם עבור product_id ${sale.product_id}, שולחים למוכר`
   );
 
   await sendEmail(
@@ -98,8 +101,8 @@ async function sendEmail(idNumber, message) {
   };
 
   transporter.sendMail(mailOptions, (err, info) => {
-    if (err) console.error("❌ שגיאה בשליחת מייל:", err.message);
-    else console.log("📧 מייל נשלח ל:", email);
+    if (err) console.error(" שגיאה בשליחת מייל:", err.message);
+    else console.log(" מייל נשלח ל:", email);
   });
 }
 

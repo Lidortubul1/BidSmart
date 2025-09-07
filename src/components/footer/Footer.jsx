@@ -1,3 +1,6 @@
+//src\components\footer\Footer.jsx
+// פוטר האתר: מציג פס צור קשר (Contacts) וטקסט זכויות יוצרים של BidSmart.
+
 import styles from "./Footer.module.css";
 import Contacts from "../contacts/contacts";
 

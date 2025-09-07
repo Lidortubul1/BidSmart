@@ -1,4 +1,6 @@
 // server/storage.js
+//עם שם ייחודי uploads שמירת קבצים בתיקיית multer הגדרת אחסון
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -17,9 +19,8 @@ const fs = require("fs");
 //     //data.now() - מספר המילישניות שחלפו מ1970
 //     const uniqueName = Date.now() + "_" + file.originalname;
 //     cb(null, uniqueName);
-//   },
-// });
-
+//   },
+// });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads"),

@@ -1,4 +1,6 @@
 // src/components/CustomModal/CustomModal.jsx
+// מודאל כללי מותאם: תצוגה בפורטל עם כותרת/תוכן (גם children), כפתורי אישור/ביטול/אקסטרה/דלג, סגירה ב־ESC/קליק רקע (ניתן לנעול), ותמיכה בפריסה מימין לשמאל.
+
 import { createPortal } from "react-dom";
 import { useEffect } from "react";
 import styles from "./CustomModal.module.css";
@@ -17,7 +19,7 @@ export default function CustomModal({
   onClose,
   hideClose = false,
   disableBackdropClose = false,
-  children, // 👈 הוספה
+  children, 
 }) {
   const handleBackgroundClick = (e) => {
     if (e.target === e.currentTarget && !disableBackdropClose) {
@@ -46,7 +48,7 @@ export default function CustomModal({
 
         <div className={styles.modalMessage}>
           {children
-            ? children                                           // 👈 מציג children אם קיימים
+            ? children                                           //  מציג children אם קיימים
             : typeof message === "string"
             ? message.split("\n").map((line, i) => (
                 <span key={i}>

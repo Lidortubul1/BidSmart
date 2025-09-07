@@ -1,3 +1,7 @@
+//src\components\search\SearchResultsPage.jsx
+// עמוד תוצאות חיפוש: מציג רשימת מוצרים מסוננים לפי שאילתה, קטגוריה ותת־קטגוריה.  
+// כולל כותרת מתאימה וכפתור חזרה ללוח הראשי בהתאם לתפקיד המשתמש.  
+
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import ProductList from "../productList/productList";

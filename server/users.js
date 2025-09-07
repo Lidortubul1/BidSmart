@@ -1,3 +1,6 @@
+//server\users.js
+// ניהול משתמשים למנהל מערכת: שליפה, עדכון סטטוס/תפקיד, מחיקה וצפייה בפרטי משתמש
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");

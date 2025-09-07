@@ -1,3 +1,8 @@
+//src\components\StarRater\StarRater.jsx
+// קומפוננטת דירוג בכוכבים: מציגה 5 כוכבים עם אפשרות מעבר עכבר ובחירה.  
+// התצוגה משתנה לפי hover או הערך הנבחר (value).  
+// שולחת ערך חדש חזרה דרך onChange בעת לחיצה.  
+
 import { useState } from "react";
 import styles from "./StarRater.module.css";
 

@@ -1,3 +1,8 @@
+//src\components\productCard\product.jsx
+// כרטיס מוצר כללי: מציג תמונה ראשונה (או תמונת ברירת מחדל),
+// שם, מחיר פתיחה, תאריך ושעת התחלת מכירה, ותיאור (אם showDescription=true).
+// עטוף בקישור לעמוד פרטי המוצר לפי product_id.
+
 import { Link } from "react-router-dom";
 import styles from "./productCard.module.css";
 

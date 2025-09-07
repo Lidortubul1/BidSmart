@@ -1,4 +1,6 @@
 //LiveAuction\LiveAuction.jsx
+// קומפוננטת מכירה חיה: התחברות Socket.IO לחדר מוצר, ניהול קאונטדאונים (עד התחלה/סיום ו־15ש׳ לאחר כל הצעה), טיפול בהצעות והזרמה בזמן אמת, מצבים לפני/בזמן/אחרי מכירה, סיום מפוקח בשרת, ותשלום לזוכה דרך PayPal.
+
 import styles from "./LiveAuction.module.css";
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";

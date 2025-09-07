@@ -1,3 +1,6 @@
+//src\app\App.jsx
+// אפליקציית React הראשית: הגדרת כל הראוטים (כולל מסלולים מוגנים ותלויי־תפקיד), פריסת Navbar/Footer, טעינת לוחות Buyer/Seller/Admin, עמודי אדמין, תמיכה במכרז חי (LiveAuction), דפי תשלום/משלוח, וחיבור לצ'אט ה-AI הגלובלי.
+
 import {  Routes, Route } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 

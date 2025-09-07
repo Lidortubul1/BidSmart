@@ -1,3 +1,8 @@
+//src\components\navbar\Navbar.jsx
+// סרגל ניווט עליון: מציג לוגו וקישורי אתר דינמיים לפי תפקיד המשתמש (buyer/seller/admin),
+// כולל פרופיל, "ההצעות שלי", הוספה/ניהול מוצרים וסקשני אדמין, וכן כפתור התנתקות.
+// מחשב נתיב בית מותאם לכל תפקיד ומשתמש ב-AuthContext ו-react-router לניווט.
+
 import styles from "./Navbar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";

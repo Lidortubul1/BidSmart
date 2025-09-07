@@ -1,8 +1,16 @@
 // src/components/ProductCardUnified/ProductCardUnified.jsx
-import { useEffect, useState } from "react";            // ▼ חדש
+// כרטיס מוצר מאוחד (Seller/Admin):
+// מציג כרטיס מוצר בסיסי + פוטר עם תגים דינמיים:
+// - סטטוס מוצר (for sale / sale / not sold / blocked / admin blocked)
+// - כמות נרשמים (נטען מהשרת)
+// - למוצר שנמכר: סטטוס מסירה (משלוח/איסוף, נשלח/נמסר)
+// - בפרופיל מנהל: שם ות״ז המוכר
+// כולל פעולות: “צפייה בפרטים” ולמנהל גם “מחק”; תומך בתוכן נוסף דרך rightExtra.
+
+import { useEffect, useState } from "react";            
 import Product from "../productCard/product";
 import styles from "./ProductCardUnified.module.css";
-import { getRegistrationsCount } from "../../services/quotationApi"; // ▼ חדש
+import { getRegistrationsCount } from "../../services/quotationApi"; 
 
 export default function ProductCardUnified({
   product,
@@ -11,7 +19,7 @@ export default function ProductCardUnified({
   onDelete,
   rightExtra,
 }) {
-  // ▼ ספירת נרשמים
+  //  ספירת נרשמים
   const [registrations, setRegistrations] = useState(null); // null=טוען, מספר=תוצאה
 
   useEffect(() => {

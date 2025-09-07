@@ -1,4 +1,6 @@
-// server/quotation.router.js  (או היכן שהקובץ הזה נמצא אצלך)
+//server\quotation.js
+// ניהול הצעות והרשמות: ספירת נרשמים, הרשמה/הצעת מחיר, סטטוס תשלום (לבידר/זוכה), שליפה (לפי מוצר/משתמש/כולם) ומחיקה
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
@@ -6,13 +8,12 @@ const nodemailer = require("nodemailer");
 
 // עזר לנרמול ערך is_paid מכל סוג (0/1, yes/no, true/false, מחרוזות)
 function normalizePaid(val) {
-if (val === null || val === undefined) return false;
+  if (val === null || val === undefined) return false;
   const s = String(val).trim().toLowerCase();
   return val === true || val === 1 || s === "1" || s === "yes" || s === "true";
 }
 
-
-// פונקציה שמחשבת כמה אנשים נרשמו לכל מוצר לפי המזהה שלו 
+// פונקציה שמחשבת כמה אנשים נרשמו לכל מוצר לפי המזהה שלו
 router.get("/count", async (req, res) => {
   const productId = Number(req.query.product_id || 0);
   if (!productId) {
@@ -35,7 +36,7 @@ router.get("/count", async (req, res) => {
 
 // שליחת הרשמה או הצעת מחיר
 router.post("/", async (req, res) => {
-const { product_id, buyer_id_number, price } = req.body;
+  const { product_id, buyer_id_number, price } = req.body;
 
   console.log(" קיבלנו בקשת הצעה/הרשמה:", {
     product_id,
@@ -133,7 +134,6 @@ const { product_id, buyer_id_number, price } = req.body;
         .json({ success: false, message: "הצעה נמוכה ממחיר פתיחה" });
     }
 
-
     //  בדיקת הצעה קיימת
     const [existingBid] = await conn.execute(
       "SELECT * FROM quotation WHERE product_id = ? AND buyer_id_number = ?",
@@ -177,7 +177,6 @@ const { product_id, buyer_id_number, price } = req.body;
   }
 });
 
-
 // שליפת כל ההצעות של משתמש לפי תעודת זהות
 router.get("/user/:id_number", async (req, res) => {
   const idNumber = req.params.id_number;
@@ -210,7 +209,7 @@ router.get("/user/:id_number", async (req, res) => {
   }
 });
 
-/* 🆕 ----------------------------------------------------
+/*  ----------------------------------------------------
    סטטוס תשלום (ישיר לבידר / לזוכה של המוצר)
    שים לב: חייב לבוא לפני הראוט הכללי '/:product_id'
 ------------------------------------------------------ */
@@ -347,7 +346,5 @@ router.delete("/:productId/:buyerId", async (req, res) => {
     res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
-
-
 
 module.exports = router;

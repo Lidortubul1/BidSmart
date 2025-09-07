@@ -1,3 +1,6 @@
+//src\components\AIChat\AIChat.jsx
+// ווידג'ט צ׳אט AI צף: פתיחה/סגירה, ניהול היסטוריית הודעות, שליחת שאלה לשרת וקבלת תשובת AI, ותצוגת קלט/שליחה למשתמש.
+
 import { useState } from "react";
 import axios from "axios";
 import styles from "./AIChat.module.css";

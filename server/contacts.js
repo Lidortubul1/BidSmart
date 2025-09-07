@@ -1,4 +1,6 @@
 // server/routes/contacts.js
+// ניהול פניות (Tickets): סינון ושליפה, הודעות, עדכון סטטוס, יצירת דיווח/פנייה (כולל מייל), הודעות למוכר והערות פנימיות (Admin)
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");

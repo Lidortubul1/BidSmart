@@ -1,3 +1,6 @@
+//src\components\ProductDetailsModal\ProductDetailsModal.jsx
+//// מודאל פרטי מוצר (מוכר/מנהל): מציג שם/מחיר/סטטוס (עם נורמליזציה), ובמוצר שנמכר מציג פרטי משלוח/איסוף ומאפשר סימון “נשלח/נמסר” (markProductAsSent) עם הודעת הצלחה (CustomModal, Portal).
+
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "./ProductDetailsModal.module.css";
@@ -12,13 +15,13 @@ export default function ProductDetailsModal({ product, onClose }) {
     setShowConfirmModal(true);
   };
 
-  // ▼ נורמליזציה: גם רווחים וגם קווים תחתונים ייחשבו כרווח
+  //  נורמליזציה: גם רווחים וגם קווים תחתונים ייחשבו כרווח
   const raw = String(product.status || product.product_status || "")
     .trim()
     .toLowerCase();
   const normStatus = raw.replace(/[_\s]+/g, " "); // למשל "for_sale" → "for sale"
 
-  // ▼ מפה ידידותית לתצוגה
+  //  מפה ידידותית לתצוגה
   let statusText = "לא ידוע";
   let statusTone = "toneGray";
   let statusIcon = "info";
@@ -56,12 +59,12 @@ export default function ProductDetailsModal({ product, onClose }) {
           <p><strong>שם:</strong> {product.product_name}</p>
           <p><strong>מחיר:</strong> {product.current_price} ₪</p>
 
-          {/* ▼ להציג את הסטטוס המתורגם, לא את rawStatus */}
+          {/*  להציג את הסטטוס המתורגם, לא את rawStatus */}
           <p>
             <strong>סטטוס:</strong> {statusText}
           </p>
 
-          {/* ▼ להשתמש ב-normStatus כדי לוודא שלא תיפלי על אותיות/קווים תחתונים */}
+          {/*  להשתמש ב-normStatus כדי לוודא שלא תיפלי על אותיות/קווים תחתונים */}
           {normStatus === "sale" && (
             <>
               {deliveryMethod === "delivery" ? (

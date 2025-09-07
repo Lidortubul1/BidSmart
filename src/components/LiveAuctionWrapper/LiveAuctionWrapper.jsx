@@ -1,4 +1,6 @@
 // LiveAuctionWrapper.jsx
+// מעטפת למכירה חיה: בודקת אם המשתמש מחובר עם ת"ז, אחרת מציגה הודעת התחברות. אם כן — שולחת productId ו־buyerId לקומפוננטת LiveAuction.
+
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import LiveAuction from "../LiveAuction/LiveAuction";

@@ -1,3 +1,6 @@
+//src\components\EditUserModal\EditUserModal.jsx
+// מודאל עריכת משתמש: טופס אדמין לעדכון פרטי משתמש (שם, טלפון, תפקיד, דירוג למוכר, כתובת, ת״ז וקבצים, תמונת פרופיל), כולל תצוגה/מחיקת תמונה, ולידציה קלה ושיגור ל-onSave.
+
 import { useState } from "react";
 import styles from "./EditUserModal.module.css"
 import {

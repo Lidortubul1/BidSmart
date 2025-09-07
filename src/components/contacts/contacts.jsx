@@ -1,3 +1,6 @@
+//src\components\contacts\contacts.jsx
+// קומפוננטת “צור קשר”: טופס כללי/דיווח על מוצר (strip/compact/page), עם ולידציות, נעילת שדות למשתמש מחובר, שליחה ל־API, מודאלי הצלחה/שגיאה והתאמה ל־UX של עמוד או פס תחתון.
+
 import { useState, useMemo } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import CustomModal from "../CustomModal/CustomModal";
@@ -88,7 +91,7 @@ export default function Contacts({
     
       setModal({
         open: true,
-        title: "נשלח ✅",
+        title: "נשלח ",
         msg: mode === "report"
           ? "הדיווח נקלט ונבדק."
           : "תודה על הפנייה! נחזור אלייך במייל שהזנת.",

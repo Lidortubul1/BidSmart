@@ -1,3 +1,6 @@
+//server\categories.js
+// שליפת קטגוריות ותתי קטגוריות מהמסד והחזרתן במבנה מקונן
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");

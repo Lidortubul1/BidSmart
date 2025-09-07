@@ -1,3 +1,6 @@
+//src\components\AdminProductDetails\AdminProductDetails.jsx
+// פרטי מוצר (אדמין): טעינה ועריכת נתוני מוצר (שם, תיאור, מחיר, סטטוס), שינוי קטגוריה/תת־קטגוריה, קביעת תאריך/שעת התחלה, העלאה/מחיקה ותצוגה מוגדלת של תמונות, ושמירת שינויים עם מודאלים.
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {

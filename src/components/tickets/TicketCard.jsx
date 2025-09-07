@@ -1,4 +1,8 @@
 // src/components/tickets/TicketCard.jsx
+// כרטיס פנייה (כללי/דיווח/מקובץ): מציג שרשור הודעות, טוען ילדים למוצר, מחשב סטטוסים מאוגדים,
+// משנה סטטוס (עם cascade), שולח מענה למשתמש/הודעה למוכר, שומר הערת מנהל פנימית,
+// מאפשר חסימת מוצר ושליחת מייל לנרשמים, וכולל גלילה, תגים ומטא (ספירת דיווחים/תאריכים).
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   fetchTicketMessages,
@@ -372,7 +376,7 @@ const newReportsCount = useMemo(() => {
 
 
 console.log(" כמות הודעות",reportersCount);
-  // ✅ מעדכנים את הלייבל של השולח כך שישתמש קודם במידע שמגיע בכל הודעה מהשרת (first_name/last_name/email),
+  //  מעדכנים את הלייבל של השולח כך שישתמש קודם במידע שמגיע בכל הודעה מהשרת (first_name/last_name/email),
   //   ואם אין — יפול ל-reporterMap.
   const senderLabel = (m) => {
     if (m.is_internal) return "הערת מנהל (פנימית)";
@@ -568,7 +572,7 @@ const reportersLine = isGrouped
                     {sendingSeller && <small className={s.sending}>שולח…</small>}
                     {mailInfo && (
                       <small className={s.mailNote}>
-                        {mailInfo.sent ? "✅ נשלח גם למייל המוכר" : `⚠️ מייל לא נשלח: ${mailInfo.reason || "בדקי הגדרות SMTP/Gmail בשרת"}`}
+                        {mailInfo.sent ? " נשלח גם למייל המוכר" : ` מייל לא נשלח: ${mailInfo.reason || "בדקי הגדרות SMTP/Gmail בשרת"}`}
                       </small>
                     )}
                   </div>

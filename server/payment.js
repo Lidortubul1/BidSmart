@@ -1,3 +1,11 @@
+//server\payment.js
+// מודול תשלומים (PayPal):
+// - יוצר הזמנה ב-PayPal (create-order) לפי מחיר המוצר העדכני.
+// - מאשר תשלום (confirm): מסמן את הצעת הזוכה כ-is_paid='yes',
+//   מעדכן product_status='sale' ומוסיף/מעדכן רשומת sale (end_date, final_price, buyer).
+// - כולל השגת access token מ-PayPal וקריאות API לסנדבוקס.
+// - טיפול בשגיאות וטרנזקציות DB להבטחת עקביות.
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
@@ -8,9 +16,6 @@ const PAYPAL_CLIENT_ID =
 const PAYPAL_CLIENT_SECRET =
   "ECwmbEtqsdnepDeVFSN2sEQjVAcVc4KgGq1usvIT9EK4XcYEnUc7J3ZG90jv2W1S9SdyyqXMpnT7fbow";
 const BASE = "https://api-m.sandbox.paypal.com";
-
-
-
 
 // קבלת access token מ-PayPal
 async function getAccessToken() {
@@ -86,7 +91,7 @@ console.log({product_id});
     });
 
     const data = await response.json();
-    console.log("✅ PayPal response:", data); // דיבאג חשוב
+    console.log(" PayPal response:", data); // דיבאג חשוב
 
     res.json(data);
   } catch (err) {
@@ -182,14 +187,9 @@ router.post("/confirm", async (req, res) => {
     return res.json({ success: true, product_id: productId });
   } catch (err) {
     await conn.rollback();
-    console.error("❌ confirmPayment error:", err);
+    console.error(" confirmPayment error:", err);
     return res.status(500).json({ success: false, message: "שגיאה בשרת" });
   }
 });
-
-
-
-
-
 
 module.exports = router;

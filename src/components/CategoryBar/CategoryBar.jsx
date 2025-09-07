@@ -1,3 +1,6 @@
+//src\components\CategoryBar\CategoryBar.jsx
+//// סרגל קטגוריות ותתי־קטגוריות: שליפה מהשרת, בחירת קטגוריה ראשית, הצגת תתי־קטגוריות, וניווט לתוצאות חיפוש לפי בחירה.
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./CategoryBar.module.css";
@@ -11,12 +14,12 @@ export default function CategoryBar() {
   useEffect(() => {
     async function loadCategories() {
       const data = await fetchCategoriesWithSubs();
-      setCategories(data); // שימי לב: זה צריך להיות מערך, לא אובייקט!
+      setCategories(data); 
     }
     loadCategories();
   }, []);
 
-  // מעבר עם id, כמו שצריך!
+  // מעבר עם id
   const handleNavigate = (catId, subId = "") => {
     const url = subId
       ? `/search-results?category=${catId}&sub=${subId}`

@@ -1,12 +1,15 @@
 // src/components/tickets/TicketsBoard.jsx
+// לוח פניות מנהל: טוען פניות עם מסננים (סוג/סטטוס/חיפוש), מקבץ דיווחים לפי product_id
+// (איחוד אב+ילדים) עם סטטוס אב עקבי, ממיין/מסנן, ומציג כרטיסי TicketCard כולל עדכון סטטוס בזמן אמת.
+
 import React, { useEffect, useMemo, useState } from "react";
 import TicketCard from "./TicketCard";
 import { fetchTickets } from "../../services/contactApi";
 import s from "./TicketsBoard.module.css";
 
 export default function TicketsBoard() {
-  const [type, setType] = useState("");            // '' | 'general' | 'report'
-  const [status, setStatus] = useState("unread");  // ברירת־מחדל: לא נקראו
+  const [type, setType] = useState(""); // '' | 'general' | 'report'
+  const [status, setStatus] = useState("unread"); // ברירת־מחדל: לא נקראו
   const [q, setQ] = useState("");
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,7 +28,11 @@ export default function TicketsBoard() {
   function buildParentsIndex(reportParentsRows = []) {
     const map = new Map(); // key: product_id -> ticket row (parent)
     for (const r of reportParentsRows) {
-      if (r.type_message === "report" && !r.related_ticket_id && r.product_id != null) {
+      if (
+        r.type_message === "report" &&
+        !r.related_ticket_id &&
+        r.product_id != null
+      ) {
         map.set(String(r.product_id), r);
       }
     }
@@ -51,7 +58,7 @@ export default function TicketsBoard() {
             reporterMap: {},
             parentTicketId: null,
             parentStatus: null, // נשתמש בו לסינון
-            status: null,       // יוצג בצ'יפ — ניישר לסטטוס האב
+            status: null, // יוצג בצ'יפ — ניישר לסטטוס האב
             created_at: t.created_at,
             updated_at: t.updated_at,
           });
@@ -73,14 +80,17 @@ export default function TicketsBoard() {
             last_name: t.last_name,
             email: t.email,
           };
-          if (new Date(t.updated_at) > new Date(g.updated_at)) g.updated_at = t.updated_at;
+          if (new Date(t.updated_at) > new Date(g.updated_at))
+            g.updated_at = t.updated_at;
         } else {
           // אב הופיע בפלט הראשי
           g.parentTicketId = t.ticket_id;
           g.parentStatus = t.status;
           g.status = t.status;
-          if (new Date(t.updated_at) > new Date(g.updated_at)) g.updated_at = t.updated_at;
-          if (new Date(t.created_at) < new Date(g.created_at)) g.created_at = t.created_at;
+          if (new Date(t.updated_at) > new Date(g.updated_at))
+            g.updated_at = t.updated_at;
+          if (new Date(t.created_at) < new Date(g.created_at))
+            g.created_at = t.created_at;
         }
       } else {
         // לא report
@@ -97,8 +107,10 @@ export default function TicketsBoard() {
           g.parentStatus = p.status;
           g.status = p.status;
           // נעדכן טווחי תאריכים לפי האב
-          if (new Date(p.updated_at) > new Date(g.updated_at)) g.updated_at = p.updated_at;
-          if (new Date(p.created_at) < new Date(g.created_at)) g.created_at = p.created_at;
+          if (new Date(p.updated_at) > new Date(g.updated_at))
+            g.updated_at = p.updated_at;
+          if (new Date(p.created_at) < new Date(g.created_at))
+            g.created_at = p.created_at;
         }
       }
     }
@@ -112,7 +124,8 @@ export default function TicketsBoard() {
     // מיון לפי עדכון אחרון
     return [...grouped, ...others].sort(
       (a, b) =>
-        new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+        new Date(b.updated_at || b.created_at) -
+        new Date(a.updated_at || a.created_at)
     );
   }
 
@@ -157,7 +170,9 @@ export default function TicketsBoard() {
           } else {
             // מפרידים בין קבוצות report לאחרים כדי לא לגעת באחרים
             const nonGroups = grouped.filter((t) => !t.isGroupedReport);
-            const groupsOnly = grouped.filter((t) => t.isGroupedReport && keepGroup(t));
+            const groupsOnly = grouped.filter(
+              (t) => t.isGroupedReport && keepGroup(t)
+            );
             finalList = [...groupsOnly, ...nonGroups].sort(
               (a, b) =>
                 new Date(b.updated_at || b.created_at) -
@@ -175,7 +190,9 @@ export default function TicketsBoard() {
         setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [params, type, status]);
 
   // עדכון סטטוס מכרטיס: אם זה כרטיס קבוצה — מעדכנים parentStatus+status כדי שהסינון יישאר עקבי
@@ -183,8 +200,11 @@ export default function TicketsBoard() {
     setTickets((list) => {
       const updated = list.map((t) => {
         const isGroup =
-          t.isGroupedReport && (t.ticket_id === ticketId || t.parentTicketId === ticketId);
-        return isGroup ? { ...t, parentStatus: newStatus, status: newStatus } : t;
+          t.isGroupedReport &&
+          (t.ticket_id === ticketId || t.parentTicketId === ticketId);
+        return isGroup
+          ? { ...t, parentStatus: newStatus, status: newStatus }
+          : t;
       });
 
       // אם המסנן פעיל — מסננים קבוצות לפי parentStatus
@@ -203,7 +223,11 @@ export default function TicketsBoard() {
       <div className={s.filters}>
         <div className={s.field}>
           <label className={s.label}>סוג פנייה</label>
-          <select className={s.select} value={type} onChange={(e) => setType(e.target.value)}>
+          <select
+            className={s.select}
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+          >
             <option value="">הכל</option>
             <option value="general">כללי</option>
             <option value="report">דיווח</option>
@@ -212,7 +236,11 @@ export default function TicketsBoard() {
 
         <div className={s.field}>
           <label className={s.label}>סטטוס</label>
-          <select className={s.select} value={status} onChange={(e) => setStatus(e.target.value)}>
+          <select
+            className={s.select}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
             <option value="">הכל</option>
             <option value="unread">לא טופל</option>
             <option value="progress">בטיפול</option>

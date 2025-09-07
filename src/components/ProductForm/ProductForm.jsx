@@ -1,3 +1,6 @@
+//src\components\ProductForm\ProductForm.jsx
+// טופס הוספת מוצר: בחירת שם/תאריך+שעת התחלה (מאוחדים ל-start_date), משך מכירה (end_time), מחיר ו־VAT, סכום קפיצת הצעה, תיאור, קטגוריה/תת־קטגוריה והעלאת תמונות; ולידציה בסיסית והעברתו ל-onSubmit בפורמט מוכן למסד.
+
 import { useState, useEffect } from "react";
 import { fetchCategoriesWithSubs } from "../../services/categoriesApi";
 import CustomModal from "../CustomModal/CustomModal";

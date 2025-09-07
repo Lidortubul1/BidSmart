@@ -1,3 +1,6 @@
+//server\auction.js
+// מכירה: סיום מכירה לפי productId, בדיקת זוכה, עדכון סטטוס מוצר (עם/בלי זוכה) וסימון כלא פעיל.
+
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
