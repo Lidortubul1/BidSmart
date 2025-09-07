@@ -1,3 +1,9 @@
+//src\index.js
+// קובץ הכניסה הראשי של האפליקציה
+// טוען את ה־App ומריץ אותו בתוך BrowserRouter לניהול ניווט
+// עוטף את האפליקציה ב־AuthProvider כדי לספק הקשר משתמש לכל הרכיבים
+// נטען גם עיצוב בסיסי של Bootstrap
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";

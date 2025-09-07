@@ -1,4 +1,6 @@
 // services/categoryApi.js
+// categoryApi.js: שירות קטגוריות — מביא קטגוריות עם תתי-קטגוריות מהשרת (`/api/categories/category-with-subs`) ומחזיר אובייקט נוח לשימוש (קטגוריה → מערך תתי-קטגוריות).
+
 import axios from "axios";
 
 axios.defaults.baseURL = "http://localhost:5000";

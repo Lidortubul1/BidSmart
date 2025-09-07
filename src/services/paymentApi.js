@@ -1,4 +1,5 @@
 // src/services/paymentApi.js
+// paymentApi.js: שירות תשלומים — כולל אישור תשלום (`confirmPayment`) ויצירת הזמנת PayPal (`createOrder`).
 
 import axios from "axios";
 
@@ -17,7 +18,7 @@ export async function confirmPayment(product_id) {
 
     return response.data;
   } catch (error) {
-    console.error("❌ שגיאה בקריאת confirmPayment:", error);
+    console.error(" שגיאה בקריאת confirmPayment:", error);
     return { success: false, message: "שגיאה בחיבור לשרת" };
   }
 }

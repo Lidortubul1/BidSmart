@@ -1,3 +1,6 @@
+//src\services\adminCategoryApi.js
+// adminCategoryApi: מודול API לניהול קטגוריות ותתי־קטגוריות — כולל שליפה, הוספה ומחיקה של קטגוריות ותתי־קטגוריות עבור ממשק אדמין.
+
 import axios from "axios";
 
 axios.defaults.baseURL = "http://localhost:5000";

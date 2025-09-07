@@ -1,4 +1,6 @@
 // src/services/contactApi.js
+// contactApi.js: שירות פניות/טיקטים — כולל פונקציות לשליפת טיקטים והודעות, עדכון סטטוס, יצירת פנייה כללית או דיווח על מוצר, שליחת הודעות ומענים (כולל מנהל), ותמיכה בהוספת הערות פנימיות.
+
 import axios from "axios";
 axios.defaults.baseURL = "http://localhost:5000";
 axios.defaults.withCredentials = true;
@@ -14,7 +16,7 @@ export async function fetchTickets(params = {}) {
 }
 
 // src/services/contactApi.js
-// ⬅️ שינוי קטן: הוספת params ל-axios.get
+// שינוי קטן: הוספת params ל-axios.get
 export async function fetchTicketMessages(ticketId, params = {}) {
   const res = await axios.get(`/api/contacts/${ticketId}/messages`, { params });
   return res.data;

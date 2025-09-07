@@ -1,3 +1,6 @@
+//src\services\adminApi.js
+// adminApi: מודול קריאות ניהול לשרת — סטטיסטיקות לדשבורד (רווחים, הרשמות, מכירות לפי קטגוריה/חודש, משפך, טרנדים, מוכרים מובילים), וריכוז ניהול משתמשים (רשימה, פרטי משתמש, עדכון סטטוס) ומוצרים של מוכר לפי ת"ז.
+
 import axios from "axios";
 
 const BASE = "http://localhost:5000/api/admin";
@@ -145,13 +148,6 @@ export async function getProductsStatusTrend({ from, to, group = "month", seller
     return [];
   }
 }
-
-
-
-
-
-
-
 
 //פונקציות של ניהול משתמשים למנהל
 

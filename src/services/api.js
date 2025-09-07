@@ -1,10 +1,10 @@
+//src\services\api.js
+// api.js: שירות כללי לניהול משתמשים — שליפה, עדכון סטטוס ותפקיד, ומחיקה דרך קריאות ל־API.
+
 import axios from "axios";
 
 axios.defaults.baseURL = "http://localhost:5000";
 axios.defaults.withCredentials = true;
-
-
-
 
 //  ניהול משתמשים ע"י מנהל
 export async function getAllUsers() {

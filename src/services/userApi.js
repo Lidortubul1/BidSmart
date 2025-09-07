@@ -1,3 +1,6 @@
+//src\services\userApi.js
+// userApi.js: שירות משתמשים — פונקציה ייעודית לאדמין לשליפת פרטי משתמש לפי מספר ת״ז (id\_number), כולל טלפון, תפקיד, סטטוס, כתובת, תמונות ותאריך הרשמה.
+
 import axios from "axios";
 
 axios.defaults.baseURL = "http://localhost:5000";

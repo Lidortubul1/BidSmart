@@ -1,3 +1,6 @@
+//src\services\ManagementApi.js
+// ManagementApi.js: שירות ניהול מוצרים למוכר/מנהל — כולל שליפת רשימת מוצרים עם אפשרות סינון (ברירת מחדל "all").
+
 import axios from "axios";
 
 // הגדרה גלובלית

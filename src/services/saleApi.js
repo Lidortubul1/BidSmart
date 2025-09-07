@@ -1,3 +1,6 @@
+//src\services\saleApi.js
+// saleApi.js: שירות מכירה — עדכון כתובת למשלוח/משתמש, שליפת כתובת שמורה, סימון מוצר כהתקבל/נשלח, עדכון טלפון, בדיקת אפשרות משלוח (רק משלוח/משלוח+איסוף עצמי), שליפת כל ההזמנות, ודירוג מוכר.
+
 import axios from "axios";
 
 // הגדרה גלובלית (אם לא כבר הוגדרה במקום אחר בפרויקט)
@@ -57,7 +60,7 @@ export async function markProductAsSent(productId) {
   try {
     await axios.put(`/api/sale/mark-as-sent/${productId}`);
   } catch (error) {
-    console.error("❌ שגיאה בעדכון המוצר כנשלח:", error);
+    console.error(" שגיאה בעדכון המוצר כנשלח:", error);
   }
 }
 

@@ -1,3 +1,6 @@
+//src\services\adminMessagesApi.js
+// adminMessagesApi: מודול API לניהול פניות והודעות — כולל שליפת פניות, שמירת תשובות, שליחת הודעות יזומות, שליפת מיילים של משתמשים, מחיקת הודעות ובדיקת סטטוס משתמש.
+
 import axios from "axios";
 
 axios.defaults.baseURL = "http://localhost:5000";

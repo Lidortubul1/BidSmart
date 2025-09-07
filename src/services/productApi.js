@@ -1,13 +1,12 @@
 // src/services/productApi.js
+// productApi.js: שירות מוצרים — שליפה/עדכון/הוספה, העלאה/מחיקת תמונות, פרסום־מחדש (relist), ביטול מכירה/הפגה ללא תשלום, שליפת אפשרויות משלוח/איסוף וכתובת איסוף, עיבוד דירוג לכוכבים, ומתודות אדמין לניטור ועדכון סטטוס.
+
 import axios from "axios";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 
 // הגדרות כלליות
 axios.defaults.baseURL = "http://localhost:5000"; // שנה בפרודקשן
 axios.defaults.withCredentials = true;
-
-
-
 
 // עדכון מוצר (למוכר+מנהל)
 export async function peUpdateProduct(id, payload) {
@@ -18,7 +17,6 @@ export async function peUpdateProduct(id, payload) {
   );
   return data;
 }
-
 
 // הוספת מוצר
 export async function addProduct(productData) {
@@ -41,7 +39,7 @@ export async function addProduct(productData) {
 
     return response.data;
   } catch (error) {
-    console.error("❌ שגיאה בשרת:", error.response?.data || error.message);
+    console.error(" שגיאה בשרת:", error.response?.data || error.message);
     return {
       success: false,
       message: error.response?.data?.message || "שגיאת שרת",
@@ -79,7 +77,7 @@ export async function getSellerDeliveryOptions(productId) {
   const pickupAddress = data?.pickupAddress || null;
   const pickupAddressText = formatPickupAddress(pickupAddress);
 
-  // ✅ קח קודם את האובייקט המוחזר מהשרת, ואם אין – נפולבק לשדות שטוחים אם יהיו
+  //  קח קודם את האובייקט המוחזר מהשרת, ואם אין – נפולבק לשדות שטוחים אם יהיו
   const sellerContact =
     data?.sellerContact
       ? data.sellerContact
@@ -95,9 +93,6 @@ export async function getSellerDeliveryOptions(productId) {
     sellerContact, // ← עכשיו זה באמת ימולא
   };
 }
-
-
-
 
 
 /** מעצב אובייקט כתובת לטקסט תצוגה נעים */

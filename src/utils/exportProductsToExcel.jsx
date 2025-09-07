@@ -1,4 +1,9 @@
 // src/utils/exportProductsToExcel.js
+// מייצא את רשימת המוצרים שמוצגת כרגע לקובץ .xlsx 
+// כולל עמודות: מזהה, שם, קטגוריה, תת־קטגוריה, תאריכים, שעה, סטטוס ומחיר נוכחי
+// אם הצופה הוא admin יתווסף גם שם המוכר
+// שם הקובץ נבנה לפי סוג הצופה (my-products / all-products), תיאור פילטר אופציונלי ותאריך היום
+
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 

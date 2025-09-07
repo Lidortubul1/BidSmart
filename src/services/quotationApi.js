@@ -1,4 +1,6 @@
 // src/services/quotationApi.js
+// quotationApi.js: שירות הצעות/הרשמות — שליפת כמות נרשמים, כל ההצעות לפי מוצר/משתמש, בדיקת סטטוס תשלום (כללי/זוכה), הרשמה למכירה, ביטול הרשמה.
+
 import axios from "axios";
 
 // הגדרה גלובלית
@@ -26,7 +28,7 @@ export async function getQuotationsByProductId(productId) {
   return response.data;
 }
 
-// 🆕 סטטוס תשלום לבידר ספציפי (מחזיר {success, found, paid})
+//  סטטוס תשלום לבידר ספציפי (מחזיר {success, found, paid})
 export async function getPaidStatus(productId, buyerIdNumber) {
   const res = await axios.get(
     `${BASE_QUOTATION_URL}/${productId}/paid/${buyerIdNumber}`
@@ -34,7 +36,7 @@ export async function getPaidStatus(productId, buyerIdNumber) {
   return res.data;
 }
 
-// 🆕 סטטוס תשלום לזוכה של המוצר (מחזיר {success, found, paid, buyer_id_number})
+//  סטטוס תשלום לזוכה של המוצר (מחזיר {success, found, paid, buyer_id_number})
 export async function getWinnerPaidStatus(productId) {
   const res = await axios.get(`${BASE_QUOTATION_URL}/${productId}/paid`);
   return res.data;
@@ -51,7 +53,7 @@ export async function registerToQuotation(productId, buyerIdNumber) {
     return response.data;
   } catch (error) {
     console.error(
-      "❌ שגיאה בהרשמה למוצר:",
+      " שגיאה בהרשמה למוצר:",
       error.response?.data || error.message
     );
     throw error;
