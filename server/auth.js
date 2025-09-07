@@ -8,6 +8,8 @@ const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const multer = require("multer");
+const jwt = require("jsonwebtoken");
+const { sendSystemMail } = require("./utils/mailer"); // נתיב יחסי בהתאם למבנה שלך
 
 // אחסון קבצים
 const storage = require("./storage");
@@ -613,60 +615,63 @@ router.put("/change-password", async (req, res) => {
 // שכחת סיסמה – שליחת מייל עם קישור לשחזור
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
-
   if (!email) {
     return res.status(400).json({ success: false, message: "נא להזין אימייל" });
   }
 
   try {
-    console.log("התחלנו forgot-password", email);
-
     const conn = await db.getConnection();
-    const [users] = await conn.execute("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
-
-    if (users.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "אימייל לא נמצא" });
-    }
-
-    const token = crypto.randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 3600000); // תוקף לשעה
-
-    await conn.execute(
-      "UPDATE users SET reset_token = ?, reset_token_expiration  = ? WHERE email = ?",
-      [token, expires, email]
+    const [users] = await conn.execute(
+      "SELECT email, first_name FROM users WHERE email = ? LIMIT 1",
+      [email]
     );
 
-    console.log("שולחת מייל לאימייל:", email, "עם הטוקן:", token);
+    // לא חושפים אם האימייל קיים – מחזירים תשובה ניטרלית
+    if (users.length === 0) {
+      return res.json({
+        success: true,
+        message: "אם הכתובת קיימת, נשלח קישור לאיפוס.",
+      });
+    }
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "bidsmart2025@gmail.com",
-        pass: "zjkkgwzmwjjtcylr", // App password
-      },
+    const token = jwt.sign(
+      { email },
+      process.env.JWT_RESET_SECRET || "dev-reset-secret-change-me",
+      { expiresIn: "1h" }
+    );
+
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const resetLink = `${appUrl}/reset-password/${token}`;
+
+    const html = `
+      <div dir="rtl" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;">
+        <p>שלום ${users[0]?.first_name || ""},</p>
+        <p>לביצוע איפוס סיסמה לחץ/י על הקישור הבא:</p>
+        <p><a href="${resetLink}" target="_blank" rel="noopener">${resetLink}</a></p>
+        <p style="color:#777">הקישור בתוקף לשעה.</p>
+      </div>
+    `;
+
+    const mail = await sendSystemMail(email, "איפוס סיסמה", html);
+    // גם אם המייל נכשל, נחזיר הודעה ניטרלית (אבטחה/UX); אפשר ללוגג את הסיבה
+    if (!mail.sent) {
+      console.warn("[forgot-password] mail not sent:", mail.reason);
+    }
+
+    return res.json({
+      success: true,
+      message: "אם הכתובת קיימת, נשלח קישור לאיפוס.",
     });
-
-    const resetLink = `http://localhost:3000/reset-password/${token}`;
-
-    const mailOptions = {
-      from: "BidSmart <bidsmart2025@gmail.com>",
-      to: email,
-      subject: "איפוס סיסמה",
-      text: `לחצי על הקישור הבא כדי לאפס את הסיסמה שלך:\n\n${resetLink}`,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    res.json({ success: true, message: "נשלח קישור לאיפוס סיסמה לאימייל" });
   } catch (err) {
-    console.error("שגיאה בשליחת מייל איפוס:", err);
-    res.status(500).json({ success: false, message: "שגיאה בשליחת מייל" });
+    console.error("[forgot-password] error:", err);
+    // לא חושפים שגיאות — מחזירים תשובה ניטרלית
+    return res.json({
+      success: true,
+      message: "אם הכתובת קיימת, נשלח קישור לאיפוס.",
+    });
   }
 });
+
 
 //קביעת סיסמה חדשה לפי הטוקן
 router.post("/reset-password", async (req, res) => {
@@ -676,32 +681,45 @@ router.post("/reset-password", async (req, res) => {
     return res.status(400).json({ success: false, message: "חסרים נתונים" });
   }
 
+  const strong = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(newPassword);
+  if (!strong) {
+    return res.status(400).json({
+      success: false,
+      message: "הסיסמה חייבת לכלול לפחות 6 תווים, אות אחת ומספר אחד",
+    });
+  }
+
   try {
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_RESET_SECRET || "dev-reset-secret-change-me"
+    );
+    const email = payload.email;
+
     const conn = await db.getConnection();
     const [users] = await conn.execute(
-      "SELECT * FROM users WHERE reset_token = ? AND reset_token_expiration > NOW()",
-      [token]
+      "SELECT email FROM users WHERE email = ? LIMIT 1",
+      [email]
     );
-
     if (users.length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "הקישור לא תקף או פג תוקף" });
+      return res.status(400).json({ success: false, message: "קישור לא תקף" });
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
+    await conn.execute("UPDATE users SET password = ? WHERE email = ?", [
+      hashed,
+      email,
+    ]);
 
-    await conn.execute(
-      "UPDATE users SET password = ?, reset_token = NULL, reset_token_expiration = NULL WHERE email = ?",
-      [hashed, users[0].email]
-    );
-
-    res.json({ success: true, message: "הסיסמה עודכנה בהצלחה" });
+    return res.json({ success: true, message: "הסיסמה עודכנה בהצלחה" });
   } catch (err) {
-    console.error("שגיאה באיפוס סיסמה:", err.message);
-    res.status(500).json({ success: false, message: "שגיאה בשרת" });
+    console.error("[reset-password] error:", err?.message || err);
+    return res
+      .status(400)
+      .json({ success: false, message: "הקישור לא תקף או פג תוקף" });
   }
 });
+
 
 
 module.exports = router;

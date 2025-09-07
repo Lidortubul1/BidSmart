@@ -3,6 +3,7 @@
 // בדיקת חיבור למסד, והפעלת טיימרים: מעבר מוצרים ל-Live, התראות לפני התחלה, סגירת מכירות שפג תוקפן ובדיקת זוכים שלא שילמו.
 
 //שמות תכנתים: לידור טבול וליאן שלו
+require("dotenv").config();
 const express = require("express"); // ייבוא ספריות וקבצים
 const session = require("express-session"); //הספרייה שמריצה את שרת ה-API
 const cors = require("cors"); //מאפשרת לשמור session של משתמש
@@ -16,7 +17,6 @@ const quotationRoutes = require("./quotation");
 const categoryRoutes = require("./categories.js");
 const saleRoutes = require("./sale.js");
 const userRoutes = require("./users");
-require("dotenv").config();
 const paymentRoutes = require("./payment");
 const adminRoutes = require("./admin.js");
 const acutionRoutes = require("./auction.js");

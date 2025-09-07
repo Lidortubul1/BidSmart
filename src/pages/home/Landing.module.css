@@ -32,14 +32,14 @@
 .hero::before {
   width: 300px;
   height: 300px;
-  background: #ffb347;
+  background: #b7a65e;
   top: -100px;
   right: -100px;
 }
 .hero::after {
   width: 400px;
   height: 400px;
-  background: #a2cddd;
+  background: #b7a65e;
   bottom: -150px;
   left: -150px;
 }

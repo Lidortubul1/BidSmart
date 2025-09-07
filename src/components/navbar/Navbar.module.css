@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.7); /* שקוף חלקית */
+  background-color: #EAE7DC; /* רקע לבן-אפור כמו hero */
   backdrop-filter: blur(6px); /* טשטוש רקע */
   padding: 0 24px;
   position: fixed;
@@ -12,7 +12,7 @@
   width: 100%;
   box-sizing: border-box;
   z-index: 1000;
-  height: 80px;
+  height: 90px;
   border-bottom: 1px solid #e0e0e0;
 }
 
