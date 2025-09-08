@@ -5,7 +5,7 @@ import { useState } from "react";
 import styles from "./LoginForm.module.css";
 import { useAuth } from "../../auth/AuthContext";
 import CustomModal from "../CustomModal/CustomModal";
-import { loginUser } from "../../services/authApi.js"
+import { loginUser } from "../../services/authApi.js";
 
 export default function LoginForm({ onSuccess }) {
   const [email, setEmail] = useState("");
@@ -55,28 +55,50 @@ export default function LoginForm({ onSuccess }) {
    }
  };
 
+      if (response.success) {
+        const user = response.user;
+        if (user.status === "blocked") {
+          showModal(
+            "משתמש חסום",
+            "!ההנהלה חסמה את המשתמש \n :נא פנה למייל \n bidsmart123@gmail.com \n להמשך בירור"
+          );
+          return;
+        }
+        login(user);
+        localStorage.setItem("user", JSON.stringify(user));
+        onSuccess?.(user);
+      } else {
+        showModal("שגיאה", "אימייל או סיסמה לא נכונים");
+      }
+    } catch (err) {
+      showModal("שגיאה", "שגיאה בשרת, נסה שוב מאוחר יותר");
+    }
+  };
 
   return (
     <>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h2 className={styles.title}>התחברות</h2>
+      <form className={styles["login-form"]} onSubmit={handleSubmit}>
+        <h2 className={styles["login-title"]}>התחברות</h2>
+
         <input
           type="email"
           placeholder="אימייל"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={styles.input}
+          className={styles["login-input"]}
           required
         />
+
         <input
           type="password"
           placeholder="סיסמה"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className={styles.input}
+          className={styles["login-input"]}
           required
         />
-        <button type="submit" className={styles.button}>
+
+        <button type="submit" className={styles["login-button"]}>
           התחבר
         </button>
       </form>

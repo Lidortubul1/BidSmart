@@ -1,6 +1,4 @@
-// src/pages/AdminStatistics/AdminStatistics.jsx
-// סטטיסטיקות מנהל: דשבורד עם מסנני טווח ותצוגת יום/חודש, גרפים כלליים (פילוח משתמשים, הרשמות, הכנסות/משפך, סטטוס מוצרים, מכירות לפי קטגוריה, מוכרים מובילים) + פילוח לפי מוכר נבחר; כולל מודאל פרטים בלחיצה ועזרי פורמט, מבוסס Recharts וקריאות adminApi.
-
+// סטטיסטיקות מנהל (שמות קלאסים ייחודיים)
 import { useEffect, useState, useMemo } from "react";
 import styles from "./AdminStatistics.module.css";
 import {
@@ -16,17 +14,15 @@ import {
   getSellersList,
   getRegistrationsRange,
   getProductsStatusTrend,
-  // ← חדש: לגרף פעילות בידס למוכר
 } from "../../services/adminApi";
 import CustomModal from "../../components/CustomModal/CustomModal";
-
 
 function RevenueFunnelCard({
   title = "הכנסות / משפך",
   revenueData = [],
   funnel = { started: 0, sold: 0, not_sold: 0, conversion: 0 },
   revenueGroup = "month",
-  setRevenueGroup = () => { },
+  setRevenueGroup = () => {},
   fmtDay,
   fmtMonth,
   fmtInt,
@@ -37,12 +33,14 @@ function RevenueFunnelCard({
   const [mode, setMode] = useState("revenue"); // 'revenue' | 'funnel'
 
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHeaderRow}
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h4 className={styles.cardTitle} style={{ margin: 0 }}>{title}</h4>
+    <div className={styles.adminStatsCard}>
+      <div
+        className={styles.adminStatsCardHeaderRow}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+      >
+        <h4 className={styles.adminStatsCardTitle} style={{ margin: 0 }}>{title}</h4>
 
-        <div className={styles.inlineFilters}>
+        <div className={styles.adminStatsInlineFilters}>
           <label>תצוגה</label>
           <select value={mode} onChange={(e) => setMode(e.target.value)}>
             <option value="revenue">הכנסות</option>
@@ -61,7 +59,7 @@ function RevenueFunnelCard({
         </div>
       </div>
 
-      <div className={styles.chart}>
+      <div className={styles.adminStatsChart}>
         <ResponsiveContainer width="100%" height={250}>
           {mode === "revenue" ? (
             <BarChart data={revenueData} margin={{ right: 8 }}>
@@ -103,7 +101,7 @@ function RevenueFunnelCard({
       </div>
 
       {mode === "funnel" && (
-        <div className={styles.conv}>
+        <div className={styles.adminStatsConv}>
           שיעור המרה: <b>{funnel?.conversion ?? 0}%</b>
         </div>
       )}
@@ -111,22 +109,21 @@ function RevenueFunnelCard({
   );
 }
 
-
 function AdminStatistics() {
   // ----- מסננים -----
   const [from, setFrom] = useState(() =>
     new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0, 10)
   );
   const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10));
-  const [group, setGroup] = useState("month");        // day | month (לגרפים לפי טווח)
-  const [revenueGroup, setRevenueGroup] = useState("month"); // day | month (דווקא להכנסות)
-  const [sellerId, setSellerId] = useState("");       // בחירת מוכר לאזור “לפי מוכר”
+  const [group, setGroup] = useState("month");
+  const [revenueGroup, setRevenueGroup] = useState("month");
+  const [sellerId, setSellerId] = useState("");
   const [sellers, setSellers] = useState([]);
 
   const ALL_TIME_FROM = "2000-01-01";
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  // ----- סטייטים כלליים (טווח תאריכים “כללי”) -----
+  // ----- סטייטים כלליים -----
   const [stats, setStats] = useState({
     totalSellers: 0,
     totalUsers: 0,
@@ -139,11 +136,11 @@ function AdminStatistics() {
   });
 
   const [registrations, setRegistrations] = useState([]);
-  const [revenueAll, setRevenueAll] = useState([]);                  // הכנסות – כללי
-  const [salesByCategoryAll, setSalesByCategoryAll] = useState([]);  // לפי קטגוריה – כללי
-  const [topSellersAll, setTopSellersAll] = useState([]);            // מוכרים מובילים – כללי
+  const [revenueAll, setRevenueAll] = useState([]);
+  const [salesByCategoryAll, setSalesByCategoryAll] = useState([]);
+  const [topSellersAll, setTopSellersAll] = useState([]);
   const [funnelAll, setFunnelAll] = useState({ started: 0, sold: 0, not_sold: 0, conversion: 0 });
-  const [productsStatusTrendAll, setProductsStatusTrendAll] = useState([]); // סטטוס מוצרים – כללי
+  const [productsStatusTrendAll, setProductsStatusTrendAll] = useState([]);
 
   // ----- סטייטים לפילוח “לפי מוכר” -----
   const [revenueSeller, setRevenueSeller] = useState([]);
@@ -151,8 +148,7 @@ function AdminStatistics() {
   const [productsStatusTrendSeller, setProductsStatusTrendSeller] = useState([]);
   const [funnelSeller, setFunnelSeller] = useState({ started: 0, sold: 0, not_sold: 0, conversion: 0 });
 
-  // תצוגת מדד לקטגוריות
-  const [categoryMetric, setCategoryMetric] = useState("sold_count"); // "sold_count" | "total_sales"
+  const [categoryMetric, setCategoryMetric] = useState("sold_count");
 
   // ----- מודאל -----
   const [modalOpen, setModalOpen] = useState(false);
@@ -187,64 +183,43 @@ function AdminStatistics() {
     })();
   }, []);
 
-  // שם המוכר הנבחר (לכותרת)
   const currentSellerName = useMemo(() => {
     const s = sellers.find(x => String(x.id_number) === String(sellerId));
     return s ? `${(s.first_name || "").trim()} ${(s.last_name || "").trim()}`.trim() : "";
   }, [sellers, sellerId]);
 
-  // ----- טעינת גרפים “כלליים” לפי טווח -----
+  // ----- גרפים כלליים -----
   useEffect(() => {
     (async () => {
-      // פילוח משתמשים (בטווח)
       const s = await getAdminStats({ from, to });
       if (s) setStats(s);
 
-      // הרשמות בקיבוץ שנבחר
       setRegistrations(await getRegistrationsRange({ from, to, group }));
-
-      // הכנסות לכלל המערכת (בלי סינון מוכר)
       setRevenueAll(await getRevenue({ from, to, group: revenueGroup }));
-
-      // סטטוס מוצרים (בלי סינון מוכר)
       setProductsStatusTrendAll(await getProductsStatusTrend({ from, to, group }));
-
-      // מכירות לפי קטגוריה (בלי סינון מוכר)
       setSalesByCategoryAll(await getSalesByCategory({ from, to }));
-
-      // מוכרים מובילים (בלי סינון מוכר)
       setTopSellersAll(await getTopSellers({ from, to, limit: 10 }));
 
-      // משפך כללי (בלי סינון מוכר)
       const f = await getAuctionFunnel({ from, to });
       if (f) setFunnelAll(f);
     })();
   }, [from, to, group, revenueGroup]);
 
-  // ----- טעינת גרפים “לפי מוכר” (נפרד ומותנה) -----
+  // ----- גרפים לפי מוכר -----
   useEffect(() => {
     (async () => {
       if (!sellerId) {
-        // נקה כשאין מוכר נבחר
         setRevenueSeller([]);
         setSalesByCategorySeller([]);
         setProductsStatusTrendSeller([]);
-
         setFunnelSeller({ started: 0, sold: 0, not_sold: 0, conversion: 0 });
         return;
       }
 
-      // הכנסות למוכר
       setRevenueSeller(await getRevenue({ from, to, group: revenueGroup, seller_id_number: sellerId }));
-
-      // סטטוס מוצרים למוכר
       setProductsStatusTrendSeller(await getProductsStatusTrend({ from, to, group, seller_id_number: sellerId }));
-
-      // קטגוריות למוכר
       setSalesByCategorySeller(await getSalesByCategory({ from, to, seller_id_number: sellerId }));
 
-
-      // משפך למוכר
       const f = await getAuctionFunnel({ from, to, seller_id_number: sellerId });
       if (f) setFunnelSeller(f);
     })();
@@ -308,8 +283,6 @@ function AdminStatistics() {
           ));
           break;
 
-
-
         default:
           openModal("פרטים", JSON.stringify(p ?? {}, null, 2));
       }
@@ -318,39 +291,34 @@ function AdminStatistics() {
     }
   };
 
-  // כפתור "כל הזמנים"
-  const handleAllTime = () => {
-    setFrom(ALL_TIME_FROM);
-    setTo(todayStr);
-    setGroup("month");
-  };
+  const handleAllTime = () => { setFrom(ALL_TIME_FROM); setTo(todayStr); setGroup("month"); };
   const isAllTime = from === ALL_TIME_FROM && to === todayStr && group === "month";
 
   return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>סטטיסטיקות מערכת</h2>
+    <div className={styles.adminStatsContainer}>
+      <h2 className={styles.adminStatsTitle}>סטטיסטיקות מערכת</h2>
 
-      {/* ===== מסננים כלליים לטווח וקיבוץ ===== */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>מסננים</h3>
-          <div className={styles.filtersRow}>
-            <div className={styles.filterGroup}>
+      {/* מסננים כלליים */}
+      <div className={styles.adminStatsSection}>
+        <div className={styles.adminStatsSectionHeader}>
+          <h3 className={styles.adminStatsSectionTitle}>מסננים</h3>
+          <div className={styles.adminStatsFiltersRow}>
+            <div className={styles.adminStatsFilterGroup}>
               <label>מ־</label>
               <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
             </div>
-            <div className={styles.filterGroup}>
+            <div className={styles.adminStatsFilterGroup}>
               <label>עד</label>
               <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
             </div>
-            <div className={styles.filterGroup}>
+            <div className={styles.adminStatsFilterGroup}>
               <label>קיבוץ (רוב הגרפים)</label>
               <select value={group} onChange={(e) => setGroup(e.target.value)}>
                 <option value="day">יום</option>
                 <option value="month">חודש</option>
               </select>
             </div>
-            <div className={styles.filterGroup}>
+            <div className={styles.adminStatsFilterGroup}>
               <label>קיבוץ הכנסות</label>
               <select value={revenueGroup} onChange={(e) => setRevenueGroup(e.target.value)}>
                 <option value="day">יום</option>
@@ -361,7 +329,7 @@ function AdminStatistics() {
             <button
               type="button"
               onClick={handleAllTime}
-              className={styles.allTimeBtn}
+              className={styles.adminStatsAllTimeBtn}
               title="הצגת נתונים לכל התקופות (קיבוץ חודשי)"
               disabled={isAllTime}
               style={{
@@ -379,17 +347,17 @@ function AdminStatistics() {
         </div>
       </div>
 
-      {/* ===== קבוצה 1: גרפים “כלליים” לפי טווח ===== */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>גרפים לפי טווח תאריכים — כללי</h3>
+      {/* גרפים כללים */}
+      <div className={styles.adminStatsSection}>
+        <div className={styles.adminStatsSectionHeader}>
+          <h3 className={styles.adminStatsSectionTitle}>גרפים לפי טווח תאריכים — כללי</h3>
         </div>
 
-        <div className={styles.grid}>
-          {/* פילוח משתמשים — בטווח */}
-          <div className={styles.card}>
-            <h4 className={styles.cardTitle}>פילוח משתמשים — בטווח</h4>
-            <div className={styles.chart}>
+        <div className={styles.adminStatsGrid}>
+          {/* פילוח משתמשים */}
+          <div className={styles.adminStatsCard}>
+            <h4 className={styles.adminStatsCardTitle}>פילוח משתמשים — בטווח</h4>
+            <div className={styles.adminStatsChart}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart
                   data={[
@@ -409,10 +377,10 @@ function AdminStatistics() {
             </div>
           </div>
 
-          {/* הרשמות בטווח */}
-          <div className={styles.card}>
-            <h4 className={styles.cardTitle}>הרשמות בטווח — כללי</h4>
-            <div className={styles.chart}>
+          {/* הרשמות */}
+          <div className={styles.adminStatsCard}>
+            <h4 className={styles.adminStatsCardTitle}>הרשמות בטווח — כללי</h4>
+            <div className={styles.adminStatsChart}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={registrations}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -440,11 +408,10 @@ function AdminStatistics() {
             onOpenDetails={openDetails}
           />
 
-
-          {/* מוצרים לפי סטטוס — כללי */}
-          <div className={styles.card}>
-            <h4 className={styles.cardTitle}>מוצרים לפי סטטוס — כללי</h4>
-            <div className={styles.chart}>
+          {/* סטטוסים */}
+          <div className={styles.adminStatsCard}>
+            <h4 className={styles.adminStatsCardTitle}>מוצרים לפי סטטוס — כללי</h4>
+            <div className={styles.adminStatsChart}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={productsStatusTrendAll} barCategoryGap="20%" barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -453,8 +420,8 @@ function AdminStatistics() {
                   <Tooltip
                     labelFormatter={(v) => fmtBucket(v, group)}
                     formatter={(val, key) => {
-                      const labelMap = { for_sale: "טרם התחיל", sale: "נמכר", not_sold: "לא נמכר", blocked: "נמחק" };
-                      return [fmtInt(val), labelMap[key] || key];
+                      const map = { for_sale: "טרם התחיל", sale: "נמכר", not_sold: "לא נמכר", blocked: "נמחק" };
+                      return [fmtInt(val), map[key] || key];
                     }}
                   />
                   <Bar dataKey="for_sale" name="טרם התחיל" fill="#3aaed8" radius={[8, 8, 0, 0]}
@@ -470,12 +437,14 @@ function AdminStatistics() {
             </div>
           </div>
 
-          {/* מוצרים לפי קטגוריה — כללי */}
-          <div className={styles.card}>
-            <div className={styles.cardHeaderRow}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <h4 className={styles.cardTitle} style={{ margin: 0 }}>מוצרים לפי קטגוריה — כללי</h4>
-              <div className={styles.filterGroup} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {/* קטגוריות */}
+          <div className={styles.adminStatsCard}>
+            <div
+              className={styles.adminStatsCardHeaderRow}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+            >
+              <h4 className={styles.adminStatsCardTitle} style={{ margin: 0 }}>מוצרים לפי קטגוריה — כללי</h4>
+              <div className={styles.adminStatsFilterGroup} style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <label>מדד</label>
                 <select value={categoryMetric} onChange={(e) => setCategoryMetric(e.target.value)}>
                   <option value="sold_count">כמות מוצרים</option>
@@ -483,7 +452,7 @@ function AdminStatistics() {
                 </select>
               </div>
             </div>
-            <div className={styles.chart}>
+            <div className={styles.adminStatsChart}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={salesByCategoryAll}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -497,10 +466,10 @@ function AdminStatistics() {
             </div>
           </div>
 
-          {/* מוכרים מובילים — כללי */}
-          <div className={styles.card}>
-            <h4 className={styles.cardTitle}>מוכרים מובילים — כללי</h4>
-            <div className={styles.chart}>
+          {/* מוכרים מובילים */}
+          <div className={styles.adminStatsCard}>
+            <h4 className={styles.adminStatsCardTitle}>מוכרים מובילים — כללי</h4>
+            <div className={styles.adminStatsChart}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={topSellersAll}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -512,18 +481,16 @@ function AdminStatistics() {
               </ResponsiveContainer>
             </div>
           </div>
-
-
         </div>
       </div>
 
-      {/* ===== קבוצה 2: פילוח לפי מוכר ===== */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>פילוח לפי מוכר</h3>
+      {/* פילוח לפי מוכר */}
+      <div className={styles.adminStatsSection}>
+        <div className={styles.adminStatsSectionHeader}>
+          <h3 className={styles.adminStatsSectionTitle}>פילוח לפי מוכר</h3>
 
-          <div className={styles.filtersRow} style={{ marginTop: 8 }}>
-            <div className={styles.filterGroup}>
+          <div className={styles.adminStatsFiltersRow} style={{ marginTop: 8 }}>
+            <div className={styles.adminStatsFilterGroup}>
               <label>בחר/י מוכר</label>
               <select value={sellerId} onChange={(e) => setSellerId(e.target.value)}>
                 <option value="">— ללא —</option>
@@ -538,17 +505,16 @@ function AdminStatistics() {
         </div>
 
         {!sellerId ? (
-          <div className={styles.card} style={{ padding: 24 }}>
+          <div className={styles.adminStatsCard} style={{ padding: 24 }}>
             בחר/י מוכר כדי להציג גרפים ממוקדים למוכר.
           </div>
         ) : (
           <>
-            <div className={styles.subTitle} style={{ margin: "8px 0 16px", color: "#6b7280" }}>
+            <div className={styles.adminStatsSubTitle} style={{ margin: "8px 0 16px", color: "#6b7280" }}>
               מציג נתונים עבור: <b>{currentSellerName || sellerId}</b> (בטווח {from}–{to})
             </div>
 
-            <div className={styles.grid}>
-
+            <div className={styles.adminStatsGrid}>
               <RevenueFunnelCard
                 title="הכנסות / משפך — לפי מוכר"
                 revenueData={revenueSeller}
@@ -563,10 +529,9 @@ function AdminStatistics() {
                 onOpenDetails={openDetails}
               />
 
-              {/* מוצרים לפי סטטוס — לפי מוכר */}
-              <div className={styles.card}>
-                <h4 className={styles.cardTitle}>מוצרים לפי סטטוס — לפי מוכר</h4>
-                <div className={styles.chart}>
+              <div className={styles.adminStatsCard}>
+                <h4 className={styles.adminStatsCardTitle}>מוצרים לפי סטטוס — לפי מוכר</h4>
+                <div className={styles.adminStatsChart}>
                   <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={productsStatusTrendSeller} barCategoryGap="20%" barGap={4}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -575,8 +540,8 @@ function AdminStatistics() {
                       <Tooltip
                         labelFormatter={(v) => fmtBucket(v, group)}
                         formatter={(val, key) => {
-                          const labelMap = { for_sale: "טרם התחיל", sale: "נמכר", not_sold: "לא נמכר", blocked: "נמחק" };
-                          return [fmtInt(val), labelMap[key] || key];
+                          const map = { for_sale: "טרם התחיל", sale: "נמכר", not_sold: "לא נמכר", blocked: "נמחק" };
+                          return [fmtInt(val), map[key] || key];
                         }}
                       />
                       <Bar dataKey="for_sale" name="טרם התחיל" fill="#3aaed8" radius={[8, 8, 0, 0]}
@@ -592,12 +557,13 @@ function AdminStatistics() {
                 </div>
               </div>
 
-              {/* קטגוריות — לפי מוכר */}
-              <div className={styles.card}>
-                <div className={styles.cardHeaderRow}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <h4 className={styles.cardTitle} style={{ margin: 0 }}>מוצרים לפי קטגוריה — לפי מוכר</h4>
-                  <div className={styles.filterGroup} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div className={styles.adminStatsCard}>
+                <div
+                  className={styles.adminStatsCardHeaderRow}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                >
+                  <h4 className={styles.adminStatsCardTitle} style={{ margin: 0 }}>מוצרים לפי קטגוריה — לפי מוכר</h4>
+                  <div className={styles.adminStatsFilterGroup} style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <label>מדד</label>
                     <select value={categoryMetric} onChange={(e) => setCategoryMetric(e.target.value)}>
                       <option value="sold_count">כמות מוצרים</option>
@@ -605,7 +571,7 @@ function AdminStatistics() {
                     </select>
                   </div>
                 </div>
-                <div className={styles.chart}>
+                <div className={styles.adminStatsChart}>
                   <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={salesByCategorySeller}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -618,10 +584,6 @@ function AdminStatistics() {
                   </ResponsiveContainer>
                 </div>
               </div>
-
-
-
-
             </div>
           </>
         )}

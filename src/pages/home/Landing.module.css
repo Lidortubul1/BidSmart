@@ -154,3 +154,33 @@
   .loginLink,
   .registerLink { width: 100%; text-align: center; }
 }
+
+.filterBar {
+  margin: 8px 0 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.filterInfo {
+  background: #f5f5f7;
+  border: 1px solid #e7e7ea;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.clearFilterBtn {
+  border: 0;
+  background: #efefef;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+.clearFilterBtn:hover { background: #e5e5e5; }
+.clearFilterBtn:active { transform: translateY(1px); }

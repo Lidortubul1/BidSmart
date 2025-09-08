@@ -1,7 +1,7 @@
 //src\app\App.jsx
 // אפליקציית React הראשית: הגדרת כל הראוטים (כולל מסלולים מוגנים ותלויי־תפקיד), פריסת Navbar/Footer, טעינת לוחות Buyer/Seller/Admin, עמודי אדמין, תמיכה במכרז חי (LiveAuction), דפי תשלום/משלוח, וחיבור לצ'אט ה-AI הגלובלי.
 
-import {  Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 // דפים
@@ -27,7 +27,7 @@ import AdminProductsPage from "../pages/AdminProductsPage/AdminProductsPage.jsx"
 import AdminMessages from "../pages/AdminMessages/AdminMessages.jsx"
 import AdminStatistics from "../pages/AdminStatistics/AdminStatistics.jsx";
 import AdminSellerProductsPage from "../pages/AdminProductsPage/AdminSellerProductsPage.jsx";
-
+import SalesReport from "../pages/SalesReport/SalesReport.jsx"
 // קומפוננטות
 import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
 import Navbar from "../components/navbar/Navbar";
@@ -48,9 +48,9 @@ import "./App.css";
 function App() {
 
   const { user } = useAuth();
-const isAdmin = user && user.role === "admin";
-// const isSeller = user && user.role === "seller";
-// const isBuyer = user && user.role === "buyer";
+  const isAdmin = user && user.role === "admin";
+  // const isSeller = user && user.role === "seller";
+  // const isBuyer = user && user.role === "buyer";
   return (
     <div className="App">
       <header>
@@ -60,18 +60,18 @@ const isAdmin = user && user.role === "admin";
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardRouter />} />
-        <Route
-  path="/buyer"
-  element={<RoleRoute element={<BuyerDashboard />} roles={["buyer"]} />}
-/>
-<Route
-   path="/seller"
-  element={<RoleRoute element={<SellerDashboard />} roles={["seller"]} />}
-/>
-<Route
-  path="/admin"
-  element={<RoleRoute element={<AdminDashboard />} roles={["admin"]} />}
-/>
+          <Route
+            path="/buyer"
+            element={<RoleRoute element={<BuyerDashboard />} roles={["buyer"]} />}
+          />
+          <Route
+            path="/seller"
+            element={<RoleRoute element={<SellerDashboard />} roles={["seller"]} />}
+          />
+          <Route
+            path="/admin"
+            element={<RoleRoute element={<AdminDashboard />} roles={["admin"]} />}
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -80,10 +80,10 @@ const isAdmin = user && user.role === "admin";
             element={<ResetPasswordPage />}
           />
           <Route path="/info" element={<InfoPage />} />
-<Route
-  path="/profile"
-  element={<ProtectedRoute element={<ProfilePage />} />}
-/>
+          <Route
+            path="/profile"
+            element={<ProtectedRoute element={<ProfilePage />} />}
+          />
           <Route path="/product/:id" element={<ProductPage />} />
           {/* ... מסלולים של מנהל */}
           <Route
@@ -108,6 +108,10 @@ const isAdmin = user && user.role === "admin";
             path="/add-product"
             element={<ProtectedRoute element={<AddProductPage />} />}
           />
+            <Route
+            path="/sales-report"
+            element={<ProtectedRoute element={<SalesReport />} />}
+          />
           <Route path="/payment-success/:id" element={<PaymentSuccess />} />
           <Route path="/payment-cancel" element={<PaymentCancel />} />
           <Route path="/shipping/:id" element={<ShippingForm />} />
@@ -120,7 +124,7 @@ const isAdmin = user && user.role === "admin";
       </div>
 
       <AIChat />
-      { !isAdmin && <Footer />}
+      {!isAdmin && <Footer />}
     </div>
   );
 }

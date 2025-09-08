@@ -1,20 +1,23 @@
-/* .form {
+/* טופס כללי – עיצוב זהה ל-LoginForm עם שמות ייחודיים */
+.register-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
   width: 100%;
   text-align: center;
-  animation: fadeIn 0.6s ease;
+  animation: register-fadeIn 0.6s ease;
 }
 
-.title {
+/* כותרת */
+.register-title {
   font-size: 1.8rem;
   margin-bottom: 10px;
   color: #222;
   font-weight: 600;
 }
 
-.input {
+/* אינפוטים */
+.register-input {
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 10px;
@@ -23,12 +26,13 @@
   width: 100%;
 }
 
-.input:focus {
+.register-input:focus {
   outline: none;
   border-color: #007bff;
 }
 
-.button {
+/* כפתור */
+.register-button {
   background-color: rgb(0, 0, 0) !important;
   color: #fff;
   padding: 12px;
@@ -40,18 +44,32 @@
   width: 100%;
 }
 
-.button:hover {
+.register-button:hover {
   background-color: #333;
 }
 
-@keyframes fadeIn {
+/* אנימציה */
+@keyframes register-fadeIn {
   from {
     opacity: 0;
     transform: translateY(15px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
   }
-} */
+}
+
+/* אופציונלי: הודעות טקסט מתחת לשדות (אם תרצה להציג במקום מודאל) */
+.register-hint {
+  font-size: 0.9rem;
+  color: #666;
+  text-align: right;
+}
+
+.register-error {
+  font-size: 0.95rem;
+  color: #d93025;
+  text-align: right;
+  margin-top: -6px;
+}

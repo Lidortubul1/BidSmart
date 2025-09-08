@@ -2,13 +2,13 @@
 
 /* ========= Theme Vars ========= */
 :root {
-  --primary: #1a89ff;
-  --secondary: #14b8a6;
-  --accent: #ffa502;
+  --primary: #b9a383;
+  --secondary: #928a6c;
+  --accent: #e6e1da;
   --danger: #ff6b6b;
 
-  --ink: #0f172a;
-  --muted: #64748b;
+  --ink: rgb(0, 0, 0);
+  --muted: #8b6a64;
   --bg: #f5f7fb;
   --card: #ffffff;
   --border: #e8eef5;
@@ -38,21 +38,19 @@
 }
 
 /* ========= Page Shell ========= */
-.adminStatsContainer {
+.sellerStatsContainer {
   direction: rtl;
   font-family: "Heebo", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  padding: 2rem;
+  padding: 7rem;
   max-width: 1300px;
   margin: auto;
-  background:
-    radial-gradient(1200px 600px at 110% -10%, rgba(20, 184, 166, 0.07), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(26, 137, 255, 0.08), transparent 60%),
-    var(--bg);
+  width: min(1300px, 100%);
+
   border-radius: 24px;
 }
 
 /* כותרת */
-.adminStatsTitle {
+.sellerStatsTitle {
   font-size: clamp(1.6rem, 1.2rem + 1.2vw, 2rem);
   font-weight: 800;
   text-align: center;
@@ -66,7 +64,7 @@
 }
 
 /* ========= Filters Bar ========= */
-.adminStatsFiltersRow {
+.sellerStatsFiltersRow {
   position: sticky;
   top: 12px;
   z-index: 5;
@@ -84,20 +82,20 @@
   backdrop-filter: blur(8px);
 }
 
-.adminStatsFilterGroup {
+.sellerStatsFilterGroup {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.adminStatsFiltersRow label {
+.sellerStatsFiltersRow label {
   font-weight: 600;
   color: var(--ink);
   font-size: 0.95rem;
 }
 
-.adminStatsFiltersRow input[type="date"],
-.adminStatsFiltersRow select {
+.sellerStatsFiltersRow input[type="date"],
+.sellerStatsFiltersRow select {
   padding: 0.5rem 0.8rem;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -107,23 +105,23 @@
   transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.08s ease;
 }
 @media (prefers-color-scheme: dark) {
-  .adminStatsFiltersRow input[type="date"],
-  .adminStatsFiltersRow select {
+  .sellerStatsFiltersRow input[type="date"],
+  .sellerStatsFiltersRow select {
     background: #0b1220;
   }
 }
-.adminStatsFiltersRow input[type="date"]:hover,
-.adminStatsFiltersRow select:hover {
+.sellerStatsFiltersRow input[type="date"]:hover,
+.sellerStatsFiltersRow select:hover {
   border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
 }
-.adminStatsFiltersRow input[type="date"]:focus,
-.adminStatsFiltersRow select:focus {
+.sellerStatsFiltersRow input[type="date"]:focus,
+.sellerStatsFiltersRow select:focus {
   border-color: var(--primary);
   box-shadow: var(--ring);
   transform: translateY(-1px);
 }
 
-.adminStatsAllTimeBtn {
+.sellerStatsAllTimeBtn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -137,12 +135,12 @@
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.adminStatsAllTimeBtn:hover {
+.sellerStatsAllTimeBtn:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow);
   border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
 }
-.adminStatsAllTimeBtn:disabled {
+.sellerStatsAllTimeBtn:disabled {
   opacity: 0.7;
   cursor: default;
   transform: none;
@@ -150,9 +148,9 @@
 }
 
 /* ========= Sections ========= */
-.adminStatsSection { margin-bottom: 2rem; }
+.sellerStatsSection { margin-bottom: 2rem; }
 
-.adminStatsSectionHeader {
+.sellerStatsSectionHeader {
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -162,27 +160,45 @@
   border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
-.adminStatsSectionTitle {
+.sellerStatsSectionTitle {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--ink);
 }
 
-.adminStatsSectionSub {
-  margin: 0;
+/* ========= KPI Grid ========= */
+.sellerStatsKpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: clamp(1rem, 1vw, 1.5rem);
+}
+.sellerStatsKpiCard {
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.sellerStatsKpiLabel {
   color: var(--muted);
-  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.sellerStatsKpiValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
 }
 
 /* ========= Cards Grid ========= */
-.adminStatsGrid {
+.sellerStatsGrid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: clamp(1rem, 1vw, 1.5rem);
 }
 
-.adminStatsCard {
+.sellerStatsCard {
   grid-column: span 4;
   position: relative;
   background: color-mix(in srgb, var(--card) 92%, transparent);
@@ -196,14 +212,10 @@
   transition: transform 0.18s ease, box-shadow 0.25s ease, border-color 0.2s ease;
   backdrop-filter: blur(8px);
 }
-@media (max-width: 1200px) {
-  .adminStatsCard { grid-column: span 6; }
-}
-@media (max-width: 700px) {
-  .adminStatsCard { grid-column: span 12; }
-}
+@media (max-width: 1200px) { .sellerStatsCard { grid-column: span 6; } }
+@media (max-width: 700px)  { .sellerStatsCard { grid-column: span 12; } }
 
-.adminStatsCard::before {
+.sellerStatsCard::before {
   content: "";
   position: absolute;
   inset-inline: 0;
@@ -211,16 +223,16 @@
   height: 4px;
   background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
   opacity: 0.95;
-  animation: pulseBar 7s ease-in-out infinite alternate;
+  animation: sellerPulseBar 7s ease-in-out infinite alternate;
 }
 
-.adminStatsCard:hover {
+.sellerStatsCard:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
   box-shadow: 0 14px 40px rgba(26, 35, 58, 0.16);
 }
 
-.adminStatsCardTitle {
+.sellerStatsCardTitle {
   margin: 0 0 0.75rem;
   font-weight: 800;
   color: var(--ink);
@@ -231,7 +243,7 @@
   gap: 8px;
 }
 
-.adminStatsCardHeaderRow {
+.sellerStatsCardHeaderRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -240,26 +252,26 @@
 }
 
 /* אזור גרף */
-.adminStatsChart {
+.sellerStatsChart {
   width: 100%;
-  height: 260px;
+  height: 260px;    /* ResponsiveContainer מקבל את הגובה מכאן */
   flex: 1;
   min-height: 260px;
 }
 
-/* פילטרים פנימיים */
-.adminStatsInlineFilters {
+/* פילטרים פנימיים בכרטיס */
+.sellerStatsInlineFilters {
   display: flex;
   gap: 0.75rem;
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 0.75rem;
 }
-.adminStatsInlineFilters label {
+.sellerStatsInlineFilters label {
   font-weight: 600;
   color: var(--ink);
 }
-.adminStatsInlineFilters select {
+.sellerStatsInlineFilters select {
   padding: 0.4rem 0.7rem;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -267,16 +279,10 @@
   color: var(--ink);
 }
 @media (prefers-color-scheme: dark) {
-  .adminStatsInlineFilters select { background: #0b1220; }
+  .sellerStatsInlineFilters select { background: #0b1220; }
 }
 
-.adminStatsSubTitle {
-  margin-top: 0.75rem;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.adminStatsConv {
+.sellerStatsConv {
   margin-top: 0.6rem;
   font-weight: 800;
   color: var(--ink);
@@ -284,9 +290,7 @@
 
 /* ========= Recharts helpers ========= */
 :global(.recharts-rectangle),
-:global(.recharts-sector) {
-  cursor: pointer;
-}
+:global(.recharts-sector) { cursor: pointer; }
 
 :global(.recharts-cartesian-axis-tick text) {
   fill: var(--muted);
@@ -299,18 +303,16 @@
   stroke: color-mix(in srgb, var(--border) 65%, transparent);
 }
 
-/* ========= Small polish ========= */
-::selection {
-  background: color-mix(in srgb, var(--primary) 25%, transparent);
-}
-
+/* ========= Focus & Selection ========= */
+::selection { background: color-mix(in srgb, var(--primary) 25%, transparent); }
 :focus-visible {
   outline: none;
   box-shadow: var(--ring);
   border-color: var(--primary);
 }
 
-@keyframes pulseBar {
+/* מיקרו־אנימציה לפס העליון בכרטיס */
+@keyframes sellerPulseBar {
   0% { opacity: .7; transform: translateX(-10%); }
   50% { opacity: 1; transform: translateX(0%); }
   100% { opacity: .7; transform: translateX(10%); }

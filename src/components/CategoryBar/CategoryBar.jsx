@@ -1,12 +1,11 @@
-//src\components\CategoryBar\CategoryBar.jsx
-//// סרגל קטגוריות ותתי־קטגוריות: שליפה מהשרת, בחירת קטגוריה ראשית, הצגת תתי־קטגוריות, וניווט לתוצאות חיפוש לפי בחירה.
-
+// src/components/CategoryBar/CategoryBar.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./CategoryBar.module.css";
 import { fetchCategoriesWithSubs } from "../../services/categoriesApi";
 
-export default function CategoryBar() {
+// הוסף פרופס: onPick (קולבק לבחירה) ו-embedded (ברירת מחדל false)
+export default function CategoryBar({ onPick, embedded = false }) {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -14,17 +13,23 @@ export default function CategoryBar() {
   useEffect(() => {
     async function loadCategories() {
       const data = await fetchCategoriesWithSubs();
-      setCategories(data); 
+      setCategories(data);
     }
     loadCategories();
   }, []);
 
-  // מעבר עם id
-  const handleNavigate = (catId, subId = "") => {
-    const url = subId
-      ? `/search-results?category=${catId}&sub=${subId}`
-      : `/search-results?category=${catId}`;
-    navigate(url);
+  // מעבר/דיווח בחירה
+  const handleSelect = (catId, subId = "") => {
+    if (typeof onPick === "function") {
+      onPick({ categoryId: catId, subId });   // ← מדווח להורה
+      return;
+    }
+    if (!embedded) {
+      const url = subId
+        ? `/search-results?category=${catId}&sub=${subId}`
+        : `/search-results?category=${catId}`;
+      navigate(url);
+    }
   };
 
   return (
@@ -33,19 +38,17 @@ export default function CategoryBar() {
         {categories.map((cat) => (
           <div
             key={cat.id}
-            className={`${styles.categoryButton} ${
-              selectedCategory === cat.id ? styles.active : ""
-            }`}
-            // לחיצה על הקטגוריה — מסמנת אותה ופותחת תתי־קטגוריה
+            className={`${styles.categoryButton} ${selectedCategory === cat.id ? styles.active : ""}`}
             onClick={() =>
               setSelectedCategory(selectedCategory === cat.id ? null : cat.id)
             }
-            onDoubleClick={() => handleNavigate(cat.id)} // לחיצה כפולה תשלח לחיפוש כללי לקטגוריה
+            onDoubleClick={() => handleSelect(cat.id)} 
           >
             {cat.name}
           </div>
         ))}
       </div>
+
       {selectedCategory && (
         <div className={styles.subCategoryRow}>
           {categories
@@ -54,7 +57,7 @@ export default function CategoryBar() {
               <div
                 key={sub.id}
                 className={styles.subCategoryButton}
-                onClick={() => handleNavigate(selectedCategory, sub.id)}
+                onClick={() => handleSelect(selectedCategory, sub.id)} // ← לא מנווט אם embedded/onPick
               >
                 {sub.name}
               </div>

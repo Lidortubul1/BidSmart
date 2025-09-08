@@ -1,17 +1,31 @@
-//src\components\productList\productList.jsx
-import { useEffect, useState } from "react";
+// src/components/productList/productList.jsx
+import { useEffect, useState, useMemo } from "react";
 import Product from "../productCard/product";
 import styles from "./productList.module.css";
 import { fetchAllProducts } from "../../services/productApi";
 
 export default function ProductList({
   searchQuery = "",
+  // תמיכה לאחור:
   categoryFilter = "",
   subCategoryFilter = "",
+  // תמיכה בפרופסים החדשים:
+  categoryId,
+  subId,
 }) {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 20;
+
+  // קובע את המסננים האפקטיביים (חדשים > ישנים)
+  const effectiveCategory = useMemo(() => {
+    // אם categoryId הועבר (גם אם 0), נשתמש בו; אחרת ניקח מהישן
+    return (categoryId ?? categoryFilter) || "";
+  }, [categoryId, categoryFilter]);
+
+  const effectiveSub = useMemo(() => {
+    return (subId ?? subCategoryFilter) || "";
+  }, [subId, subCategoryFilter]);
 
   useEffect(() => {
     fetchAllProducts()
@@ -19,30 +33,34 @@ export default function ProductList({
       .catch((error) => console.error("Failed to fetch products:", error));
   }, []);
 
+  // איפוס עמוד בעת שינוי חיפוש/מסננים
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, effectiveCategory, effectiveSub]);
 
   // סינון מוצרים לפי שאילתת חיפוש, קטגוריה ותת־קטגוריה
-const filteredProducts = products.filter((product) => {
-  const name = product.product_name?.toLowerCase() || "";
-  const desc = product.description?.toLowerCase() || "";
-  const query = searchQuery.toLowerCase();
-  const matchesQuery = !query || name.includes(query) || desc.includes(query);
+  const filteredProducts = useMemo(() => {
+    const q = (searchQuery || "").toLowerCase();
+    const catStr = String(effectiveCategory || "");
+    const subStr = String(effectiveSub || "");
 
-  const matchesCategory = !categoryFilter || product.category_id == categoryFilter;
-  const matchesSubCategory = !subCategoryFilter || product.subcategory_id == subCategoryFilter;
+    return products.filter((product) => {
+      const name = (product.product_name || "").toLowerCase();
+      const desc = (product.description || "").toLowerCase();
 
+      const matchesQuery = !q || name.includes(q) || desc.includes(q);
+      const matchesCategory =
+        !catStr || String(product.category_id) === catStr;
+      const matchesSubCategory =
+        !subStr || String(product.subcategory_id) === subStr;
 
-  return matchesQuery && matchesCategory && matchesSubCategory;
-});
+      return matchesQuery && matchesCategory && matchesSubCategory;
+    });
+  }, [products, searchQuery, effectiveCategory, effectiveSub]);
 
-
-  // מחשב כמה עמודים יש לפי כמות מוצרים בעמוד
+  // פאג'ינציה
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
-  // מחשב את האינדקס של המוצר הראשון בעמוד הנוכחי
   const startIndex = (currentPage - 1) * productsPerPage;
-
-  
-  // גוזר מתוך המוצרים המסוננים רק את אלו שצריך להציג בעמוד הנוכחי
   const currentProducts = filteredProducts.slice(
     startIndex,
     startIndex + productsPerPage
@@ -60,16 +78,13 @@ const filteredProducts = products.filter((product) => {
             </p>
 
             <div className={styles.productsGrid}>
-             {currentProducts.map((product) => {
-  return (
-    <Product
-      key={product.product_id}
-      product={product}
-      showDescription={false}
-    />
-  );
-})}
-
+              {currentProducts.map((product) => (
+                <Product
+                  key={product.product_id}
+                  product={product}
+                  showDescription={false}
+                />
+              ))}
             </div>
 
             {totalPages > 1 && (
