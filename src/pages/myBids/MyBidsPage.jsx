@@ -3,13 +3,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./MyBidsPage.module.css";
+import styles from "./MyBidsPage.module.css"
 import { useAuth } from "../../auth/AuthContext";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import StarRater from "../../components/StarRater/StarRater";
 import { getUserBids } from "../../services/quotationApi";
 import { getAllSales, markProductDelivered, rateSeller } from "../../services/saleApi";
-
+import BuyerCard from "./BuyerCard"
 /* ---------------------------------------------
    קבועים
 ---------------------------------------------- */
@@ -21,168 +21,12 @@ const VIEW_FILTERS = [
 /* ---------------------------------------------
    קומפוננטות קטנות
 ---------------------------------------------- */
-function Badge({ tone = "toneGray", children }) {
-  return <span className={`${styles.badge} ${styles[tone]}`}>{children}</span>;
-}
+
 
 /* ---------------------------------------------
    כרטיס פריט לרוכש (משמש זהה בכל המצבים)
 ---------------------------------------------- */
-function BuyerCard({
-  kind,                 // "registered" | "won"
-  item,                 // אובייקט מאוחד של מכירה/מוצר
-  hasSale = false,              // ← חדש
-  onMarkDelivered,      // קליק על "סמן כבוצע/נאסף"
-  onOpenProduct,        // כניסה לעמוד המוצר/הזמנה
-  pending,              // סטטוס שמירה (כיבוי כפתור)
-}) {
-  const base = "http://localhost:5000";
-  const img  = item?.images?.[0] ? `${base}${item.images[0]}` : "";
-  const name = item?.product_name || "מוצר";
-  const startDate = item?.start_date ? new Date(item.start_date) : null;
-  const { user } = useAuth();
 
-  // נירמול ערכים כדי למנוע הבדלי-טיפוסים
-  const norm        = (v) => String(v ?? "").toLowerCase().trim();
-  const method      = norm(item?.delivery_method);                        // "delivery" | "pickup" | ""
-  const isDelivered = norm(item?.is_delivered) === "1" || norm(item?.is_delivered) === "true";
-  const isSent      = norm(item?.sent) === "yes" || norm(item?.sent) === "1" || norm(item?.sent) === "true";
- let registeredLabel = "נרשמת למכירה";
-  if (kind === "registered") {
-    const isLive0        = String(item?.is_live) === "0";
-    const statusForSale  = norm(item?.product_status) === "for sale";
-    const hasNoWinner    = !item?.winner_id_number;
-    const statusSale     = norm(item?.product_status) === "sale";
-    const statusNotSold     = norm(item?.product_status) === "not sold";
-    const winnerIdNumber = item?.winner_id_number === user?.id_number;
-    console.log("winner?",winnerIdNumber);
-    if (isLive0 && statusForSale && hasNoWinner) {
-      registeredLabel = "המכירה טרם החלה";
-    } else if (winnerIdNumber) {
-      registeredLabel = "אתה הזוכה במכירה";
-    }else  {
-      registeredLabel = "המכירה הסתיימה-לא זכית";
-    } 
-  }
-  // סטטוס טקסטואלי אחיד לשני המצבים (עוקב אחרי isDelivered/isSent)
-  let sentLabel = "שיטת מסירה לא הוגדרה";
-  if (method === "delivery") {
-    sentLabel = isDelivered
-      ? "אישרת שהמשלוח התקבל"
-      : (isSent ? "המוצר נשלח" : "המוצר טרם נשלח");
-  } else if (method === "pickup") {
-    sentLabel = isDelivered
-      ? "אישרת שהמוצר נאסף"
-      : "המוצר טרם נאסף";
-  }
-
-  const deliveryTone = isDelivered ? "toneGreen" : (method ? "toneAmber" : "toneGray");
-
-  return (
-    <div className={styles.card} dir="rtl">
-      {/* ראש הכרטיס – תמונה + כותרת + תג סטטוס */}
-      <div
-        className={styles.cardHead}
-        onClick={onOpenProduct}
-        role="button"
-        tabIndex={0}
-      >
-        {img ? (
-          <img className={styles.cardImg} src={img} alt={name} />
-        ) : (
-          <div className={styles.noImg}>אין תמונה</div>
-        )}
-
-        <div className={styles.cardTitleWrap}>
-  <h3 className={styles.cardTitle} title={name}>{name}</h3>
-  {kind === "registered" ? (
-    <Badge tone="toneBlue">{registeredLabel}</Badge>  
-  ) : (
-    <Badge tone={deliveryTone}>סטטוס: {sentLabel}</Badge>
-  )}
-</div>
-
-      </div>
-
-      {/* גוף הכרטיס – שורות מידע מסודרות בשתי עמודות */}
-      <div className={styles.cardBody}>
-        {kind === "registered" ? (
-          <>
-            <div className={styles.row}>
-              <span className={styles.label}>תאריך זכייה:</span>
-              <span>{startDate ? startDate.toLocaleDateString("he-IL") : "-"}</span>
-            </div>
-            <div className={styles.row}>
-              <span className={styles.label}>שעת התחלה:</span>
-              <span>
-                {startDate
-                  ? startDate.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })
-                  : "-"}
-              </span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className={styles.row}>
-              <span className={styles.label}>מחיר סופי:</span>
-              <span>{item?.final_price ? `${item.final_price} ₪` : "-"}</span>
-            </div>
-            <div className={styles.row}>
-              <span className={styles.label}>שיטת מסירה:</span>
-              <span>{method === "delivery" ? "משלוח" : method === "pickup" ? "איסוף עצמי" : "לא הוגדר"}</span>
-            </div>
-
-            {/* אם יש כבר דירוג להצגה */}
-            {item?.rating != null && (
-              <div className={styles.row}>
-                <span className={styles.label}>הדירוג שלך:</span>
-                <span>
-                  {Array.from({ length: 5 }).map((_, i) => (i < Math.round(item.rating) ? "★" : "☆"))}
-                  <span style={{ marginInlineStart: 6 }}>({item.rating})</span>
-                </span>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* תחתית הכרטיס – כפתורים עקביים בשני המצבים */}
-      <div className={styles.cardFooter}>
-        <button
-          className={styles.viewButton}
-          type="button"
-          onClick={onOpenProduct}
-        >
-          צפייה בפרטי ההזמנה
-        </button>
-
-        {/* משלוח: כפתור רק אם נשלח ועדיין לא נמסר */}
-        {kind === "won" && method === "delivery" && isSent && !isDelivered && (
-          <button
-            className={styles.primaryBtn}
-            type="button"
-            onClick={onMarkDelivered}
-            disabled={pending}
-          >
-            {pending ? "מעבד..." : "סמן כבוצע"}
-          </button>
-        )}
-
-        {/* איסוף: כפתור אם טרם נאסף */}
-        {kind === "won" && method === "pickup" && !isDelivered && (
-          <button
-            className={styles.primaryBtn}
-            type="button"
-            onClick={onMarkDelivered}
-            disabled={pending}
-          >
-            {pending ? "מעבד..." : "סמן שנאסף"}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /* ---------------------------------------------
    העמוד כולו
@@ -279,11 +123,7 @@ export default function MyBidsPage() {
     }
     fetchProducts();
   }, []);
-// האם למוצר יש רשומת sale
-const saleProductIds = useMemo(
-  () => new Set((Array.isArray(sales) ? sales : []).map(s => s.product_id)),
-  [sales]
-);
+
 
   /* ----------------------------
      איחוד נתוני מכרזים/מכירות עם מוצרים
@@ -313,6 +153,7 @@ const saleProductIds = useMemo(
   const filteredRegisteredBids = registeredBids.filter(bid =>
     (bid.product_name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
+
   const filteredWonSales = wonSalesWithProduct.filter(sale =>
     (sale.product_name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -462,26 +303,50 @@ const saleProductIds = useMemo(
           />
         </div>
 
-        {/* טאב: הצעות שנרשמתי */}
-        {view === "registered" && (
-          filteredRegisteredBids.length === 0 ? (
-            <p className={styles.empty}>לא נרשמת למוצרים</p>
-          ) : (
-            <div className={styles.grid}>
-              {filteredRegisteredBids.map((bid, i) => (
-  <div className={styles.gridItem} key={`${bid.product_id}-${i}`}>
-    <BuyerCard
-      kind="registered"
-      item={bid}
-      hasSale={saleProductIds.has(bid.product_id)}   // ← חדש
-      onOpenProduct={() => navigate(`/product/${bid.product_id}`)}
-    />
-  </div>
-))}
+     {/* טאב: הצעות שנרשמתי */}
+{view === "registered" && (
+  filteredRegisteredBids.length === 0 ? (
+    <p className={styles.empty}>לא נרשמת למוצרים</p>
+  ) : (
+    <div className={styles.grid}>
+      {filteredRegisteredBids.map((bid, i) => {
+        // --- שינוי נראות בלבד: מיזוג מידע מכירה אם המשתמש הוא הזוכה ---
+        const isWinner = String(bid?.winner_id_number) === String(user?.id_number);
+        // אם יש רשומת מכירה למוצר הזה ולמשתמש הנוכחי – נשתמש בה כדי לקבל סטטוס מסירה וכו'
+        const saleForThis = isWinner
+          ? (Array.isArray(sales) ? sales.find(
+              s => s.product_id === bid.product_id &&
+                   String(s.buyer_id_number) === String(user?.id_number)
+            ) : null)
+          : null;
 
-            </div>
-          )
-        )}
+        // אייטם מאוחד (כמו בטאב "won") כדי שה-BuyerCard יציג את אותו ה-UI
+        const mergedItem = saleForThis ? { ...bid, ...saleForThis } : bid;
+
+        // אם המשתמש זכה – נציג את הכרטיס במצב "won" כדי לקבל את תגית ה"סטטוס" והכפתורים
+        const kindValue = isWinner ? "won" : "registered";
+
+        return (
+          <div className={styles.gridItem} key={`${bid.product_id}-${i}`}>
+            <BuyerCard
+              kind={kindValue}
+              item={mergedItem}
+              onOpenProduct={() => navigate(`/product/${bid.product_id}`)}
+              // נעביר כפתור סימון מסירה רק אם הוא באמת זכה (כמו בטאב "won")
+              onMarkDelivered={
+                isWinner
+                  ? () => handleMarkDelivered(bid.product_id, { openRating: true })
+                  : undefined
+              }
+              pending={pendingDeliveredIds.has(bid.product_id)}
+            />
+          </div>
+        );
+      })}
+    </div>
+  )
+)}
+
 
         {/* טאב: מוצרים שזכיתי בהם */}
         {view === "won" && (

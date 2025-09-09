@@ -84,26 +84,28 @@ input {
 
 /* כפתור שליחת טופס */
 .submitBtn {
-  background-color: #4caf50;
+  background-color: #000000;
   color: white;
-  border: none;
+   border-radius:10cm;
 }
 
 .submitBtn:hover {
-  background-color: #43a047;
+  background-color: #6b5d2f;
+  color: white;
+   border-radius:10cm;
 }
 
 /* כפתור שימוש בכתובת מגורים */
 .useSavedBtn {
-  background-color: #1976d2;
+  background-color: #6b5d2f;
   color: white;
-  border: none;
+   border-radius:10cm;
   margin-bottom: 20px;
   width: 100%;
 }
 
 .useSavedBtn:hover {
-  background-color: #1565c0;
+  background-color: #322d1b;
 }
 .deliveryOptions {
   margin-bottom: 20px;

@@ -1,9 +1,24 @@
+/* =============================================================================
+   MyBidsPage.module.css
+   דף: "ההצעות שלי" (MyBidsPage)
+   מה מעוצב כאן:
+   - page, hero, heroText               → מסגרת/הרואו הראשי של העמוד
+   - filterBar, filterTrigger, ...      → בחירת הטאב (הצעות/זכיות)
+   - productsSection, search*           → אזור הרשימה + חיפוש
+   - grid, gridItem                     → רשת הכרטיסים
+   - card, cardHead, cardBody, cardFooter, ... → כרטיס מוצר יחיד (גדול ואחיד)
+   - media query                        → התאמות מובייל
+   ============================================================================= */
+
 @import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
 
-/* ===== מבנה עמוד (כמו בדף ניהול מוצרים) ===== */
+/* ===== מבנה עמוד כללי ===== */
 .page {
   direction: rtl;
-  background: linear-gradient(to bottom, #fbfdff, #ffffff);
+  /* היה: background: linear-gradient(to bottom, #fffefb, #ffffff); */
+  background: linear-gradient(145deg, #f0efee, #ffffff); /* CHANGED: אותו רקע כמו ב-hero */
+  /* אופציונלי: שומר על הרקע קבוע בזמן גלילה */
+  background-attachment: fixed; /* OPTIONAL */
   font-family: "Heebo", sans-serif;
   color: #0f172a;
   min-height: 100vh;
@@ -11,18 +26,21 @@
   flex-direction: column;
 }
 
-/* ===== Hero עליון ===== */
+
+/* ===== Hero עליון (כותרת העמוד + תיאור) ===== */
 .hero {
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
   padding: 96px 5% 56px;
-  background: linear-gradient(145deg, #eef5ff, #ffffff);
+  /* היה: background: linear-gradient(145deg, #f0efee, #ffffff); */
+  background: transparent; /* CHANGED */
   position: relative;
   overflow: visible;
   z-index: 1;
 }
+
 .hero::before,
 .hero::after {
   content: "";
@@ -34,11 +52,11 @@
   pointer-events: none;
 }
 .hero::before {
-  width: 300px; height: 300px; background: #7cc4ff;
+  width: 300px; height: 300px; background: #9e9b7f;
   top: -100px; right: -100px;
 }
 .hero::after {
-  width: 420px; height: 420px; background: #c2ffd2;
+  width: 420px; height: 420px; background: #9e9b7f;
   bottom: -160px; left: -160px;
 }
 
@@ -55,7 +73,7 @@
 .heroText h1 { font-size: 2.4rem; margin: 0 0 10px; line-height: 1.25; }
 .subText { font-size: 1.05rem; color: #56637a; margin: 0 0 18px; }
 
-/* ===== בחירת פילטר (Dropdown) ===== */
+/* ===== בחירת פילטר (Dropdown של "נרשמתי"/"זכיתי") ===== */
 .filterBar { position: relative; display: inline-block; z-index: 5; }
 
 .filterTrigger {
@@ -107,7 +125,7 @@
 
 @keyframes popIn { to { opacity: 1; transform: none; } }
 
-/* ===== אזור המוצרים ===== */
+/* ===== אזור המוצרים (רשימת הכרטיסים + חיפוש) ===== */
 .productsSection { padding: 28px 5% 60px; }
 
 .searchContainer { display: flex; justify-content: center; margin: 16px 0; }
@@ -119,16 +137,21 @@
 }
 .searchInput:focus { box-shadow: 0 0 0 4px rgba(156,156,156,0.12); }
 
+/* ===== רשת הכרטיסים (הוגדל min רוחב עמודה כדי להגדיל כרטיסים) ===== */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  /* היה: minmax(260px, 1fr) → הוגדל ל-320px */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
   align-items: stretch;
 }
-.gridItem > * {   display: flex;
+
+/* כל קומפוננטה בתוך תא רשת תמלא 100% גובה התא */
+.gridItem > * {
+  display: flex;
   flex-direction: column;
   height: 100%;
- }
+}
 
 .empty {
   background: #ffffff;
@@ -140,7 +163,7 @@
   margin-top: 12px;
 }
 
-/* ===== כרטיסים (שימור העיצוב שהיה אצלך) ===== */
+/* ===== כרטיס מוצר יחיד (הוגדל וקובע גובה אחיד) ===== */
 .card {
   background: #fff;
   border: 1px solid #e2e8f0;
@@ -149,54 +172,127 @@
   display: flex; flex-direction: column;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0,0,0,.04);
-}
-.cardHead {
-  display: grid; grid-template-columns: 110px 1fr;
-  gap: 12px; padding: 12px; align-items: center; cursor: pointer;
-    min-height: 110px; /* תואם לגובה התמונה */
 
+  /* חדש: גובה אחיד לכל הכרטיסים */
+  height: 380px;
 }
-.cardImg { width: 110px; height: 110px; object-fit: cover; border-radius: 12px; }
+
+/* ראש הכרטיס – הוגדל אזור התמונה והגובה המינימלי */
+.cardHead {
+  display: grid;
+  /* היה: 110px → הוגדל ל-140px */
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  /* היה: padding: 12px → מעט גדול יותר לנשימה */
+  padding: 10px 20px 6px ;
+  align-items: center;
+  cursor: pointer;
+  /* היה: min-height: 110px → הוגדל */
+  min-height: 140px;
+}
+
+/* תמונה גדולה יותר */
+/* תמונת מוצר בתוך הכרטיס – נכנסת בשלמותה, עם רקע לבן משלים */
+.cardImg {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;        /* היה cover – עכשיו לא חותך את התמונה */
+  object-position: center;    /* מרכז את התמונה בתוך המסגרת */
+  background: #fff;           /* “פסים” לבנים סביב התמונה במקרה של יחסי-צד שונים */
+  border: 1px solid #e5e7eb;  /* אופציונלי: מסגרת עדינה כשהרקע לבן */
+  border-radius: 12px;
+}
+
+/* פלייסהולדר "אין תמונה" בגודל זהה לתמונה */
 .noImg {
-  width: 110px; height: 110px; border-radius: 12px;
+  width: 140px; height: 140px; border-radius: 12px;
   display: grid; place-items: center; background:#f1f5f9; color:#94a3b8; font-size: .9rem;
 }
-.cardTitleWrap { display: flex; flex-direction: column; gap: 8px; }
-.cardTitle { margin: 0; font-size: 1.05rem; font-weight: 600; 
+
+/* כותרת + תג סטטוס */
+.cardTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;              /* מאפשר לאלמנטים פנימיים להיחתך עם ellipsis */
+}/* כותרת בכרטיס – חיתוך יפה לשתי שורות עם … */
+.cardTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 550;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;}
-.cardBody { padding: 8px 12px 0; }
+  white-space: normal;          /* כן לשבור שורות */
+  word-break: break-word;       /* לשבור מילים ארוכות במידת הצורך */
+  overflow-wrap: anywhere;      /* לגבות מקרים קיצוניים */
+  width: 100%;                  /* נדרש ל-ellipsis יציב */
+  unicode-bidi: plaintext;      /* תכלס גורם ל-RTL/LTR להתנהג נכון בטקסט מעורב */
+    padding: 1px 2px  ;
+
+}
+
+
+/* גוף הכרטיס – יקבל את כל הגובה הפנוי בין הראש לפוטר */
+.cardBody { padding: 20px 15px 0; flex: 1; }
+
 .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: .95rem; }
 .label { color:#64748b; }
 
+/* תגיות הסטטוס */
+/* תגיות הסטטוס – טקסט ממורכז גם כשנשבר לשתי שורות */
 .badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 10px; border-radius: 999px;
-  font-size: .85rem; font-weight: 600;
+  display: inline-block;     /* מאפשר שבירת שורות בתוך התגית */
+  text-align: center;        /* מרכז את הטקסט בכל שורה */
+  white-space: pre-line; /* מכבד \n */
+    line-height: 1.25;         /* נראות מאוזנת לשתי שורות */
+  overflow-wrap: anywhere;   /* שובר מילים מאוד ארוכות במקרה הצורך */
+  word-break: break-word;    /* גיבוי לשבירת מילים */
+  max-width: 100%;           /* שלא יגלוש מהמכולה */
+
+  /* שאר העיצוב שהיה לך */
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: .85rem;
+  font-weight: 600;
+  display: inline-block; /* מבטיח נשאר inline-block אחרי ההעתקה */
 }
-.toneGreen { background: #ecfdf5; color: #047857; }
-.toneAmber { background: #fffbeb; color: #b45309; }
-.toneBlue  { background: #eff6ff; color: #1d4ed8; }
+
+.toneGreen { background: #f1fef8; color: #047857; }
+.toneAmber { background: #faf9f3; color: #9f4e0f; }
+.toneBlue  { background: #f5f9ff; color: #173997; }
 .toneGray  { background: #f3f4f6; color: #374151; }
 
+/* הפוטר תמיד בתחתית הכרטיס – יוצר אחידות גובה */
 .cardFooter {
-  display: flex; gap: 10px; padding: 12px;
-  border-top: 1px solid #e2e8f0; justify-content: flex-end;
+  margin-top: auto;               /* משאיר את הפוטר בתחתית הכרטיס */
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid #e2e8f0;
+
+  /* שינוי כאן — מיישר את הכפתורים למרכז */
+  justify-content: center;
+  align-items: center;
 }
+
+
+/* כפתורים */
 .viewButton {
   background: #0f172a; color: #fff; padding: 10px 16px;
   border-radius: 999px; font-size: .9rem; border: none; cursor: pointer; transition: .2s ease;
-  
 }
 .viewButton:hover { background: #1f2937; }
+
 .primaryBtn {
   background: #10b981; color: #fff; padding: 10px 16px;
   border-radius: 999px; font-size: .9rem; border: none; cursor: pointer; transition: .2s ease;
 }
 .primaryBtn:hover { filter: brightness(0.95); }
 
-/* ===== מובייל ===== */
+/* ===== מובייל – מצמצם בחזרה כדי להתאים לרוחב מסך קטן ===== */
 @media (max-width: 600px) {
   .heroText { padding: 24px; }
   .heroText h1 { font-size: 1.9rem; }
@@ -206,4 +302,34 @@
     transform: translateX(-50%);
     width: min(92vw, 420px);
   }
+@media (max-width: 600px) {
+  .cardImg, .noImg {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;   /* לא חובה אם כבר מוגדר למעלה */
+    background: #fff;
+  }
+}
+
+  /* רשת צפופה יותר במובייל */
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  /* כרטיס מעט נמוך יותר במובייל */
+  .card { height: 340px; }
+
+  /* ראש כרטיס ותמונה בגודל המקורי של הדסקטופ הישן */
+.cardHead {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  padding: 8px 12px 12px;   /* פחות רווח מעל */
+  align-items: flex-start;   /* << היה center */
+  cursor: pointer;
+  min-height: 110px;
+}
+
+  .cardImg, .noImg { width: 110px; height: 110px;   align-self: flex-start;
+ }
 }

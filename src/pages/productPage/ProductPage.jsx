@@ -1,7 +1,7 @@
 // src/pages/productPage/ProductPage.jsx
 // ProductPage: דף מוצר דינמי לפי תפקיד (אדמין/מוכר/זוכה/משתמש/אורח); כולל הבאת נתונים, חישוב סטטוס וזמנים, טפסי עריכה/משלוח, הרשמה למכירה, פרטי הזמנה, דירוג ודיווח, עם מודאלים לניהול הודעות והתחברות.
 
-import React, { useMemo, useState ,useEffect} from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./ProductPage.module.css";
 
@@ -25,7 +25,7 @@ import { useStartCountdown } from "./hooks/useStartCountdown";
 import { usePaymentDeadline } from "./hooks/usePaymentDeadline";
 
 import ProductLayout from "./components/ui/ProductLayout";
-import SellerRating from "./components/ui/SellerRating";
+import SellerRating from "./components/ui/SellerRating"
 import Box from "./components/ui/Box";
 import { useLoginModal } from "./hooks/useLoginModal";
 import { useWinnerPaymentStatus } from "./hooks/useWinnerPaymentStatus";
@@ -40,21 +40,21 @@ export default function ProductPage() {
 
   /* ---------- טעינת נתוני מוצר ואפשרויות מוכר ---------- */
   const { product, setProduct } = useProductData(id); // הבאת מוצר ועדכון לאחר רענון
-const {
-  loading,
-  option: sellerOption,
-  pickupAddressText,
-  rating: sellerRating,
-  sellerContact,                   // ← הוסף
-} = useSellerOptions(id);                      // משלוח/איסוף + דירוג מוכר
+  const {
+    loading,
+    option: sellerOption,
+    pickupAddressText,
+    rating: sellerRating,
+    sellerContact,                   // ← הוסף
+  } = useSellerOptions(id);                      // משלוח/איסוף + דירוג מוכר
 
   /* ---------- סטטוס מכירה/זכייה ---------- */
   const { saleForProduct, saleInfo } = useSaleState(id, user?.id_number); // מצב מכירה ושורת מכירה אם קיימת
   const [showPickup, setShowPickup] = useState(false);                    // הצגת/הסתרת כתובת איסוף
-// הוסף ממש אחרי זה:
-useEffect(() => {
-  console.log("saleInfo →", saleInfo);
-}, [saleInfo]);
+  // הוסף ממש אחרי זה:
+  useEffect(() => {
+    console.log("saleInfo →", saleInfo);
+  }, [saleInfo]);
   /* ---------- זיהוי תפקיד הצופה ---------- */
   const isAdmin = user?.role === "admin";                                      // האם אדמין
   const isOwner =
@@ -75,7 +75,7 @@ useEffect(() => {
 
 
 
-    
+
   // בדיקת זכייה לפי שורת המכירה (saleInfo) אם קיימת
   const saleWinnerId = saleInfo?.buyer_id_number ?? saleInfo?.winner_id_number ?? null;
   const isWinnerBySale =
@@ -102,21 +102,21 @@ useEffect(() => {
 
   const isEnded = !!saleForProduct || endedByTime;                      // הסתיימה המכירה (לפי זמן או לפי מכירה בפועל)
   const startCountdownSec = useStartCountdown(product?.start_date);     // שניות עד תחילת מכירה (אם טרם החלה)
-// האם התחילה (הטיימר הגיע ל-0 או מתחת) ויש start_date
-const hasStarted = !!product?.start_date && (startCountdownSec ?? 0) <= 0;
+  // האם התחילה (הטיימר הגיע ל-0 או מתחת) ויש start_date
+  const hasStarted = !!product?.start_date && (startCountdownSec ?? 0) <= 0;
 
-// “מכירה מתקיימת”: התחילה, טרם הסתיימה, ובסטטוס שמאפשר מכירה
-const isLive =
-  hasStarted &&
-  !isEnded &&
-  status === "for sale";
+  // “מכירה מתקיימת”: התחילה, טרם הסתיימה, ובסטטוס שמאפשר מכירה
+  const isLive =
+    hasStarted &&
+    !isEnded &&
+    status === "for sale";
 
   // הרשמה אפשרית רק אם: סטטוס פעיל, אין זוכה, ולא הסתיים
   const noWinner = product?.winner_id_number == null || String(product?.winner_id_number).trim() === "";
   const canRegister = status === "for sale" && noWinner && !isEnded;
 
   /* ---------- סטטוס תשלום לזוכה (Hook מרוכז) ---------- */
- const { isPaid, isUnpaidWinner } =
+  const { isPaid, isUnpaidWinner } =
     useWinnerPaymentStatus({
       product,
       saleInfo,
@@ -201,7 +201,7 @@ const isLive =
       return (
         <ProductLayout images={images}>
           {/* התראה למוכר: הקונה שילם אך טרם מילא כתובת */}
-     
+
 
 
           <h1>{product.product_name}</h1>
@@ -230,45 +230,45 @@ const isLive =
   // תצוגת אדמין
   const renderAdminView = () => {
     // מוצר שלא נמכר – מציגים פירוט, אופציות משלוח/איסוף ודירוג מוכר
-// מוצר שלא נמכר – מציגים פירוט, אופציות משלוח/איסוף ודירוג מוכר
-if (status === "not sold") {
-  const hasWinner = product?.winner_id_number != null && String(product.winner_id_number).trim() !== "";
+    // מוצר שלא נמכר – מציגים פירוט, אופציות משלוח/איסוף ודירוג מוכר
+    if (status === "not sold") {
+      const hasWinner = product?.winner_id_number != null && String(product.winner_id_number).trim() !== "";
 
-  return (
-    <ProductLayout
-      images={images}
-      adminPanel={<div className={styles.adminSection}><AdminProductPanel productId={id} /></div>}
-    >
-      <h1>{product.product_name}</h1>
-
-      {hasWinner ? (
-        <p
-          className={styles.notice}
-          style={{ background: "#fff3cd", border: "1px solid #ffeeba", color: "#856404" }}
+      return (
+        <ProductLayout
+          images={images}
+          adminPanel={<div className={styles.adminSection}><AdminProductPanel productId={id} /></div>}
         >
-          הרוכש לא שילם על מוצר זה
-        </p>
-      ) : (
-        <p className={styles.notice}>מוצר זה לא נמכר.</p>
-      )}
+          <h1>{product.product_name}</h1>
 
-      <p className={styles.description}>{product.description}</p>
-      <p className={styles.price}>מחיר פתיחה: ₪{product.price}</p>
+          {hasWinner ? (
+            <p
+              className={styles.notice}
+              style={{ background: "#fff3cd", border: "1px solid #ffeeba", color: "#856404" }}
+            >
+              הרוכש לא שילם על מוצר זה
+            </p>
+          ) : (
+            <p className={styles.notice}>מוצר זה לא נמכר.</p>
+          )}
 
-      {!loading && sellerOption === "delivery" && (
-        <p className={styles.infoNote}>מוצר זה ניתן <b>רק לשליחה</b>.</p>
-      )}
+          <p className={styles.description}>{product.description}</p>
+          <p className={styles.price}>מחיר פתיחה: ₪{product.price}</p>
 
-      {!loading && sellerOption === "delivery+pickup" && (
-        <div className={styles.infoNote}>
-          מוצר זה ניתן <b>גם לשליחה וגם לאיסוף עצמי</b> מכתובת המוכר.
-        </div>
-      )}
+          {!loading && sellerOption === "delivery" && (
+            <p className={styles.infoNote}>מוצר זה ניתן <b>רק לשליחה</b>.</p>
+          )}
 
-      <SellerRating rating={sellerRating} />
-    </ProductLayout>
-  );
-}
+          {!loading && sellerOption === "delivery+pickup" && (
+            <div className={styles.infoNote}>
+              מוצר זה ניתן <b>גם לשליחה וגם לאיסוף עצמי</b> מכתובת המוכר.
+            </div>
+          )}
+
+          <SellerRating rating={sellerRating} />
+        </ProductLayout>
+      );
+    }
 
 
 
@@ -325,11 +325,12 @@ if (status === "not sold") {
                 <h3 style={{ margin: 0 }}>{product.product_name}</h3>
                 {saleInfo?.final_price && (
                   <div style={{ marginTop: 4, color: "#444" }}>
-                    מחיר סופי: {saleInfo.final_price} ₪
+                    מחיר ששולם: {saleInfo.final_price} ₪
                   </div>
+
                 )}
                 <div style={{ marginTop: 4, color: "#666" }}>
-                  אנא מלא/י את פרטי המשלוח להמשך טיפול במשלוח.
+                  שילמת על מוצר זה- נא מלא/י את פרטי המשלוח להמשך טיפול.
                 </div>
               </div>
             </div>
@@ -344,27 +345,27 @@ if (status === "not sold") {
             deadlineText={deadlineText}
             sellerOption={sellerOption}
             pickupAddressText={pickupAddressText}
-            sellerContact={sellerContact} 
+            sellerContact={sellerContact}
           />
         )}
-{/* הצגת כתובת המוכר גם לזוכה שבחר איסוף עצמי */}
-{String(saleInfo?.delivery_method || "").toLowerCase() === "pickup" && (
-  <div className={styles.infoNote} style={{ marginTop: 12 }}>
-    <button
-      type="button"
-      className={`${styles.linkLikeButton} ${showPickup ? styles.linkLikeButtonActive : ""}`}
-      onClick={() => setShowPickup((v) => !v)}
-    >
-      הצג/הסתר כתובת המוכר
-    </button>
+        {/* הצגת כתובת המוכר גם לזוכה שבחר איסוף עצמי */}
+        {String(saleInfo?.delivery_method || "").toLowerCase() === "pickup" && (
+          <div className={styles.infoNote} style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className={`${styles.linkLikeButton} ${showPickup ? styles.linkLikeButtonActive : ""}`}
+              onClick={() => setShowPickup((v) => !v)}
+            >
+              הצג/הסתר כתובת המוכר
+            </button>
 
-    {showPickup && (
-      <div className={styles.pickupBox}>
-        {pickupAddressText || <small>(כתובת המוכר לא זמינה כרגע)</small>}
-      </div>
-    )}
-  </div>
-)}
+            {showPickup && (
+              <div className={styles.pickupBox}>
+                {pickupAddressText || <small>(כתובת המוכר לא זמינה כרגע)</small>}
+              </div>
+            )}
+          </div>
+        )}
 
       </ProductLayout>
     );
@@ -413,20 +414,20 @@ if (status === "not sold") {
             )}
 
             {/* טיימר לתחילת מכירה */}
-          {(startCountdownSec ?? 0) > 0 && (
-  <p className={styles.countdown}>
-    המכירה תחל בעוד {formatCountdown(startCountdownSec)}
-  </p>
-)}
+            {(startCountdownSec ?? 0) > 0 && (
+              <p className={styles.countdown}>
+                המכירה תחל בעוד {formatCountdown(startCountdownSec)}
+              </p>
+            )}
 
-{isLive && (
-  <p
-    className={styles.countdown}
-   
-  >
-    המכירה מתקיימת ברגעים אלו
-  </p>
-)}
+            {isLive && (
+              <p
+                className={styles.countdown}
+
+              >
+                המכירה מתקיימת ברגעים אלו
+              </p>
+            )}
 
             {/* בלוק הרשמה – רק אם הצופה אינו המוכר ובאפשרות להירשם */}
             {String(user?.id_number) !== String(product.seller_id_number) && canRegister && (
