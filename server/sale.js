@@ -371,10 +371,12 @@ router.get("/all", async (req, res) => {
         s.*,
         p.product_name,
         p.start_date,
-        GROUP_CONCAT(pi.image_url) AS image_urls
+        GROUP_CONCAT(pi.image_url) AS image_urls,
+        u.email AS buyer_email          -- ← הוספה: מייל הקונה מטבלת users
       FROM sale s
       JOIN product p ON s.product_id = p.product_id
       LEFT JOIN product_images pi ON p.product_id = pi.product_id
+      LEFT JOIN users u ON u.id_number = s.buyer_id_number  -- ← הוספה: צירוף users לפי ת"ז הקונה
       GROUP BY s.product_id
     `);
 
@@ -389,6 +391,7 @@ router.get("/all", async (req, res) => {
     res.status(500).json({ error: "שגיאה בשליפת מכירות" });
   }
 });
+
 
 
 

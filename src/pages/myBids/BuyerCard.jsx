@@ -122,7 +122,7 @@ if (unpaidWinner) {
 } else if (method === "delivery") {
   // אם מוגדר משלוח אבל אין כתובת למשלוח → אין שיטת מסירה מוגדרת בפועל
   if (!hasDeliveryAddress) {
-    sentLabel = "שיטת מסירה לא הוגדרה";
+    sentLabel = "לחץ כדיי לבחור אופציית משלוח";
   } else {
     sentLabel = isDelivered ? "אושר שההתקבל" : (isSent ? "נשלח" : "טרם נשלח");
   }
