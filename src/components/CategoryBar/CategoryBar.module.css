@@ -10,7 +10,7 @@
   justify-content: flex-start;
   align-items: center;
   gap: 12px;
-  padding: 25px 27px;
+  padding: 70px 20px 15px;
   background-color: transparent;
   overflow-x: auto;
 }
@@ -49,7 +49,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 8px 24px;
+  padding: 10px 40px 10px;
   background-color: #f8f8f8;
   border-bottom: 1px solid #ddd;
 }

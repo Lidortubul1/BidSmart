@@ -1,4 +1,3 @@
-//src\components\navbar\Navbar.jsx
 // סרגל ניווט עליון: מציג לוגו וקישורי אתר דינמיים לפי תפקיד המשתמש (buyer/seller/admin),
 // כולל פרופיל, "ההצעות שלי", הוספה/ניהול מוצרים וסקשני אדמין, וכן כפתור התנתקות.
 // מחשב נתיב בית מותאם לכל תפקיד ומשתמש ב-AuthContext ו-react-router לניווט.
@@ -6,28 +5,29 @@
 import styles from "./Navbar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import { useState } from "react";
+
 import logoImg from "../../assets/images/BSlogo.png";
 
 function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [query, setQuery] = useState("");
 
   const handleLogout = async () => {
     await logout();
     navigate("/");
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (query.trim() !== "") {
-      navigate(`/search-results?query=${encodeURIComponent(query)}`);
-      setQuery("");
-    }
-  };
-
   const isLoggedIn = user && user.role;
+
+  // נסה לחלץ שם תצוגה מכמה שדות אפשריים
+  const displayName =
+    user?.first_name ||
+    user?.firstName ||
+    user?.name ||
+    user?.full_name ||
+    user?.fullName ||
+    user?.username ||
+    (user?.email ? user.email.split("@")[0] : "");
 
   let homePath = "/";
   if (user?.role === "admin") homePath = "/admin";
@@ -36,10 +36,17 @@ function Navbar() {
 
   return (
     <nav className={styles.navbar}>
-      <img src={logoImg} alt="BidSmart Logo" className={styles.logo} />
-
-
-
+      {/* לוגו + ברכה מתחתיו */}
+      <div className={styles.brand}>
+        <Link to={homePath} className={styles.brandLink} aria-label="דף הבית">
+          <img src={logoImg} alt="BidSmart Logo" className={styles.logo} />
+        </Link>
+        {isLoggedIn && !!displayName && (
+          <div className={styles.greeting}>
+            היי {displayName}
+          </div>
+        )}
+      </div>
 
       <ul className={styles.navLinks}>
         <li>

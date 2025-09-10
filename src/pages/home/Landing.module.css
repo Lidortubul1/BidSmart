@@ -82,6 +82,54 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+/* שורת כפתורי התחברות/הרשמה – כמו sortBar, בשורה אחת וממורכז */
+.authLinks {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;          /* כמו ה-gap של .sortBar */
+  flex-wrap: wrap;   /* שהכול יישבר יפה במובייל */
+  margin-top: 10px;  /* רווח קטן מתחת לטקסט */
+}
+
+/* שיהיו בדיוק כמו כפתורי המיון (.sortBtn) */
+.loginLink,
+.registerLink {
+  border: 1px solid #685c4b;
+  background: linear-gradient(180deg, #ffffff 0%, #343433 100%);
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  color: #0f172a;
+  box-shadow: 0 6px 18px rgba(2, 32, 71, 0.06);
+  transition: background .2s ease, transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+/* הובר/אקטיב – אותו אפקט כמו .sortBtn */
+.loginLink:hover,
+.registerLink:hover {
+  transform: translateY(-1px);
+  border-color: #7e7543;
+  box-shadow: 0 10px 26px rgba(2, 32, 71, 0.12);
+}
+
+.loginLink:active,
+.registerLink:active {
+  transform: translateY(0);
+}
+
+/* אופציונלי: מצב "פעיל" (אם תרצי להדגיש אחד מהם), תואם ל-.sortBtnActive */
+.authLinkActive {
+  border-color: #9e9b7f;
+  box-shadow: 0 8px 20px rgba(158, 155, 127, 0.22);
+}
+
+/* מובייל */
+@media (max-width: 768px) {
+  .authLinks { gap: 8px; }
+}
 
 /* כפתור פעולה – גלולה עם גרדיאנט עדין כמו שאר הבקרים */
 .actionButton,
@@ -123,23 +171,30 @@
 .searchContainer {
   display: flex;
   justify-content: center;
-  margin: 0px 1px 0px;
+  width: 100%;
 }
 .searchInput {
-  padding: 12px 14px;
   width: min(520px, 92vw);
-  border: 1px solid #b8b4a6;
-  border-radius: 12px;
-  font-size: 16px;
-  transition: border-color .2s ease, box-shadow .2s ease;
+  padding: 10px 16px;
+  border-radius: 999px;                       /* 👈 גלולה */
+  border: 1px solid #e2e8f0;                  /* כמו .sortBtn */
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  box-shadow: 0 6px 18px rgba(2, 32, 71, 0.08);
   outline: none;
   direction: rtl;
-  background: #fff;
   color: #0f172a;
+  font-size: 16px;
+  transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease;
 }
 .searchInput:focus {
   border-color: #b8b4a6;
   box-shadow: 0 0 0 4px rgba(95, 90, 76, 0.18);
+}
+.searchInput:hover,
+.searchInput:focus {
+  border-color: #bcd7ff;
+  box-shadow: 0 10px 26px rgba(2, 32, 71, 0.12);
+  transform: translateY(-1px);
 }
 
 /* תקציר סינון + ניקוי – ממורכזים ונראים כמו תגיות */
@@ -200,4 +255,53 @@
   .actionButton,
   .loginLink,
   .registerLink { width: 100%; text-align: center; }
+}
+
+/* שורת חיפוש + מיון */
+.searchAndSortRow {
+  display: flex;
+  flex-direction: column;      /* 👈 הכפתורים יורדים מתחת לחיפוש */
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 5px 7px 1px;
+}
+
+/* סרגל מיון */
+.sortBar {
+  display: inline-flex;
+  justify-content: center;     /* 👈 ממורכז */
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* כפתור מיון – בסגנון גלולה עדין שתואם לשאר */
+.sortBtn {
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background .2s ease, transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+  color: #0f172a;
+  box-shadow: 0 6px 18px rgba(2, 32, 71, 0.06);
+}
+
+.sortBtn:hover {
+  transform: translateY(-1px);
+  border-color: #bcd7ff;
+  box-shadow: 0 10px 26px rgba(2, 32, 71, 0.12);
+}
+.sortBtn:active { transform: translateY(0); }
+/* מצב פעיל */
+.sortBtnActive {
+  border-color: #9e9b7f;
+  box-shadow: 0 8px 20px rgba(158, 155, 127, 0.22);
+}
+
+/* מובייל – מעט מרווחים רכים */
+@media (max-width: 768px) {
+  .searchAndSortRow { gap: 8px; }
+  .searchInput { width: min(600px, 94vw); }
 }
