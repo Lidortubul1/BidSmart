@@ -1,186 +1,203 @@
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
+
+/* ===== עמוד כללי ===== */
 .page {
-  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
+  direction: rtl;
+  background: linear-gradient(145deg, #f0efee, #ffffff);
+  background-attachment: fixed; /* נשאר יפה בגלילה */
   font-family: "Heebo", sans-serif;
-  color: #222;
+  color: #0f172a;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
+/* ===== Hero עליון ===== */
 .hero {
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 100px 5% 60px;
-  background: linear-gradient(145deg, #f0f0f0, #ffffff);
+  padding: 96px 5% 56px;
+  background: transparent;      /* שקוף כמו בעמודים האחרים */
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   z-index: 1;
 }
 
-/* אפקטים רקעיים */
+/* כתמי אור מטושטשים */
 .hero::before,
 .hero::after {
   content: "";
   position: absolute;
   border-radius: 50%;
   filter: blur(70px);
-  opacity: 0.3;
+  opacity: 0.28;
   z-index: 0;
+  pointer-events: none;
 }
 .hero::before {
-  width: 300px;
-  height: 300px;
-  background: #b7a65e;
-  top: -100px;
-  right: -100px;
+  width: 300px; height: 300px; background: #9e9b7f;
+  top: -100px; right: -100px;
 }
 .hero::after {
-  width: 400px;
-  height: 400px;
-  background: #b7a65e;
-  bottom: -150px;
-  left: -150px;
+  width: 420px; height: 420px; background: #9e9b7f;
+  bottom: -160px; left: -160px;
 }
 
 .heroText {
-  max-width: 600px;
-  position: relative;
-  z-index: 2;
+  max-width: 700px;
   background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(8px);
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 36px 28px;
+  border-radius: 22px;
+  box-shadow: 0 12px 40px rgba(16, 24, 40, 0.12);
+  position: relative;
+  z-index: 1;
+  margin-inline: auto;
 }
 
 .heroText h1 {
-  font-size: 2.8rem;
-  margin-bottom: 20px;
-  line-height: 1.3;
+  font-size: 2.4rem;
+  margin: 0 0 10px;
+  line-height: 1.25;
 }
 
 .subText {
-  font-size: 1.1rem;
-  color: #555;
-  margin-bottom: 30px;
+  font-size: 1.05rem;
+  color: #56637a;
+  margin: 0 0 8px;
 }
 
 .aiAssistantText {
   font-size: 0.95rem;
-  color: #666;
-  margin: 12px 0 24px;
+  color: #6b7280;
+  margin: 0 0 18px;
 }
 
+/* כפתורי פעולה ממורכזים */
 .actions {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
+/* כפתור פעולה – גלולה עם גרדיאנט עדין כמו שאר הבקרים */
 .actionButton,
 .loginLink,
 .registerLink {
-  background-color: #000;
-  color: #fff;
-  padding: 12px 22px;
-  border-radius: 30px;
-  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-weight: 600;
   text-decoration: none;
-  transition: background-color 0.3s ease;
-  display: inline-block;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  box-shadow: 0 6px 18px rgba(2, 32, 71, 0.08);
+  transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease;
 }
-
 .actionButton:hover,
 .loginLink:hover,
 .registerLink:hover {
-  background-color: #333;
+  transform: translateY(-1px);
+  border-color: #bcd7ff;
+  box-shadow: 0 10px 26px rgba(2, 32, 71, 0.12);
 }
 
-.authLinks {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin: 12px 0 8px;
-}
-
+/* ===== אזור מוצרים ===== */
 .productsSection {
-  padding: 40px 5%;
+  padding: 3px 5% 6px;
 }
 
 .productsSection h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin: 0 0 10px;
+  font-size: 1.6rem;
 }
 
+/* חיפוש ממורכז בסגנון האחיד */
 .searchContainer {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin: 0px 1px 0px;
 }
-
 .searchInput {
-  padding: 12px 16px;
-  width: 100%;
-  max-width: 400px;
-  border: 1px solid #ccc;
-  border-radius: 25px;
+  padding: 12px 14px;
+  width: min(520px, 92vw);
+  border: 1px solid #b8b4a6;
+  border-radius: 12px;
   font-size: 16px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color .2s ease, box-shadow .2s ease;
   outline: none;
   direction: rtl;
+  background: #fff;
+  color: #0f172a;
 }
 .searchInput:focus {
-  border-color: var(--primary, #1a89ff);
-  box-shadow: 0 0 0 3px rgba(26, 137, 255, 0.1);
+  border-color: #b8b4a6;
+  box-shadow: 0 0 0 4px rgba(95, 90, 76, 0.18);
 }
 
-.footer {
-  text-align: center;
-  padding: 20px;
-  margin-top: auto;
-  background-color: #f0f0f0;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-@media (max-width: 768px) {
-  .heroText h1 { font-size: 2.1rem; }
-  .subText { font-size: 1rem; }
-  .actions { flex-direction: column; gap: 15px; }
-  .actionButton,
-  .loginLink,
-  .registerLink { width: 100%; text-align: center; }
-}
-
+/* תקציר סינון + ניקוי – ממורכזים ונראים כמו תגיות */
 .filterBar {
   margin: 8px 0 16px;
   display: flex;
   gap: 12px;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;   /* היה flex-start */
   flex-wrap: wrap;
 }
 
 .filterInfo {
-  background: #f5f5f7;
-  border: 1px solid #e7e7ea;
+  background: #f5f9ff;
+  border: 1px solid #e2e8f0;
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 0.95rem;
-  color: #333;
+  color: #0f172a;
+  box-shadow: 0 6px 18px rgba(2, 32, 71, 0.06);
 }
 
+/* כפתור ניקוי בסגנון "תג" */
 .clearFilterBtn {
-  border: 0;
-  background: #efefef;
-  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.15s ease, transform 0.05s ease;
+  transition: background .2s ease, transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+  color: #0f172a;
+  box-shadow: 0 6px 18px rgba(2, 32, 71, 0.06);
 }
-.clearFilterBtn:hover { background: #e5e5e5; }
-.clearFilterBtn:active { transform: translateY(1px); }
+.clearFilterBtn:hover {
+  transform: translateY(-1px);
+  border-color: #bcd7ff;
+  box-shadow: 0 10px 26px rgba(2, 32, 71, 0.12);
+}
+.clearFilterBtn:active { transform: translateY(0); }
+
+/* ===== פוטר פשוט (נשאר אם תרצה) ===== */
+.footer {
+  text-align: center;
+  padding: 20px;
+  margin-top: auto;
+  background-color: #f3f4f6;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ===== מובייל ===== */
+@media (max-width: 768px) {
+  .heroText { padding: 24px; }
+  .heroText h1 { font-size: 2rem; }
+  .subText { font-size: 1rem; }
+  .actions { gap: 10px; }
+  .actionButton,
+  .loginLink,
+  .registerLink { width: 100%; text-align: center; }
+}

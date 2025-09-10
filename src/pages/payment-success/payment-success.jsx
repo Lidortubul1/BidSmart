@@ -44,7 +44,7 @@ function PaymentSuccess() {
       const data = await confirmPayment(id);
 
       if (data.success) {
-        navigate(`/shipping/${id}`);
+        navigate(`/product/${id}`);
       } else {
         showModal({
           title: "שגיאה",

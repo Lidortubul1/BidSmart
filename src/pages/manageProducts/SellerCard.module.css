@@ -1,0 +1,144 @@
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
+
+/* כרטיס גדול ואחיד כמו BuyerCard */
+.card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,.04);
+  height: 380px;
+}
+
+.cardHead {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  padding: 10px 20px 6px;
+  align-items: center;
+  cursor: pointer;
+  min-height: 140px;
+}
+
+.cardImg {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.noImg {
+  width: 140px;
+  height: 140px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background:#f1f5f9;
+  color:#94a3b8;
+  font-size: .9rem;
+}
+
+.cardTitleWrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 550;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  width: 100%;
+  unicode-bidi: plaintext;
+  padding: 1px 2px;
+}
+
+.cardBody { padding: 10px 15px 0; flex: 1; }
+.row { display: flex; justify-content: space-between; padding: 6px 0; font-size: .95rem; }
+.label { color:#64748b; }
+
+/* תגיות סטטוס */
+.badge {
+  display: inline-block;
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.toneGreen { background: #f1fef8; color: #047857; }
+.toneAmber { background: #faf9f3; color: #9f4e0f; }
+.toneBlue  { background: #f5f9ff; color: #173997; }
+.toneGray  { background: #f3f4f6; color: #374151; }
+.toneRed   { background: #fff5f5; color: #b91c1c; }
+
+.cardFooter {
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid #e2e8f0;
+  justify-content: center;
+  align-items: center;
+}
+
+.viewButton {
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: .9rem;
+  border: none;
+  cursor: pointer;
+  transition: .2s ease;
+}
+.viewButton:hover { background: #1f2937; }
+
+.deleteBtn {
+  background: #fff1f2;
+  color: #b91c1c;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: .9rem;
+  border: 1px solid #fecdd3;
+  cursor: pointer;
+}
+
+/* מובייל */
+@media (max-width: 600px) {
+  .card { height: 340px; }
+  .cardHead {
+    grid-template-columns: 110px 1fr;
+    padding: 8px 12px 12px;
+    align-items: flex-start;
+    min-height: 110px;
+  }
+  .cardImg, .noImg { width: 110px; height: 110px; }
+}
+.linkBtn {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s ease;
+}
+.linkBtn:hover { background: #f8fafc; border-color: #cbd5e1; }

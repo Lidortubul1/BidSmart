@@ -54,7 +54,7 @@ function BuyerDashboard() {
   <div className={styles.searchContainer}>
     <input
       type="text"
-      placeholder="🔍 חפש מוצר לפי שם או תיאור..."
+      placeholder=" חפש מוצר לפי שם או תיאור..."
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
       className={styles.searchInput}

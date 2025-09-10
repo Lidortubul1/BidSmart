@@ -52,7 +52,7 @@ router.get("/products", requireSellerOrAdmin, async (req, res) => {
     switch (filterRaw) {
       case "forsale":
         // מוצרים שטרם חלה המכירה (status = for_sale)
-        where += " AND LOWER(p.product_status) = 'for sale'";
+        where += " AND LOWER(p.product_status) = 'for sale' AND (p.winner_id_number IS NULL OR p.winner_id_number = '')"
         break;
 
       case "sold":

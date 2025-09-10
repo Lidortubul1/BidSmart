@@ -73,9 +73,7 @@ export default function ProductList({
           <p className={styles.empty}>לא נמצאו מוצרים תואמים.</p>
         ) : (
           <>
-            <p className={styles.countInfo}>
-              נמצאו {filteredProducts.length} מוצרים
-            </p>
+          
 
             <div className={styles.productsGrid}>
               {currentProducts.map((product) => (

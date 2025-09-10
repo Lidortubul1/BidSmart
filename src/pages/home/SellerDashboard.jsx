@@ -1,4 +1,3 @@
-// src/pages/home/SellerDashboard.jsx
 import ProductList from "../../components/productList/productList";
 import CategoryBar from "../../components/CategoryBar/CategoryBar";
 import { Link } from "react-router-dom";
@@ -46,7 +45,7 @@ function SellerDashboard() {
         <div className={styles.searchContainer}>
           <input
             type="text"
-            placeholder="🔍 חפש מוצר לפי שם או תיאור..."
+            placeholder=" חפש מוצר לפי שם או תיאור..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={styles.searchInput}

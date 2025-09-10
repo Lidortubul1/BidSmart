@@ -61,7 +61,6 @@ export default function OrderDetails({ sale, isWinner, sellerView, adminView, se
   const shipped     = ["yes", "1", "true"].includes(String(localSale.sent).toLowerCase()); // האם סומן כנשלח/נאסף ע"י המוכר
   const delivered   = ["1", "true"].includes(String(localSale.is_delivered).toLowerCase()); // האם סומן "נמסר/נאסף" ע"י הקונה
   const winDateText = localSale.end_date ? formatDateTimeHe(localSale.end_date) : "-";
-  const methodText  = method === "pickup" ? "איסוף עצמי" : "משלוח";
 
   // ----- פרטי קשר -----
   // מוכר (עדיפות לנתוני ההוק; אחרת שדות שמגיעים מה-API ברשומת ה-sale)
@@ -181,8 +180,8 @@ export default function OrderDetails({ sale, isWinner, sellerView, adminView, se
         setRateOpen(true); // פתיחת מודאל דירוג
       }
     } catch {
-      setLocalSale(sale || null); // rollback ל־props
-      alert("שגיאה בעת סימון נמסר/נאסף");
+        setLocalSale(sale || null); // rollback ל־props
+        alert("שגיאה בעת סימון נמסר/נאסף");
     } finally {
       setPending(false);
     }
@@ -201,6 +200,12 @@ export default function OrderDetails({ sale, isWinner, sellerView, adminView, se
       setSavingRating(false);
     }
   };
+
+  // ----- טקסט תצוגה לשיטת המסירה -----
+  // אם משלוח אבל אין כתובת — מציגים "טרם נבחר" בשורת "שיטת מסירה"
+  const methodDisplayText =
+    method === "pickup" ? "איסוף עצמי" :
+    (method === "delivery" && addressMissing ? "טרם נבחר" : "משלוח");
 
   // ----- תצוגה -----
   return (
@@ -221,11 +226,11 @@ export default function OrderDetails({ sale, isWinner, sellerView, adminView, se
 
       <div className={styles.orderRow}>
         <span className={styles.orderLabel}>שיטת מסירה:</span>
-        <span>{methodText}</span>
+        <span>{methodDisplayText}</span>
       </div>
 
-      {/* כתובת מלאה — רק במשלוח */}
-      {method === "delivery" && (
+      {/* כתובת מלאה — רק במשלוח, ורק כשהכתובת מלאה; אם חסרה כתובת לא מציגים כלום */}
+      {method === "delivery" && !addressMissing && (
         <>
           <div className={styles.orderRow}><span className={styles.orderLabel}>עיר:</span><span>{localSale.city || "-"}</span></div>
           <div className={styles.orderRow}><span className={styles.orderLabel}>רחוב:</span><span>{localSale.street || "-"}</span></div>
