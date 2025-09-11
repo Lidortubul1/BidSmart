@@ -1,5 +1,4 @@
 // src/pages/ProductPage/components/RegistrationBlock.jsx
-// בלוק הרשמה למכירה: למשתמשים שאינם אדמין/בעלים – ספירת זמן עד ההתחלה, בדיקת הרשמה קיימת, תהליך KYC (ת"ז + צילום) במידת הצורך, הרשמה/ביטול למכרז, הודעות מודאל, והפניה למכירה החיה; מציג משך מכירה וכפתורי פעולה בהתאם למצב.
 
 import React, { useEffect, useState } from "react";
 import styles from "../ProductPage.module.css";
@@ -9,15 +8,16 @@ import {
   cancelQuotationRegistration,
 } from "../../../services/quotationApi";
 import { uploadIdCard } from "../../../services/authApi";
-import { durationToMinutesDisplay, formatCountdown } from "../utils/time";
+import { durationToMinutesDisplay } from "../utils/time";
 import { formatDate, formatTime } from "../utils/datetime";
-//הרשמה/ביטול/מעבר ללייב למשתמשים שאינם הבעלים/אדמין
-export default function RegistrationBlock({ product, user, setUser, onNeedLogin, navigate, openModal }) {
+
+export default function RegistrationBlock({ product, user, setUser, onNeedLogin, navigate, openModal, onAttemptRegister }) {
   const [isRegistered, setIsRegistered] = useState(false);
   const [showIdForm, setShowIdForm] = useState(false);
   const [idNumberInput, setIdNumberInput] = useState("");
   const [idPhotoFile, setIdPhotoFile] = useState(null);
   const [showIdError, setShowIdError] = useState(false);
+
 
   const isAdmin = user?.role === "admin";
   const isOwner =
@@ -25,22 +25,7 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
     product?.seller_id_number &&
     String(user.id_number) === String(product.seller_id_number);
 
-  // ספירה עד ההתחלה – מציבים את ה־state לפני ה־effect
-  const [startCountdownSec, setStartCountdownSec] = useState(null);
-  useEffect(() => {
-    if (!product?.start_date) {
-      setStartCountdownSec(null);
-      return;
-    }
-    const start = new Date(product.start_date).getTime();
-    const tick = () =>
-      setStartCountdownSec(Math.max(Math.floor((start - Date.now()) / 1000), 0));
-    tick();
-    const iv = setInterval(tick, 1000);
-    return () => clearInterval(iv);
-  }, [product?.start_date]);
 
-  // בדיקת הרשמה קיימת (ללא מודאל – רק לוג)
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -60,10 +45,9 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
         console.warn("getQuotationsByProductId failed:", e?.message || e);
       }
     })();
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [product?.product_id, user?.id_number]);
+
 
   const completeRegistration = async (idNum) => {
     try {
@@ -95,9 +79,22 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
   };
 
   const handleRegisterClick = () => {
-    if (!user?.email) return onNeedLogin?.(); // צריך התחברות
-    if (!user.id_number || !user.id_card_photo) setShowIdForm(true); // צריך KYC
-    else completeRegistration(user.id_number); // יש KYC
+    if (!user?.email) {
+   // מסמנים להורה שניסו להירשם כאורח → כדי שאחרי ההתחברות יופיע מודאל אם הוא הבעלים
+       onAttemptRegister?.();
+      return onNeedLogin?.();
+    }
+    if (isOwner) {
+      // מחובר וכבר ברור שזה הבעלים
+      openModal?.({
+        title: "פעולה לא אפשרית",
+        message: "לא ניתן להירשם למוצר שהעלית.",
+        confirmText: "הבנתי",
+      });
+      return;
+    }
+    if (!user.id_number || !user.id_card_photo) setShowIdForm(true);
+    else completeRegistration(user.id_number);
   };
 
   const handleIdChange = (e) => {
@@ -161,8 +158,6 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
 
   return (
     <>
-      
-
       <p className={styles.status}>
         זמן המכירה למוצר זה הוא {durationToMinutesDisplay(product.end_time)} דקות
       </p>

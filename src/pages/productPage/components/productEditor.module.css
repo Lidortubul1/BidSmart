@@ -11,7 +11,7 @@
   --muted:         #64748b;     /* טקסט משני/עזר */
   --line:          #e2e8f0;     /* גבולות/מסגרות */
   --primary:       #202020;     /* צבע ראשי לפעולות */
-  --primary-600:   #e6dec5;     /* מצב ריחוף/פוקוס */
+  --primary-600:   #796f53;     /* מצב ריחוף/פוקוס */
   --danger:        #e11d48;     /* פעולת מחיקה */
   --success:       #10b981;     /* הצלחה */
   --shadow:        0 10px 30px rgba(2, 6, 23, .06); /* צל עדין */
@@ -24,7 +24,7 @@
   direction: rtl;               /* ממשק בעברית */
   text-align: right;            /* יישור טקסט לימין */
   max-width: 920px;             /* רוחב מרבי נוח לקריאה */
-  margin: 24px auto;            /* ממרכז את התוכן */
+  margin: 120px auto;            /* ממרכז את התוכן */
   padding: 20px;
   background: var(--card);
   color: var(--text);
@@ -104,7 +104,7 @@
    ───────────────────────────── */
 .segmented {
   display: inline-flex;
-  background: #fffefe;
+  background: #ffffff;
   color: #0f172a;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -146,9 +146,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: #f7fbff;
+  background: #fffcf8;
   color: var(--primary-600);
-  border: 1px dashed #bcd7ff;
+  border: 1px dashed #ffffff;
   border-radius: 12px;
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease;

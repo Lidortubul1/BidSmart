@@ -9,7 +9,7 @@
 // שימו לב: הלוגיקה העסקית נשארת כאן, בעוד שהתצוגות עצמן הופרדו לקבצי View ייעודיים.
 // ----------------------------------------------------------------------------
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect ,useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../auth/AuthContext";
@@ -55,10 +55,10 @@ export default function ProductPage() {
     sellerContact,
   } = useSellerOptions(id);
 
-  // 3) סטטוס מכירה/רשומת sale למוצר (כולל בדיקת זכייה יחסית ל־user)
-  const { saleForProduct, saleInfo } = useSaleState(id, user?.id_number);
 
-  // לוג דיבאג – נשאר יזום
+  // 3) סטטוס מכירה/רשומת sale למוצר (כולל בדיקת זכייה יחסית ל־user)
+const { saleForProduct, saleInfo } = useSaleState(id, user?.id_number);
+// לוג דיבאג – נשאר יזום
   useEffect(() => {
     console.log("saleInfo →", saleInfo);
   }, [saleInfo]);
@@ -146,8 +146,40 @@ export default function ProductPage() {
 
   /* ---------------------- מודאלים כלליים ---------------------- */
   // ניהול מודאל הודעות/אישורים ומודאל התחברות (LoginForm)
-  const { modal, setModal, showLogin, setShowLogin, openModal, askLogin } =
+const { modal, setModal, showLogin, setShowLogin, openModal, askLogin } =
     useLoginModal(navigate);
+
+  // דגל ניסיון הרשמה לפני התחברות
+  const [attemptedRegister, setAttemptedRegister] = useState(false);
+
+  // מודאל אחרי התחברות: אם התברר שהוא המוכר
+  useEffect(() => {
+    if (!attemptedRegister) return;
+    if (!user?.email) return;
+
+    const isOwnerNow =
+      user?.id_number &&
+      product?.seller_id_number &&
+      String(user.id_number) === String(product.seller_id_number);
+
+    if (isOwnerNow) {
+     openModal?.({
+  title: "פעולה לא אפשרית",
+  message: "לא ניתן להירשם למוצר שהעלית.",
+  
+  cancelText: "סגור",                // אופציונלי – כפתור שני
+  onCancel: () => setModal(null),    // מבטיח שיופיע גם אם המודאל דורש זאת
+  hideClose: false,
+  disableBackdropClose: false,
+});
+
+    }
+    // לנקות בכל מקרה אחרי ההתחברות
+    setAttemptedRegister(false);
+  }, [attemptedRegister, user?.email, user?.id_number, product?.seller_id_number, openModal]);
+
+  // בונוס: איפוס הדגל אם עוברים לעמוד מוצר אחר באמצע
+  useEffect(() => { setAttemptedRegister(false); }, [id]);
 
   // בזמן טעינת מוצר – מציגים סטייט ביניים (שומר UX פשוט)
   if (!product) return <p>טוען מוצר...</p>;
@@ -232,6 +264,8 @@ export default function ProductPage() {
           askLogin={askLogin}
           sellerRating={sellerRating}
           navigate={navigate}
+          onAttemptRegister={() => setAttemptedRegister(true)}
+
         />
       );
   }

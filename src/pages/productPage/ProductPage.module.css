@@ -1,7 +1,7 @@
 .page {
-  background: linear-gradient(to bottom, #f7f9fc, #ffffff);
+  background: linear-gradient(to bottom, #fcfaf7, #ffffff);
   min-height: 100vh;
-  padding: 60px 20px;
+  padding: 200px 100px 50px;
   display: flex;
   flex-direction: column;   /* ⬅️ חשוב: מסדר את הילדים בעמודה */
   align-items: center;      /* מרכז אופקית את הבלוקים */
@@ -281,6 +281,147 @@
 }
 
 .notice { background:#fff; border:1px dashed #cbd5e1; border-radius:12px; padding:12px 14px; color:#475569; }
+/* ================================
+   Product text & typography only
+   ================================ */
+
+/* עטיפת טקסט כללית לחלק הימני/פרטי המוצר */
+.textWrap {
+  max-width: 64ch;            /* רוחב קריא לפסקאות */
+  width: 100%;
+}
+
+/* כותרות משנה בתוך פרטי המוצר */
+.sectionTitle {
+  margin: 18px 0 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #0f172a;             /* כהה ונקי */
+}
+
+/* פסקאות ותיאורים */
+.details p,
+.description {
+  margin: 8px 0 12px;
+  line-height: 1.7;
+  color: #2b2b2b;
+  word-break: break-word;
+}
+
+/* נקודות/רשימות מידע קצרות */
+.details ul,
+.textList {
+  margin: 8px 0 12px;
+  padding-inline-start: 1.25rem;  /* ריווח ל־RTL/LTR */
+}
+.details li,
+.textList li {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+
+/* רשימת מפתח:ערך (מאוד נוח למטא־נתונים) */
+.kvList {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px 16px;
+  margin: 10px 0 12px;
+}
+.kvList dt {
+  font-weight: 700;
+  color: #0f172a;
+  text-align: start;          /* עובד טוב ב־RTL */
+}
+.kvList dd {
+  margin: 0;
+  color: #334155;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+/* פס מפריד עדין בין מקטעי מלל */
+.sectionDivider {
+  height: 1px;
+  background: linear-gradient(to left, #f1f5f9, #e2e8f0, #f1f5f9);
+  border: 0;
+  margin: 12px 0;
+  width: 100%;
+}
+
+/* תת-טקסט/מידע משני (כמו “כולל אחריות …”) */
+.subNote {
+  font-size: .92rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* תג סטטוס טקסטואלי קטן Inline (לא נוגע בכפתורים) */
+.inlineBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 700;
+  vertical-align: baseline;
+}
+.inlineBadge--ok     { background:#fdf6ec; color:#047857; }
+.inlineBadge--warn   { background:#fffbeb; color:#b45309; }
+.inlineBadge--muted  { background:#f1f5f9; color:#334155; }
+
+/* סטטוס "המכירה מתקיימת עכשיו" – הדגשה אדומה בטקסט בלבד */
+.statusLiveText {
+  font-weight: 900;
+  color: #dc2626;             /* אדום בוהק, קריא */
+  letter-spacing: .2px;
+}
+
+/* קישורי טקסט בתוך תיאורים (לא נוגע ב .linkLikeButton הקיים) */
+.textLink {
+  color: #0ea5e9;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.textLink:hover { color:#0284c7; }
+
+/* קופסת מלל רכה (לשילוב הודעות מידע בתוך הפרטים) */
+.textNote {
+  background:#fffdfb;
+  border:1px solid #c5c3bf;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color:#334155;
+  line-height: 1.6;
+}
+
+/* כותרת המוצר (לא נוגעת ב-h1 גלובלי) */
+.details .productTitle {
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+  font-weight: 900;
+  margin: 0 0 8px;
+  color: #111827;
+}
+
+/* מחיר/סטטוס – טקסט מובלט אך לא ענק */
+.details .priceText {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #111827;
+  margin: 6px 0 8px;
+}
+.details .statusText {
+  font-weight: 700;
+  color: #111827;
+  margin: 2px 0 8px;
+}
+
+/* ריווח פנימי בין בלוקי מידע בטקסט */
+.blockGap > * + * { margin-top: 10px; }
+
+/* התאמות RTL לנוחות קריאה */
+.details, .textWrap, .kvList, .textList { direction: rtl; text-align: right; }
 
 /* ================================
    OrderDetails – RTL & layout
