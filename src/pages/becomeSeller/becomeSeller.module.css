@@ -1,109 +1,173 @@
-.page {
-  background: linear-gradient(to top right, #e1e5f2, #ffffff);
+/* --- Theme tokens (זהים ל-Shipment Form) --- */
+:root {
+  --bg: #c00b0b;
+  --card: #ffffff;
+  --text: #111111;
+  --muted: #6b7280;
+  --border: #ebe9e5;
+  --primary: #000000;
+  --primary-contrast: #ffffff;
+  --accent: #312a16;
+  --accent-700: #3a3319;
+  --accent-800: #322d1b;
+  --focus: #6b5d2f33;
+  --shadow: 0 8px 24px rgba(0,0,0,.08);
+  --radius-xl: 18px;
+  --radius-lg: 12px;
+  --radius-md: 10px;
+}
+
+/* --- Page wrapper --- */
+.bsPage {
+  background-color: #ffffff;
   min-height: 100vh;
-  padding-top: 80px;
+  padding: clamp(80px, 6vw, 80px) 16px 32px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: "Heebo", sans-serif;
+  font-family: "Heebo", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   direction: rtl;
+  color: var(--text);
 }
 
-.formBox {
-  background-color: #ffffff;
-  width: 420px;
-  padding: 30px 40px;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+/* --- Card --- */
+.bsCard {
+  width: min(720px, 100%);
+  background-color: var(--card);
+  margin-top: 50px;
+  padding: 40px 40px 40px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
   text-align: right;
 }
 
-.title {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-  color: #222;
-  font-weight: bold;
+/* --- Headings --- */
+.bsTitle {
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  margin: 0 0 6px 0;
+  color: var(--text);
+  font-weight: 800;
 }
 
-.subtitle {
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 25px;
+.bsSubtitle {
+  font-size: clamp(.95rem, 1.4vw, 1rem);
+  color: var(--muted);
+  margin: 0 0 20px 0;
 }
 
-.form {
+/* --- Form layout --- */
+.bsForm {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.bsGroup {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 6px;
 }
 
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.inputGroup label {
-  font-weight: bold;
-  font-size: 0.95rem;
+.bsGroup label {
+  font-weight: 700;
+  font-size: .95rem;
   color: #333;
 }
 
-.input {
-  padding: 12px;
+/* --- Inputs & selects --- */
+.bsInput {
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  transition: border-color 0.3s;
+  background: #fcfbfa;             /* 🤎 לבן-זהוב עדין */
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+  color: var(--text);
 }
 
-.input:focus {
+.bsInput:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(107, 93, 47, 0.25);
+  background: #fffdf8;
 }
 
-.button {
-  background-color: #000 !important;
-  color: white;
-  padding: 12px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.bsInput::placeholder {
+  color: #9ca3af;
 }
 
-.button:hover {
-  background-color: #333;
-}
-.phoneRow {
+
+.bsPhoneRow {
   display: flex;
+  flex-direction: row-reverse; /* כך ה-select יבוא משמאל ל-input */
   gap: 8px;
-  direction: ltr;          /* מקלדת/ספרות משמאל לימין */
-  flex-direction: row-reverse; /* הופך סדר ויזואלי: input מימין, select משמאל */
+  direction: ltr;              
 }
 
-/* ה־select נשאר בגודל הנוכחי (לפי התוכן) ולא נמתח */
-.phonePrefix {
-  flex: 0 0 auto;
-  width: auto !important;
+.bsPhoneNumber { flex: 1; }
+.bsPhonePrefix { width: 150px; flex: 0 0 150px; }
+
+
+
+
+
+
+
+@media (max-width: 480px) {
+  .bsPhoneRow {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* ה־input יתפוס את כל השאר */
-.phoneNumber {
-  flex: 1 1 auto;
+
+
+/* --- Error styles --- */
+.bsError {
+  border-color: #533615 !important;
+  box-shadow: 0 0 0 2px rgba(131, 65, 63, 0.22) !important;
 }
 
-/* קו אדום לשדה עם שגיאה */
-.error {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, .15) !important;
-}
-
-/* טקסט שגיאה קטן מתחת לשדה */
-.fieldError {
+.bsFieldError {
   color: #ef4444;
-  font-size: 0.9rem;
-  margin-top: 6px;
+  font-size: .9rem;
+  margin-top: 4px;
   line-height: 1.2;
 }
+
+/* --- Primary button --- */
+.bsPrimaryBtn {
+  grid-column: 1 / -1;
+  background-color: #69614e;
+  color: var(--primary-contrast);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .2s ease, transform .06s ease, box-shadow .2s ease;
+}
+
+.bsPrimaryBtn:hover {
+  background-color: var(--accent-700);
+  color: #fff;
+}
+
+.bsPrimaryBtn:active {
+  transform: translateY(1px);
+}
+
+.bsPrimaryBtn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* --- Focus ring for interactive elements --- */
+.bsPrimaryBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--focus);
+}
+
+/* --- Small polish --- */
+select::-ms-expand { display: none; }

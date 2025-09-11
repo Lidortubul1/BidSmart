@@ -1,18 +1,26 @@
 // src/pages/ProductPage/components/RegistrationBlock.jsx
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styles from "../ProductPage.module.css";
 import {
   getQuotationsByProductId,
   registerToQuotation,
   cancelQuotationRegistration,
 } from "../../../services/quotationApi";
-import { uploadIdCard , getCurrentUser } from "../../../services/authApi";
+import { uploadIdCard, getCurrentUser } from "../../../services/authApi";
 import { durationToMinutesDisplay } from "../utils/time";
 import { formatDate, formatTime } from "../utils/datetime";
 
-export default function RegistrationBlock({ product, user, setUser, onNeedLogin, navigate, openModal, onAttemptRegister , shouldAutoRegister,
- onAutoHandled,
+export default function RegistrationBlock({
+  product,
+  user,
+  setUser,
+  onNeedLogin,
+  navigate,
+  openModal,
+  onAttemptRegister,
+  shouldAutoRegister,
+  onAutoHandled,
 }) {
   const [isRegistered, setIsRegistered] = useState(false);
   const [showIdForm, setShowIdForm] = useState(false);
@@ -20,44 +28,119 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
   const [idPhotoFile, setIdPhotoFile] = useState(null);
   const [showIdError, setShowIdError] = useState(false);
 
-
   const isAdmin = user?.role === "admin";
   const isOwner =
     user?.id_number &&
     product?.seller_id_number &&
     String(user.id_number) === String(product.seller_id_number);
 
-    // 0) אם המשתמש מחובר אבל חסר לו id_number/id_card_photo – נמשוך סשן טרי ונעדכן את ה־Context
+  // אם המשתמש מחובר אבל חסר לו id_number/id_card_photo – נמשוך סשן טרי ונעדכן Context
   useEffect(() => {
     if (!user?.email) return;
     if (user?.id_number && user?.id_card_photo) return;
     (async () => {
       try {
-        const fresh = await getCurrentUser();   // ראה מימוש למטה
+        const fresh = await getCurrentUser();
         if (fresh?.id_number || fresh?.id_card_photo) {
           setUser?.(fresh);
         }
       } catch {}
     })();
-  // חשוב: תלות ב-email, כי מזה נבין שרק התחברו/שחזרו סשן
-}, [user?.email, user?.id_number, user?.id_card_photo, setUser]);
+  }, [user?.email, user?.id_number, user?.id_card_photo, setUser]);
+const completeRegistration = useCallback(async (idNum) => {
+  try {
+    const productId = product?.product_id;
+    const res = await registerToQuotation(productId, idNum);
+    const dateStr = product?.start_date ? formatDate(product.start_date) : "";
+    const timeStr = product?.start_date ? formatTime(product.start_date) : "";
 
- useEffect(() => {
-  if (!shouldAutoRegister) return;
-  // אם זה אדמין/בעלים – לא מריצים כלום ומנקים את הדגל כדי שלא ניתקע בלופ
-   if (isAdmin || isOwner) {
-     onAutoHandled?.();
-     return;
-   }
-   handleRegisterClick().finally(() => onAutoHandled?.());
-  }, [shouldAutoRegister]);
+    if (res.success || res.message === "כבר נרשמת למכירה הזו") {
+      setIsRegistered(true);
+      setShowIdForm(false);
+      openModal?.({
+        title: res.success ? "נרשמת!" : "כבר נרשמת!",
+        message: dateStr
+          ? `המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`
+          : "נרשמת למכירה בהצלחה.",
+        confirmText: "אישור",
+      });
+    } else {
+      throw new Error(res.message || "שגיאה");
+    }
+  } catch {
+    openModal?.({
+      title: "שגיאה",
+      message: "שגיאה בעת ניסיון ההרשמה למכרז",
+      confirmText: "סגור",
+    });
+  }
+}, [product?.product_id, product?.start_date, openModal]);
 
+  // ⬇️ עטיפה ב-useCallback כדי שה-effect למטה יוכל לתלות בה נקייה
+const handleRegisterClick = useCallback(async () => {
+  if (!user?.email) {
+    onAttemptRegister?.();
+    onNeedLogin?.();
+    return;
+  }
+  if (isOwner) {
+    openModal?.({
+      title: "פעולה לא אפשרית",
+      message: "לא ניתן להירשם למוצר שהעלית.",
+      confirmText: "הבנתי",
+    });
+    return;
+  }
+
+  let finalUser = user;
+  if (!user.id_number || !user.id_card_photo) {
+    try {
+      const fresh = await getCurrentUser();
+      if (fresh) {
+        setUser?.(fresh);
+        finalUser = fresh;
+      }
+    } catch {}
+  }
+  if (!finalUser.id_number || !finalUser.id_card_photo) {
+    setShowIdForm(true);
+  } else {
+    completeRegistration(finalUser.id_number);
+  }
+}, [
+  user,
+  isOwner,
+  onAttemptRegister,
+  onNeedLogin,
+  openModal,
+  setUser,
+  completeRegistration,
+]);
+
+  // לא לתלות ב-onAutoHandled ישירות – נשמור אותה ב-ref
+  const onAutoHandledRef = useRef(onAutoHandled);
+
+  useEffect(() => {
+    onAutoHandledRef.current = onAutoHandled;
+  }, [onAutoHandled]);
+
+  // אוטו־רישום אחרי התחברות מדף המוצר
+  useEffect(() => {
+    if (!shouldAutoRegister) return;
+    if (isAdmin || isOwner) {
+      onAutoHandledRef.current?.();
+      return;
+    }
+    handleRegisterClick().finally(() => onAutoHandledRef.current?.());
+  }, [shouldAutoRegister, isAdmin, isOwner, handleRegisterClick]);
+
+  // בדיקת "כבר נרשמת" להצגת טקסט מתאים בכניסה לעמוד
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-           if (!product?.product_id) return;
-           if (!user?.id_number) return; // נחכה עד שיהיה ID (יבוא מההוק למעלה)
+        if (!product?.product_id) return;
+        if (!user?.id_number) return;
         const data = await getQuotationsByProductId(product.product_id);
         const already =
           Array.isArray(data) &&
@@ -72,53 +155,12 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
         console.warn("getQuotationsByProductId failed:", e?.message || e);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [product?.product_id, user?.id_number]);
 
 
-  const completeRegistration = async (idNum) => {
-    try {
-      const productId = product?.product_id;
-      const res = await registerToQuotation(productId, idNum);
-      const dateStr = product?.start_date ? formatDate(product.start_date) : "";
-      const timeStr = product?.start_date ? formatTime(product.start_date) : "";
-
-      if (res.success || res.message === "כבר נרשמת למכירה הזו") {
-        setIsRegistered(true);
-        setShowIdForm(false);
-        openModal?.({
-          title: res.success ? "נרשמת!" : "כבר נרשמת!",
-          message: dateStr
-            ? `המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`
-            : "נרשמת למכירה בהצלחה.",
-          confirmText: "אישור",
-        });
-      } else {
-        throw new Error(res.message || "שגיאה");
-      }
-    } catch {
-      openModal?.({
-        title: "שגיאה",
-        message: "שגיאה בעת ניסיון ההרשמה למכרז",
-        confirmText: "סגור",
-      });
-    }
-  };
-
-const handleRegisterClick = async () => {
-  if (!user?.email) { onAttemptRegister?.(); return onNeedLogin?.(); }
-  if (isOwner) { openModal?.({ title:"פעולה לא אפשרית", message:"לא ניתן להירשם למוצר שהעלית.", confirmText:"הבנתי" }); return; }
-
-  let finalUser = user;
-  if (!user.id_number || !user.id_card_photo) {
-    try {
-      const fresh = await getCurrentUser();
-      if (fresh) { setUser?.(fresh); finalUser = fresh; }
-    } catch {}
-  }
-  if (!finalUser.id_number || !finalUser.id_card_photo) setShowIdForm(true);
-  else completeRegistration(finalUser.id_number);
-};
 
 
   const handleIdChange = (e) => {
@@ -142,11 +184,15 @@ const handleRegisterClick = async () => {
       });
       return;
     }
-   try {
-  const res = await uploadIdCard({ idNumber: digits, idPhotoFile, email: user.email });
-  if (res?.user) setUser?.(res.user);  // ← במקום "uploaded"
-  setShowIdForm(false);
-  completeRegistration(res?.user?.id_number || digits);
+    try {
+      const res = await uploadIdCard({
+        idNumber: digits,
+        idPhotoFile,
+        email: user.email,
+      });
+      if (res?.user) setUser?.(res.user);
+      setShowIdForm(false);
+      completeRegistration(res?.user?.id_number || digits);
     } catch {
       openModal?.({
         title: "שגיאה",
@@ -177,7 +223,7 @@ const handleRegisterClick = async () => {
   const isIdInvalidAfterSubmit =
     showIdError && String(idNumberInput || "").replace(/\D/g, "").length !== 9;
 
-  // אחרי שכל ה-hooks הוגדרו — מחליטים אם להסתיר את הבלוק
+  // לא מציגים בלוק אם אדמין/בעלים
   if (isAdmin || isOwner) return null;
 
   return (

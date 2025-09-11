@@ -107,6 +107,8 @@ router.post("/update-user-address", async (req, res) => {
 
   try {
     const conn = await db.getConnection();
+
+    // שליפת הזוכה לפי המוצר
     const [productRows] = await conn.query(
       "SELECT winner_id_number FROM product WHERE product_id = ?",
       [product_id]
@@ -116,19 +118,20 @@ router.post("/update-user-address", async (req, res) => {
     }
     const winnerId = productRows[0].winner_id_number;
 
-    // אופציונלי: טיפול בטלפון רק אם סופק, כולל trim ולידציה
-    let phoneToSet = null; // null => COALESCE ישאיר את המספר כפי שהוא
+    // טיפול בטלפון אם סופק
+    let phoneToSet = null;
     if (typeof phone !== "undefined") {
       const cleaned = String(phone).trim();
       if (cleaned.length === 0) {
-        phoneToSet = null; // התעלמות ממחרוזת ריקה
-      } else if (/^\+9725\d\d{7}$/.test(cleaned)) {
-        phoneToSet = cleaned; // תקין – נעדכן
+        phoneToSet = null;
+      } else if (/^\+9725\d{8}$/.test(cleaned)) {
+        phoneToSet = cleaned;
       } else {
         return res.status(400).json({ success: false, message: "פורמט טלפון לא תקין" });
       }
     }
 
+    // עדכון כתובת בטבלת users
     await conn.query(
       `UPDATE users 
          SET city = ?, street = ?, house_number = ?, apartment_number = ?, zip = ?, 
@@ -137,12 +140,28 @@ router.post("/update-user-address", async (req, res) => {
       [city, street, house_number, apartment_number, zip, phoneToSet, winnerId]
     );
 
-    res.json({ success: true, message: "כתובת נשמרה בפרופיל המשתמש" });
+    // שליפה חוזרת של המשתמש אחרי עדכון
+    const [rows] = await conn.query(
+      `SELECT email, first_name, last_name, id_number, role, status,
+              city, street, house_number, apartment_number, zip, country,
+              phone, profile_photo, id_card_photo, delivery_options
+       FROM users
+       WHERE id_number = ? LIMIT 1`,
+      [winnerId]
+    );
+    const updatedUser = rows[0] || null;
+
+    res.json({
+      success: true,
+      message: "כתובת נשמרה בפרופיל המשתמש",
+      updatedUser
+    });
   } catch (err) {
     console.error("שגיאה בעדכון כתובת בפרופיל:", err.message);
     res.status(500).json({ success: false, message: "שגיאה בעדכון כתובת בפרופיל" });
   }
 });
+
 
 
 

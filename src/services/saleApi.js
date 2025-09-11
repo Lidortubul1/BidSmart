@@ -25,20 +25,20 @@ export async function updateSaleAddress(
 
 // מעדכן את כתובת המגורים של המשתמש בטבלת users לפי כתובת שנבחרה במשלוח
 export async function updateUserAddress(productId, addressData) {
-  const response = await axios.post(`${BASE_SALE_URL}/update-user-address`, {
+  const { data } = await axios.post(`${BASE_SALE_URL}/update-user-address`, {
     product_id: productId,
     ...addressData,
   });
-  return response.data;
+  // מוודאים שתמיד יש מפתח updatedUser (גם אם null)
+  return { ...data, updatedUser: data.updatedUser ?? null };
 }
 
 //מחזיר את כתובת המגורים של המשתמש מתוך טבלת users כדי לשכפל אותה לטופס המשלוח
 export async function getUserSavedAddress(productId) {
-  const response = await axios.post(`${BASE_SALE_URL}/get-user-address`, {
+  const { data } = await axios.post(`${BASE_SALE_URL}/get-user-address`, {
     product_id: productId,
   });
-  console.log(response.data);
-  return response.data;
+  return data; // { success, address? }
 }
 
 // מחזיר את כל ההזמנות
@@ -68,11 +68,11 @@ export async function markProductAsSent(productId) {
 
 //עדכון מספר הטלפון בפרופיל
 export async function updateUserPhone(productId, phone) {
-  const response = await axios.post(`/api/sale/update-user-phone`, {
+  const { data } = await axios.post(`${BASE_SALE_URL}/update-user-phone`, {
     product_id: productId,
     phone,
   });
-  return response.data;
+  return { ...data, updatedUser: data.updatedUser ?? null };
 }
 
 

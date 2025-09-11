@@ -1,8 +1,8 @@
-//LiveAuction\LiveAuction.jsx
+//LiveAuction/LiveAuction.jsx
 // קומפוננטת מכירה חיה: התחברות Socket.IO לחדר מוצר, ניהול קאונטדאונים (עד התחלה/סיום ו־15ש׳ לאחר כל הצעה), טיפול בהצעות והזרמה בזמן אמת, מצבים לפני/בזמן/אחרי מכירה, סיום מפוקח בשרת, ותשלום לזוכה דרך PayPal.
 
 import styles from "./LiveAuction.module.css";
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
@@ -78,10 +78,10 @@ function LiveAuction() {
   // לוג צ'אט (אופציונלי)
   const [chatLog, setChatLog] = useState([]);
   const anonymizedUsers = useRef({});
-  // בתוך הקומפוננטה LiveAuction, אחרי ש יש product/currentPrice/lastBidder:
+
+  // נגזרות להצגת סטטוס/כפתור
   const openingPrice = Number(product?.price) || 0;
   const hasFirstBid = Number(currentPrice) > openingPrice || !!lastBidder;
-  // מי היה המציע האחרון ומה מצב הכפתור
   const isMyLastBid = lastBidder && String(lastBidder) === String(buyerId);
   const isBidDisabled = !isLive || auctionEnded || !canBid || isMyLastBid;
 
@@ -114,6 +114,21 @@ function LiveAuction() {
     setModalVisible(true);
   };
 
+  // ✅ סיום מכירה – מוגדר פעם אחת עם useCallback בתוך הקומפוננטה
+  const finishAuctionOnServer = useCallback(async () => {
+    try {
+      const data = await endAuction(productId);
+      setWinnerId(data.winnerId || null);
+      setCurrentPrice((prev) =>
+        data.finalPrice != null ? Number(data.finalPrice) : prev
+      );
+      setAuctionEnded(true);
+      setIsLive(false);
+    } catch (err) {
+      console.error("שגיאה בסיום מכירה:", err);
+    }
+  }, [productId]);
+
   // טעינת מוצר + חישוב מצב ראשוני
   useEffect(() => {
     let mounted = true;
@@ -140,6 +155,7 @@ function LiveAuction() {
       setWinnerId(data.winner_id_number || null);
 
       setCurrentPrice(Number(data.current_price) || 0);
+
       // נעדכן רק אם יש לנו זוכה (נגמר) או אם השרת מחזיר "מציע אחרון"
       const apiLastBidder =
         data.last_bidder_id_number ??
@@ -153,7 +169,6 @@ function LiveAuction() {
       });
 
       // לאפשר הצעות כברירת מחדל
-      // אם ממש רוצים לנעול בסוף מכירה:
       if (ended) setCanBid(false);
 
       // אם המכירה בלייב אבל טרם הייתה הצעה – לא מפעילים טיימר סבב
@@ -175,6 +190,7 @@ function LiveAuction() {
         setStartCountdown(null);
       }
     };
+
     load();
     const interval = setInterval(load, 10000); // פולינג עדין
 
@@ -186,17 +202,14 @@ function LiveAuction() {
 
   // הצטרפות לחדר + מאזינים ל-Started/Ended
   useEffect(() => {
-    // מצטרפים לחדר המכירה
     socket.emit("joinAuction", { productId });
 
-    // כשהשרת מודיע שהמכירה התחילה
-    // היה: setRoundTimeLeft(15);
     const onAuctionStarted = () => {
       setIsLive(true);
       setAuctionEnded(false);
       setStartCountdown(null);
 
-      //  לא מפעילים 15ש׳ לפני הצעה ראשונה
+      // לא מפעילים 15ש׳ לפני הצעה ראשונה
       setRoundTimeLeft(null);
 
       setAuctionTimeLeft((prev) => {
@@ -207,7 +220,6 @@ function LiveAuction() {
       });
     };
 
-    // כשהשרת מודיע שהמכירה הסתיימה
     const onAuctionEnded = ({ winnerId, finalPrice }) => {
       setAuctionEnded(true);
       setIsLive(false);
@@ -246,26 +258,23 @@ function LiveAuction() {
     return () => socket.off("newBid", onNewBid);
   }, [buyerId]);
 
-  // טיימר סבב 15 שניות
+  // טיימר סבב 15 שניות – רק אחרי הצעה ראשונה
   useEffect(() => {
-    // לא מריצים לפני הצעה ראשונה
     if (!isLive || auctionEnded || !hasFirstBid) return;
-
-    if (roundTimeLeft == null) return; // עדיין לא הופעל
+    if (roundTimeLeft == null) return;
     if (roundTimeLeft <= 0) {
       finishAuctionOnServer();
       return;
     }
     const t = setInterval(() => setRoundTimeLeft((v) => v - 1), 1000);
     return () => clearInterval(t);
-  }, [isLive, auctionEnded, hasFirstBid, roundTimeLeft]);
+  }, [isLive, auctionEnded, hasFirstBid, roundTimeLeft, finishAuctionOnServer]);
 
   // קאונטדאון לתחילת מכירה
   useEffect(() => {
     if (isLive || startCountdown == null) return;
 
     if (startCountdown <= 0) {
-      // מבקשים מהשרת להתחיל (הוא ישדר לכולם auctionStarted)
       socket.emit("requestStartAuction", { productId });
       setStartCountdown(null);
 
@@ -298,7 +307,7 @@ function LiveAuction() {
     }
     const t = setInterval(() => setAuctionTimeLeft((v) => v - 1), 1000);
     return () => clearInterval(t);
-  }, [auctionTimeLeft, auctionEnded]);
+  }, [auctionTimeLeft, auctionEnded, finishAuctionOnServer]);
 
   function getAnon(id) {
     if (!anonymizedUsers.current[id]) {
@@ -310,20 +319,6 @@ function LiveAuction() {
       };
     }
     return anonymizedUsers.current[id];
-  }
-
-  async function finishAuctionOnServer() {
-    try {
-      const data = await endAuction(productId);
-      setWinnerId(data.winnerId || null);
-      setCurrentPrice(
-        data.finalPrice != null ? Number(data.finalPrice) : currentPrice
-      );
-      setAuctionEnded(true);
-      setIsLive(false);
-    } catch (err) {
-      console.error("שגיאה בסיום מכירה:", err);
-    }
   }
 
   function handleBid(amount = 10) {
@@ -546,7 +541,7 @@ function LiveAuction() {
 
             {/* טיימר כללי של המכירה */}
             {auctionTimeLeft != null && auctionTimeLeft > 0 && (
-              <p className={styles.timeRemaining}>
+              <p className={styles.timeRemaining} style={{ marginTop: 10 }}>
                 המכירה תסתיים בעוד {String(minutesLeft).padStart(2, "0")}:
                 {String(secondsLeft).padStart(2, "0")} דקות
               </p>

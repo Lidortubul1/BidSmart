@@ -124,7 +124,12 @@ function ProfilePage() {
     });
     setModalVisible(true);
   };
-
+// בסמוך ל-useState של selectedCity/selectedStreet
+const baseCities = citiesData.map((c) => (c.city ?? "").trim());
+const selectedCityNorm = (selectedCity ?? "").trim();
+const cityOptions = selectedCityNorm && !baseCities.includes(selectedCityNorm)
+  ? [selectedCityNorm, ...baseCities]
+ : baseCities;
   // הודעת תמיכה על ניסיון שינוי של שדה חסום
   const notifyLocked = (what) => {
     const copy = {
@@ -168,18 +173,31 @@ function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setEmail(user.email || "");
-      setFirstName(user.first_name || "");
-      setLastName(user.last_name || "");
-      setIdNumber(user.id_number || "");
-      setZip(user.zip || "");
-      setHouseNumber(user.house_number || "");
-      setApartmentNumber(user.apartment_number || "");
-      setSelectedCity(user.city || "");
-      setSelectedStreet(user.street || "");
-      const found = citiesData.find((c) => c.city === user.city);
-      setAvailableStreets(found ? found.streets : []);
-      setDeliveryOptions(user.delivery_options || "delivery");
+     setEmail(String(user.email ?? ""));
+   setFirstName(String(user.first_name ?? ""));
+   setLastName(String(user.last_name ?? ""));
+   setIdNumber(String(user.id_number ?? ""));
+
+   const uAddr = user.address ?? user; // תמיכה גם במבנה מקונן וגם שטוח
+   const cityVal = String(uAddr.city ?? "").trim();
+   const streetVal = String(uAddr.street ?? "").trim();
+   setZip(String(uAddr.zip ?? uAddr.postal_code ?? ""));
+   setHouseNumber(String(uAddr.house_number ?? ""));
+   setApartmentNumber(String(uAddr.apartment_number ?? ""));
+   setSelectedCity(cityVal);
+   setSelectedStreet(streetVal);
+const found = citiesData.find(
+   (c) => (c.city ?? "").trim() === cityVal
+);
+const baseStreets = (found ? found.streets : []).map((s) => (s ?? "").trim());
+const savedStreetNorm = streetVal;
+const streetsWithSaved =
+  savedStreetNorm && !baseStreets.includes(savedStreetNorm)
+    ? [savedStreetNorm, ...baseStreets]
+    : baseStreets;
+
+   setAvailableStreets(streetsWithSaved);      
+    setDeliveryOptions(String(user.delivery_options ?? "delivery"));
 
       const parsed = parseIlMobile(user.phone);
       if (parsed) {
@@ -199,8 +217,16 @@ function ProfilePage() {
     const city = e.target.value;
     setSelectedCity(city);
     setCityTouched(true);
-    const found = citiesData.find((c) => c.city === city);
-    setAvailableStreets(found ? found.streets : []);
+  const found = citiesData.find(
+  (c) => (c.city ?? "").trim() === (city ?? "").trim()
+);
+const baseStreets = (found ? found.streets : []).map((s) => (s ?? "").trim());
+const selectedStreetNorm = (selectedStreet ?? "").trim();
+const streetsWithSaved =
+  selectedStreetNorm && !baseStreets.includes(selectedStreetNorm)
+    ? [selectedStreetNorm, ...baseStreets]
+    : baseStreets;
+ setAvailableStreets(streetsWithSaved);
     setSelectedStreet("");
   };
 
@@ -493,7 +519,10 @@ function ProfilePage() {
 
   return (
     <div className={styles.pfPage}>
+      
       <div className={styles.pfCard}>
+        <h2 className={styles.Title} >עדכון פרטים אישיים</h2>
+        
         {/* אזור קבצים/מדיה */}
         <div className={styles.pfMedia}>
           <div className={styles.pfBox}>
@@ -632,6 +661,7 @@ function ProfilePage() {
                     <option value="+97254">+972 54</option>
                     <option value="+97255">+972 55</option>
                     <option value="+97256">+972 56</option>
+                     <option value="+97257">+972 57</option>
                     <option value="+97258">+972 58</option>
                   </select>
 
@@ -697,11 +727,9 @@ function ProfilePage() {
                   required={isPickupMode}
                 >
                   <option value="">בחר יישוב</option>
-                  {citiesData.map((c, index) => (
-                    <option key={index} value={c.city}>
-                      {c.city}
-                    </option>
-                  ))}
+                 {cityOptions.map((name, i) => (
+  <option key={`${name}-${i}`} value={name}>{name}</option>
+ ))}
                 </select>
               </div>
 

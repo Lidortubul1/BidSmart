@@ -1,49 +1,122 @@
-.container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 30px;
-  background-color: #fefefe;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  direction: rtl;
-  text-align: right;
-  font-family: Arial, sans-serif;
+/* --- Theme tokens (התאמה לשאר האתר) --- */
+:root {
+  --bg: #f7f7f7;
+  --card: #ffffff;
+  --text: #111111;
+  --muted: #6b7280;          /* אפור עדין לטקסט משני */
+  --border: #e5e7eb;         /* אפור לקווים/מסגרות */
+  --primary: #000000;        /* שחור */
+  --primary-contrast: #ffffff;
+  --accent: #312a16;         /* זהב */
+  --accent-700: #3a3319;     /* זהב כהה */
+  --accent-800: #322d1b;     /* זהב כהה יותר */
+  --focus: #6b5d2f33;        /* היילייט פוקוס עדין */
+  --shadow: 0 8px 24px rgba(0,0,0,.08);
+  --radius-xl: 18px;
+  --radius-lg: 12px;
+  --radius-md: 10px;
 }
 
+/* --- Container --- */
+.container {
+  max-width: 720px;
+  margin: clamp(16px, 4vw, 32px) auto;
+  padding: clamp(18px, 3vw, 28px);
+  background-color: var(--card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  direction: rtl;
+  text-align: right;
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+}
+
+/* --- Headings --- */
 h3 {
   text-align: center;
-  margin-bottom: 20px;
-  color: #333;
+  margin: 0 0 18px 0;
+  color: var(--text);
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 700;
 }
+
+/* --- Delivery options (רדיואים) --- */
+.deliveryOptions {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 16px;
+  direction: rtl;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.deliveryOptions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #fafafa;
+  cursor: pointer;
+  transition: box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+}
+
+.deliveryOptions input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.deliveryOptions label:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,.06);
+  border-color: #ddd;
+  background: #fff;
+}
+
+/* --- Only-delivery note --- */
+.deliveryOnlyNote {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  text-align: center;
+}
+
+/* --- Pickup block --- */
 .pickupBox {
   margin: 1rem 0 1.25rem;
+    grid-column: 1 / -1;   /* <- זה העיקר */
+
 }
 
 .pickupTitle {
-  margin: 0 0 .5rem 0;
+  margin: 0  .5rem 0;
   font-size: 1.05rem;
   font-weight: 700;
 }
 
 .mutedText {
   margin: .5rem 0 0 0;
-  opacity: .75;
+  opacity: .8;
+  color: var(--muted);
 }
 
 .pickupCard {
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  padding: .75rem .9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: .850rem 1rem;
   background: #fafafa;
+  width: 100%;
 }
 
 .row {
   display: grid;
-  grid-template-columns: 130px 1fr; /* תווית | ערך */
+  grid-template-columns: 130px 1fr;
   gap: .5rem;
   align-items: start;
-  padding: .4rem 0;
-  border-bottom: 1px dashed #e5e5e5;
+  padding: .45rem 0;
+  border-bottom: 1px dashed var(--border);
 }
 
 .row:last-child {
@@ -56,66 +129,167 @@ h3 {
 }
 
 .value {
-  color: #111;
+  color: var(--text);
   word-break: break-word;
 }
 
+/* --- Form layout --- */
 .form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
+@media (max-width: 640px) {
+  .form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Inputs & selects --- */
+/* --- Inputs & selects --- */
 select,
-input {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+input,
+textarea {
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   font-size: 1rem;
+  background: #fdfaf5;           /* 🤎 רקע לבן-זהוב עדין */
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+  color: var(--text);
 }
 
-/* button {
-  cursor: pointer;
-  font-size: 1rem;
-  border-radius: 8px;
-  padding: 10px 15px;
-  transition: background-color 0.3s ease;
-} */
+/* במצב focus – מסגרת+צל זהובים */
+select:focus,
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);          /* מסגרת בזהב */
+  box-shadow: 0 0 0 4px rgba(107, 93, 47, 0.25); /* היילייט זהוב שקוף */
+  background: #fffdf8;                  /* גוון מעט יותר בהיר בפוקוס */
+}
+
+
+/* מקומות שלא תמיד צריכים להיות על אותה שורה */
+textarea {
+  grid-column: 1 / -1;
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* --- Phone row --- */
+.phoneRow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  align-items: center;
+
+  direction: ltr;       /* 👉 הופך את הכיוון כדי שהקידומת תהיה בצד שמאל */
+}
+
+.phoneRow select {
+  direction: ltr;
+}
+.phoneRow input {
+  direction: rtl;       /* המשתמש יקליד מימין לשמאל */
+  text-align: left;     /* ואם רוצים שהוא יתחיל משמאל – משנים ל-left */
+}
+
+
+
+@media (max-width: 480px) {
+  .phoneRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* שגיאה לטלפון */
+.error {
+  border-color: #533615 !important;
+  box-shadow: 0 0 0 2px rgba(131, 65, 63, 0.253) !important;
+}
+
+/* --- Buttons (שומרים שמות מחלקה כפי שקיימים בקוד) --- */
 
 /* כפתור שליחת טופס */
 .submitBtn {
-  background-color: #000000;
-  color: white;
-   border-radius:10cm;
+  grid-column: 1 / -1;
+  background-color: #69614e;
+  color: var(--primary-contrast);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .2s ease, transform .06s ease;
 }
 
 .submitBtn:hover {
-  background-color: #6b5d2f;
-  color: white;
-   border-radius:10cm;
+ background-color: var(--accent-700);
+  color: #fff;
+}
+
+.submitBtn:active {
+  transform: translateY(1px);
+}
+
+.submitBtn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
 }
 
 /* כפתור שימוש בכתובת מגורים */
 .useSavedBtn {
-  background-color: #6b5d2f;
-  color: white;
-   border-radius:10cm;
-  margin-bottom: 20px;
   width: 100%;
+  background-color: #69614e;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: background-color .2s ease, transform .06s ease;
 }
 
 .useSavedBtn:hover {
-  background-color: #322d1b;
-}
-.deliveryOptions {
-  margin-bottom: 20px;
-  display: flex;
-  gap: 20px;
-  direction: rtl;
-  justify-content: center;
+  background-color: var(--accent-700);
 }
 
-.deliveryOptions label {
-  font-weight: bold;
-  cursor: pointer;
+.useSavedBtn:active {
+  transform: translateY(1px);
 }
+
+/* --- Helper spacing for city/street selects when delivery is chosen --- */
+.form select[name="city"],
+.form select[name="street"] {
+  min-width: 0;
+}
+
+/* --- Small polish --- */
+select::-ms-expand {
+  display: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+}
+
+button:focus-visible,
+.useSavedBtn:focus-visible,
+.submitBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--focus);
+}
+
+/* --- Optional: smoother page bg (אם העמוד עצמו אינו בתוך פריסת האתר) --- */
+/*
+body {
+  background: var(--bg);
+}
+*/

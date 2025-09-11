@@ -1,5 +1,4 @@
 .page {
-  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
   font-family: "Heebo", sans-serif;
   color: #222;
   min-height: 100vh;
@@ -39,16 +38,7 @@
 }
 
 
-.formBox {
-  background-color: #fff;
-  width: 800px;
-  padding: 30px 40px;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  text-align: right;
-  position: relative;
-  z-index: 2;
-}
+
 
 
 

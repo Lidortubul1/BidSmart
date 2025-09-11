@@ -7,6 +7,7 @@ import citiesData from "../../assets/data/cities_with_streets.json";
 import CustomModal from "../../components/CustomModal/CustomModal.jsx";
 import styles from "./ShippingForm.module.css";
 import { useAuth } from "../../auth/AuthContext.js";
+
 import {
   updateSaleAddress,
   updateUserAddress,
@@ -94,7 +95,8 @@ function ShippingForm() {
 
   const sellerAllowsPickup = sellerOption === "delivery+pickup";
 
-  //לראות מה המוכר בחר אם בחר רק משלוח או גם משלוח וגם איסוף עצמי
+
+
   // טעינת אפשרויות משלוח + כתובת איסוף אם קיימת
   useEffect(() => {
     async function loadSellerOption() {
@@ -104,7 +106,7 @@ function ShippingForm() {
         setSellerOption(option);
         setDeliveryMethod("delivery");
         setSellerPickupAddress(
-          option === "delivery+pickup" ? pickupAddress ?? null : null
+          option === "delivery+pickup" ? (pickupAddress ?? null) : null
         );
       } catch {
         setSellerOption("delivery");
@@ -117,8 +119,7 @@ function ShippingForm() {
     loadSellerOption();
   }, [id]);
 
-  // טען ברירת מחדל מה־user בעת פתיחת הדף
-
+  // טען ברירת מחדל מה־user/שרת בעת פתיחת הדף
   useEffect(() => {
     (async () => {
       // 1) נסה מה-Context
@@ -146,18 +147,44 @@ function ShippingForm() {
             ...prev,
             phone: parsed.prefix + parsed.number,
           }));
-          setUser((prev) => {
-            const merged = {
-              ...(prev || {}),
-              phone: parsed.prefix + parsed.number,
-            };
-            localStorage.setItem("user", JSON.stringify(merged));
-            return merged;
-          });
         }
       } catch {}
     })();
-  }, [id, user?.phone, setUser]);
+  }, [id, user?.phone]); // setUser לא נדרש פה, אנחנו משתמשים בעזר פנימי
+
+  // אחרי useEffect של טעינת אפשרויות המשלוח / או אחרי זה של הטלפון:
+useEffect(() => {
+  // אם יש כבר כתובת ב־user ועדיין לא מילאנו את הטופס (או שהוא ריק)
+  if (!user) return;
+  const city = norm(user.city);
+  const street = norm(user.street);
+  const house = user.house_number || "";
+  const apt = user.apartment_number || "";
+  const zip = user.zip || "";
+
+  // אם אין כלום – אל תמלא בכוח
+  if (!city && !street && !house && !apt && !zip) return;
+
+  // מעדכן שדות הטופס
+  setFormData(prev => ({
+    ...prev,
+    city,
+    street,
+    house_number: house,
+    apartment_number: apt,
+    zip,
+  }));
+
+  // מרענן רשימת רחובות לעיר שנבחרה (כולל הרחוב השמור אם לא קיים ברשימה)
+  if (city) {
+    const cityObj = citiesData.find(c => norm(c.city) === city);
+    const baseStreets = cityObj ? cityObj.streets.map(s => (s ?? "").trim()) : [];
+    const streetsWithSaved = street && !baseStreets.includes(street)
+      ? [street, ...baseStreets]
+      : baseStreets;
+    setAvailableStreets(streetsWithSaved);
+  }
+}, [user]);
 
   // מודאל
   const [modalVisible, setModalVisible] = useState(false);
@@ -225,30 +252,38 @@ function ShippingForm() {
   };
 
   // —— שמירות ממוקדות לפרופיל ——
-  async function saveAddressOnly() {
-    const { city, street, house_number, apartment_number, zip } = formData;
-    const r = await updateUserAddress(id, {
-      city,
-      street,
-      house_number,
-      apartment_number,
-      zip,
-    }); // בלי phone
-    if (!r.success) throw new Error(r.message || "הכתובת לא נשמרה בפרופיל.");
-    setUser((prev) => ({
-      ...(prev || {}),
-      city,
-      street,
-      house_number,
-      apartment_number,
-      zip,
-    }));
+async function saveAddressOnly() {
+  const { city, street, house_number, apartment_number, zip } = formData;
+  const r = await updateUserAddress(id, {
+    city, street, house_number, apartment_number, zip,
+  });
+  if (!r.success) throw new Error(r.message || "הכתובת לא נשמרה בפרופיל.");
+
+  // אם השרת החזיר updatedUser – נעדכן את ה־AuthContext ואת הלוקאל סטורג'
+  if (r.updatedUser) {
+    setUser(r.updatedUser);
+    try { localStorage.setItem("user", JSON.stringify(r.updatedUser)); } catch {}
+  } else {
+    // Fallback במקרה שאין updatedUser (לא מומלץ, אבל שלא יישבר):
+    setUser(prev => ({ ...(prev||{}), city, street, house_number, apartment_number, zip }));
+    try { localStorage.setItem("user", JSON.stringify({
+      ...(user||{}), city, street, house_number, apartment_number, zip
+    })); } catch {}
   }
-  async function savePhoneOnly(fullPhone) {
-    const r = await updateUserPhone(id, fullPhone);
-    if (!r.success) throw new Error(r.message || "הטלפון לא נשמר בפרופיל.");
-    setUser((prev) => ({ ...(prev || {}), phone: fullPhone }));
+}
+
+async function savePhoneOnly(fullPhone) {
+  const r = await updateUserPhone(id, fullPhone);
+  if (!r.success) throw new Error(r.message || "הטלפון לא נשמר בפרופיל.");
+
+  if (r.updatedUser) {
+    setUser(r.updatedUser);
+    try { localStorage.setItem("user", JSON.stringify(r.updatedUser)); } catch {}
+  } else {
+    setUser(prev => ({ ...(prev||{}), phone: fullPhone }));
+    try { localStorage.setItem("user", JSON.stringify({ ...(user||{}), phone: fullPhone })); } catch {}
   }
+}
 
   // ——— מודאל 4 כפתורים למשלוח ———
   function openSaveChoicesModal(fullPhone) {
@@ -262,16 +297,15 @@ function ShippingForm() {
       hideClose: true,
       disableBackdropClose: true,
 
-      //  חלון אישור אחרי שמירה רק להזמנה
-
       onSkip: () => {
         setModalVisible(false);
         showModal({
           title: "הושלם",
           message: "הנתונים נשמרו רק למשלוח הנוכחי.",
           confirmText: "חזרה לדף הבית",
+          extraButtonText: "צפה בפרופיל",
           onConfirm: () => navigate(homePath),
-          onCancel: () => setModalVisible(false), // אופציונלי אם יש 'X'
+          onExtra: () => navigate("/profile"),
         });
       },
 
@@ -283,8 +317,9 @@ function ShippingForm() {
             title: "הצלחה",
             message: "הכתובת נשמרה בפרופיל.",
             confirmText: "חזרה לדף הבית",
+            extraButtonText: "צפה בפרופיל",
             onConfirm: () => navigate(homePath),
-            onCancel: () => setModalVisible(false),
+            onExtra: () => navigate("/profile"),
           });
         } catch (e) {
           showModal({
@@ -304,7 +339,9 @@ function ShippingForm() {
             title: "הצלחה",
             message: "הטלפון נשמר בפרופיל.",
             confirmText: "חזרה לדף הבית",
+            extraButtonText: "צפה בפרופיל",
             onConfirm: () => navigate(homePath),
+            onExtra: () => navigate("/profile"),
           });
         } catch (e) {
           showModal({
@@ -325,7 +362,9 @@ function ShippingForm() {
             title: "הצלחה",
             message: "הכתובת והטלפון נשמרו בפרופיל.",
             confirmText: "חזרה לדף הבית",
+            extraButtonText: "צפה בפרופיל",
             onConfirm: () => navigate(homePath),
+            onExtra: () => navigate("/profile"),
           });
         } catch (e) {
           showModal({
@@ -356,7 +395,9 @@ function ShippingForm() {
           title: "הושלם",
           message: "הפרטים נשמרו רק להזמנה הנוכחית.",
           confirmText: "חזרה לדף הבית",
+          extraButtonText: "צפה בפרופיל",
           onConfirm: () => navigate(homePath),
+          onExtra: () => navigate("/profile"),
         });
       },
       onConfirm: async () => {
@@ -367,7 +408,9 @@ function ShippingForm() {
             title: "הצלחה",
             message: "הטלפון נשמר בפרופיל.",
             confirmText: "חזרה לדף הבית",
+            extraButtonText: "צפה בפרופיל",
             onConfirm: () => navigate(homePath),
+            onExtra: () => navigate("/profile"),
           });
         } catch (e) {
           showModal({
@@ -416,8 +459,7 @@ function ShippingForm() {
   }
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // שליחת הטופס
-  // 🆕 שלב 2: שליחה אמיתית לאחר אישור
+  // שליחת הטופס — שלב 2: שליחה אמיתית לאחר אישור
   async function proceedSubmit(addressToSend, fullPhone) {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -445,7 +487,7 @@ function ShippingForm() {
     }
   }
 
-  //  שלב 1: ולידציה + מודאל אישור (במקום לשלוח מיד)
+  // שלב 1: ולידציה + מודאל אישור
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -473,7 +515,7 @@ function ShippingForm() {
       addressToSend.zip = null;
     }
 
-    //  פתיחת מודאל אישור עם סיכום הפרטים
+    // פתיחת מודאל אישור עם סיכום הפרטים
     const summary = formatSummary(deliveryMethod, addressToSend);
     showModal({
       title: "אישור פרטים",
@@ -482,17 +524,11 @@ function ShippingForm() {
       cancelText: "לא, ערוך",
       onConfirm: () => {
         setModalVisible(false);
-        // ממשיכים לשלב 2: שליחה אמיתית
         proceedSubmit(addressToSend, fullPhone);
       },
-      onCancel: () => {
-        // רק לסגור — לא לשלוח ולא לשנות כלום
-        setModalVisible(false);
-      },
+      onCancel: () => setModalVisible(false),
     });
   };
-
-  console.log("בחירת משלוח של מוכר", sellerOption);
 
   // שליחת כתובת מגורים קיימת
   const handleUseSavedAddress = async () => {
@@ -528,7 +564,6 @@ function ShippingForm() {
         setAvailableStreets(streetsWithSaved);
 
         // טלפון (אם קיים בפרופיל)
-        // טלפון (אם קיים בפרופיל)
         const parsedPhone = parseIlMobile(phone) || parseLocalIlMobile(phone);
         if (parsedPhone) {
           const full = parsedPhone.prefix + parsedPhone.number;
@@ -563,7 +598,6 @@ function ShippingForm() {
         <p>טוען אפשרויות משלוח…</p>
       ) : (
         <>
-          {/* בחירת שיטת משלוח לפי sellerOption */}
           {/* בחירת שיטת משלוח לפי sellerOption */}
           {sellerAllowsPickup ? (
             <div className={styles.deliveryOptions}>

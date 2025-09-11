@@ -25,11 +25,11 @@ h2 {
 
 
 input, select, textarea {
-  border: 1.5px solid #e5eaf2;
+  border: 1.5px solid #f2efe5;
   border-radius: 1.2rem;
   padding: 10px 12px;
   font-size: 1rem;
-  background: #f7fafd;
+  background: #fcfbfa;
   outline: none;
   transition: border-color 0.2s;
 }

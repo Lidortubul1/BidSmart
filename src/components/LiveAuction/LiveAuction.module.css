@@ -1,37 +1,54 @@
-/* LiveAuction.module.css */
+/* LiveAuction.module.css — גרסה תואמת לעיצוב האתר */
 
 .container {
-  padding: 20px;
-  font-family: "Segoe UI", sans-serif;
+  /* כמו .page בדפים האחרים */
+  background: linear-gradient(to bottom, #fcfaf7, #ffffff);
+  min-height: 80vh;
+  padding: 100px 0px 100px;
+  font-family: "Heebo", sans-serif;
   direction: rtl;
-  background-color: #f9f9f9;
-  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .cardWrapper {
-  max-width: 1100px;
-  margin: auto;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 24px;
+  width: 100%;
+  max-width: min(95vw, 1200px);
+  margin-inline: auto;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  padding: 28px;
 }
 
 .cardGrid {
   display: grid;
   grid-template-columns: 2fr 2fr 1fr;
-  gap: 20px;
+  gap: 24px;
   align-items: start;
 }
 
+@media (max-width: 1100px) {
+  .cardGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 800px) {
+  .cardGrid { grid-template-columns: 1fr; }
+}
+
+/* פאנל שמאלי (תמונות + טקסט) */
 .leftPanel h2 {
-  font-size: 28px;
-  margin-bottom: 10px;
+  font-size: clamp(1.2rem, 1.1rem + 1vw, 1.8rem);
+  font-weight: 900;
+  color: #111827;
+  margin: 0 0 8px;
 }
 
 .leftPanel p {
-  font-size: 16px;
-  margin-bottom: 12px;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #2b2b2b;
+  margin: 8px 0 12px;
 }
 
 .imageGallery {
@@ -45,100 +62,137 @@
   height: 160px;
   border-radius: 12px;
   object-fit: cover;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
-  cursor: pointer;
+  background: #fff;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+  transition: transform .2s ease;
+  cursor: zoom-in;
+}
+.galleryImage:hover { transform: scale(1.03); }
+
+.noImages {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 16px;
 }
 
-.galleryImage:hover {
-  transform: scale(1.05);
-}
-
+/* מרכז (מחיר, טיימרים, כפתור) */
 .centerPanel {
   text-align: center;
 }
 
 .currentPrice {
-  font-size: 24px;
-  color: #007bff;
-  font-weight: bold;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #111827;
   margin-bottom: 8px;
 }
 
-.lastBidInfo {
-  font-size: 14px;
-  margin-bottom: 12px;
+.startText,
+.lastBidInfo,
+.timeText,
+.timeRemaining,
+.countdownToStart {
+  font-size: .98rem;
+  color: #334155;
+  margin: 8px 0 10px;
 }
 
 .timerBar {
   width: 100%;
-  height: 12px;
-  background-color: #eee;
-  border-radius: 6px;
+  height: 10px;
+  background-color: #e2e8f0;
+  border-radius: 999px;
   overflow: hidden;
   margin-bottom: 6px;
 }
 
 .timerFill {
   height: 100%;
-  background-color: #28a745;
+  background-color: #bda274; /* כתמתם עדין כמו באתר */
   transition: width 1s linear;
-}
-
-.timeText {
-  margin-bottom: 12px;
-  font-size: 14px;
 }
 
 .bidButton,
 .paymentButton {
+  background-color: #000;
+  color: #fff;
   padding: 12px 20px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 10px;
+  border-radius: 30px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color .2s ease;
+  border: none;
   margin-top: 10px;
+  width: 100%;
+  max-width: 260px;
 }
-
 .bidButton:hover,
 .paymentButton:hover {
-  background-color: #0056b3;
+  background-color: #333;
+}
+.bidButton[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
 }
 
+/* סטטוסים */
 .winner {
-  font-size: 20px;
-  color: #28a745;
-  margin: 10px 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
 }
 
 .loser {
-  font-size: 18px;
-  color: #dc3545;
-  margin: 10px 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
 }
 
+/* פאנל “צ׳אט” (היסטוריית הצעות) */
 .chatPanel {
-  background-color: #f1f1f1;
-  padding: 10px;
-  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px;
   height: 100%;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
 }
 
 .chatPanel h4 {
-  margin-bottom: 10px;
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: right;
 }
 
 .chatLog {
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
-  font-size: 14px;
+  font-size: .95rem;
+  line-height: 1.6;
 }
 
-/* Modal style override if needed */
+/* קישוריות בתוך מודאל (אם צריך) */
 .modalMessage span {
   display: block;
   margin-bottom: 6px;
+}
+
+/* יישור RTL כללי */
+.container, .leftPanel, .centerPanel, .chatPanel, .chatLog {
+  direction: rtl;
+  text-align: right;
 }

@@ -28,6 +28,15 @@ export async function getQuotationsByProductId(productId) {
   return response.data;
 }
 
+
+// בדיקה הרשמה למוצר- גזירה מטבלת הצעות
+export async function isUserRegistered(productId, buyerIdNumber) {
+  const rows = await getQuotationsByProductId(productId);
+  return Array.isArray(rows) && rows.some(
+    (q) => String(q.buyer_id_number) === String(buyerIdNumber)
+  );
+}
+
 //  סטטוס תשלום לבידר ספציפי (מחזיר {success, found, paid})
 export async function getPaidStatus(productId, buyerIdNumber) {
   const res = await axios.get(
