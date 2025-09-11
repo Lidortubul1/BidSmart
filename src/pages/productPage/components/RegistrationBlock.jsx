@@ -7,11 +7,13 @@ import {
   registerToQuotation,
   cancelQuotationRegistration,
 } from "../../../services/quotationApi";
-import { uploadIdCard } from "../../../services/authApi";
+import { uploadIdCard , getCurrentUser } from "../../../services/authApi";
 import { durationToMinutesDisplay } from "../utils/time";
 import { formatDate, formatTime } from "../utils/datetime";
 
-export default function RegistrationBlock({ product, user, setUser, onNeedLogin, navigate, openModal, onAttemptRegister }) {
+export default function RegistrationBlock({ product, user, setUser, onNeedLogin, navigate, openModal, onAttemptRegister , shouldAutoRegister,
+ onAutoHandled,
+}) {
   const [isRegistered, setIsRegistered] = useState(false);
   const [showIdForm, setShowIdForm] = useState(false);
   const [idNumberInput, setIdNumberInput] = useState("");
@@ -25,12 +27,37 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
     product?.seller_id_number &&
     String(user.id_number) === String(product.seller_id_number);
 
+    // 0) אם המשתמש מחובר אבל חסר לו id_number/id_card_photo – נמשוך סשן טרי ונעדכן את ה־Context
+  useEffect(() => {
+    if (!user?.email) return;
+    if (user?.id_number && user?.id_card_photo) return;
+    (async () => {
+      try {
+        const fresh = await getCurrentUser();   // ראה מימוש למטה
+        if (fresh?.id_number || fresh?.id_card_photo) {
+          setUser?.(fresh);
+        }
+      } catch {}
+    })();
+  // חשוב: תלות ב-email, כי מזה נבין שרק התחברו/שחזרו סשן
+}, [user?.email, user?.id_number, user?.id_card_photo, setUser]);
+
+ useEffect(() => {
+  if (!shouldAutoRegister) return;
+  // אם זה אדמין/בעלים – לא מריצים כלום ומנקים את הדגל כדי שלא ניתקע בלופ
+   if (isAdmin || isOwner) {
+     onAutoHandled?.();
+     return;
+   }
+   handleRegisterClick().finally(() => onAutoHandled?.());
+  }, [shouldAutoRegister]);
 
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        if (!user?.id_number || !product?.product_id) return;
+           if (!product?.product_id) return;
+           if (!user?.id_number) return; // נחכה עד שיהיה ID (יבוא מההוק למעלה)
         const data = await getQuotationsByProductId(product.product_id);
         const already =
           Array.isArray(data) &&
@@ -78,24 +105,21 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
     }
   };
 
-  const handleRegisterClick = () => {
-    if (!user?.email) {
-   // מסמנים להורה שניסו להירשם כאורח → כדי שאחרי ההתחברות יופיע מודאל אם הוא הבעלים
-       onAttemptRegister?.();
-      return onNeedLogin?.();
-    }
-    if (isOwner) {
-      // מחובר וכבר ברור שזה הבעלים
-      openModal?.({
-        title: "פעולה לא אפשרית",
-        message: "לא ניתן להירשם למוצר שהעלית.",
-        confirmText: "הבנתי",
-      });
-      return;
-    }
-    if (!user.id_number || !user.id_card_photo) setShowIdForm(true);
-    else completeRegistration(user.id_number);
-  };
+const handleRegisterClick = async () => {
+  if (!user?.email) { onAttemptRegister?.(); return onNeedLogin?.(); }
+  if (isOwner) { openModal?.({ title:"פעולה לא אפשרית", message:"לא ניתן להירשם למוצר שהעלית.", confirmText:"הבנתי" }); return; }
+
+  let finalUser = user;
+  if (!user.id_number || !user.id_card_photo) {
+    try {
+      const fresh = await getCurrentUser();
+      if (fresh) { setUser?.(fresh); finalUser = fresh; }
+    } catch {}
+  }
+  if (!finalUser.id_number || !finalUser.id_card_photo) setShowIdForm(true);
+  else completeRegistration(finalUser.id_number);
+};
+
 
   const handleIdChange = (e) => {
     const digitsOnly = e.target.value.replace(/\D/g, "");
@@ -118,11 +142,11 @@ export default function RegistrationBlock({ product, user, setUser, onNeedLogin,
       });
       return;
     }
-    try {
-      await uploadIdCard({ idNumber: digits, idPhotoFile, email: user.email });
-      setUser?.({ ...user, id_number: digits, id_card_photo: "uploaded" });
-      setShowIdForm(false);
-      completeRegistration(digits);
+   try {
+  const res = await uploadIdCard({ idNumber: digits, idPhotoFile, email: user.email });
+  if (res?.user) setUser?.(res.user);  // ← במקום "uploaded"
+  setShowIdForm(false);
+  completeRegistration(res?.user?.id_number || digits);
     } catch {
       openModal?.({
         title: "שגיאה",

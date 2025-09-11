@@ -20,16 +20,20 @@ export default function UserGuestView({
   startCountdownSec,
   isLive,
   user,
+  setUser,
   canRegister,
   openModal,
   askLogin,
   sellerRating,
   navigate,
-  onAttemptRegister, // ← חדש: מתקבל מה-ProductPage
+  onAttemptRegister, 
+  shouldAutoRegister,
+ clearAttempt,
 }) {
   const [showPickup, setShowPickup] = useState(false);
-  const isOwner = String(user?.id_number) === String(product.seller_id_number);
-
+ const userId   = user?.id_number != null ? String(user.id_number) : null;
+ const sellerId = product?.seller_id_number != null ? String(product.seller_id_number) : null;
+  const isOwner  = userId && sellerId && userId === sellerId;
   return (
     <ProductLayout images={images}>
       <div className={`${styles.details} ${styles.textWrap} ${styles.blockGap}`}>
@@ -90,15 +94,17 @@ export default function UserGuestView({
             )}
 
             {/* בלוק הרשמה – רק אם אינו הבעלים ומותר להירשם */}
-            {!isOwner && canRegister && (
+             {!isOwner && canRegister && (
               <RegistrationBlock
                 product={product}
                 user={user}
-                setUser={() => {}}
+                setUser={setUser}   
                 navigate={navigate}
                 openModal={openModal}
                 onNeedLogin={() => askLogin()}
                 onAttemptRegister={onAttemptRegister}  // ← מעבירים להורה לסימון ניסיון הרשמה
+                shouldAutoRegister={shouldAutoRegister}
+                onAutoHandled={clearAttempt}
               />
             )}
 

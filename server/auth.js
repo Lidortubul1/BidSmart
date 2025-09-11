@@ -131,27 +131,56 @@ router.post("/register", async (req, res) => {
   }
 });
 
+
+// ✔️ מחזיר את המשתמש המלא ומרענן את ה-session
+router.get("/me", async (req, res) => {
+  try {
+    const emailFromSession = req.session?.user?.email;
+    if (!emailFromSession) {
+      return res.status(401).json({ success: false, message: "לא מחובר" });
+    }
+
+    const conn = await db.getConnection();
+    const [rows] = await conn.execute(
+      `SELECT email, role, id_number, id_card_photo, profile_photo,
+              first_name, last_name, phone, country, zip, city, street,
+              house_number, apartment_number, status, delivery_options
+       FROM users
+       WHERE email = ?
+       LIMIT 1`,
+      [emailFromSession]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "משתמש לא נמצא" });
+    }
+
+    req.session.user = rows[0];
+    req.session.save(() => {}); // לא חובה, עוזר ליציבות
+
+    return res.json(rows[0]); // או { success:true, user: rows[0] }
+  } catch (e) {
+    console.error("/me error:", e);
+    return res.status(500).json({ success: false, message: "שגיאה בשרת" });
+  }
+});
+
+
 // הוספה לבסיס נתונים צילום ת"ז ות"ז של המשתמש אם לא קיים והוא רוצה להרשם להצעה
 router.put("/save-id-info", upload.single("id_card_photo"), async (req, res) => {
   const { id_number, email } = req.body;
-  const idCardPath = req.file?.filename;
+  const idCardPath = req.file?.filename; // אם את זקוקה לנתיב מלא – ראו סעיף 4
 
   if (!id_number || !email || !idCardPath) {
-    return res
-      .status(400)
-      .json({ message: "נא למלא את כל השדות כולל קובץ" });
+    return res.status(400).json({ success:false, message: "נא למלא את כל השדות כולל קובץ" });
   }
 
   try {
     const conn = await db.getConnection();
 
-    const [users] = await conn.execute(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
-    );
-
+    const [users] = await conn.execute("SELECT * FROM users WHERE email = ? LIMIT 1", [email]);
     if (users.length === 0) {
-      return res.status(404).json({ message: "משתמש לא נמצא" });
+      return res.status(404).json({ success:false, message: "משתמש לא נמצא" });
     }
 
     await conn.execute(
@@ -159,26 +188,28 @@ router.put("/save-id-info", upload.single("id_card_photo"), async (req, res) => 
       [id_number, idCardPath, email]
     );
 
-    // עדכון session
     const [updated] = await conn.execute(
-      "SELECT * FROM users WHERE email = ?",
+      `SELECT email, role, id_number, id_card_photo, profile_photo,
+              first_name, last_name, phone, country, zip, city, street,
+              house_number, apartment_number, status, delivery_options
+       FROM users WHERE email = ? LIMIT 1`,
       [email]
     );
+
     req.session.user = updated[0];
+    req.session.save(() => {});  // ✅ מבטיח שה-session נכתב
 
     res.json({ success: true, message: "עודכן בהצלחה", user: updated[0] });
   } catch (err) {
     console.error("שגיאה בהעלאת תז", err);
-    res.status(500).json({ message: "שגיאה בשרת" });
+    res.status(500).json({ success:false, message: "שגיאה בשרת" });
   }
-}
-);
+});
+
 
 
 //עדכון פרופיל כללי
-router.put(
-  "/update-profile",
-  upload.fields([
+router.put("/update-profile",upload.fields([
     { name: "id_card_photo", maxCount: 1 },
     { name: "profile_photo", maxCount: 1 },
   ]),

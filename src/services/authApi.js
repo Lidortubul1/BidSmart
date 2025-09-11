@@ -44,11 +44,19 @@ export async function uploadIdCard({ idNumber, idPhotoFile, email }) {
   formData.append("id_card_photo", idPhotoFile);
   formData.append("email", email);
 
-  const response = await axios.put(`${BASE_URL}/save-id-info`, formData, {
+  const { data } = await axios.put(`${BASE_URL}/save-id-info`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
+    withCredentials: true,
   });
-  return response.data;
+
+  // אם ה־API מחזיר user מעודכן — החזירי אותו
+  if (data?.user) return data;
+
+  // אם לא — נרענן ידנית
+  const full = await getCurrentUser();
+  return { success: true, user: full };
 }
+
 
 // איפוס סיסמה עם טוקן
 export async function resetPassword(token, newPassword) {
@@ -101,3 +109,13 @@ export async function changePassword(email, currentPassword, newPassword) {
     return { success: false, message: "שגיאה בשרת" };
   }
 }
+
+
+// הבאת פרופיל משתמש מלא
+export async function getCurrentUser() {
+  const res = await axios.get("/api/auth/session", { withCredentials: true });
+  if (res.data?.loggedIn) return res.data.user; // מחזיר אובייקט המשתמש מה-session
+  return null;
+}
+
+

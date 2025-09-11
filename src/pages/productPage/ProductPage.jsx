@@ -152,7 +152,7 @@ const { modal, setModal, showLogin, setShowLogin, openModal, askLogin } =
   // דגל ניסיון הרשמה לפני התחברות
   const [attemptedRegister, setAttemptedRegister] = useState(false);
 
-  // מודאל אחרי התחברות: אם התברר שהוא המוכר
+ // מודאל אחרי התחברות: אם התברר שהוא המוכר – מציגים הודעה וסוגרים את הדגל
   useEffect(() => {
     if (!attemptedRegister) return;
     if (!user?.email) return;
@@ -172,11 +172,9 @@ const { modal, setModal, showLogin, setShowLogin, openModal, askLogin } =
   hideClose: false,
   disableBackdropClose: false,
 });
-
+ setAttemptedRegister(false);
     }
-    // לנקות בכל מקרה אחרי ההתחברות
-    setAttemptedRegister(false);
-  }, [attemptedRegister, user?.email, user?.id_number, product?.seller_id_number, openModal]);
+  }, [attemptedRegister, user?.email, user?.id_number, product?.seller_id_number, openModal, setModal]);
 
   // בונוס: איפוס הדגל אם עוברים לעמוד מוצר אחר באמצע
   useEffect(() => { setAttemptedRegister(false); }, [id]);
@@ -259,13 +257,15 @@ const { modal, setModal, showLogin, setShowLogin, openModal, askLogin } =
           startCountdownSec={startCountdownSec}
           isLive={isLive}
           user={user}
+           setUser={setUser} 
           canRegister={canRegister}
           openModal={openModal}
           askLogin={askLogin}
           sellerRating={sellerRating}
           navigate={navigate}
           onAttemptRegister={() => setAttemptedRegister(true)}
-
+          shouldAutoRegister={attemptedRegister && isLoggedIn && canRegister}
+          clearAttempt={() => setAttemptedRegister(false)}
         />
       );
   }
