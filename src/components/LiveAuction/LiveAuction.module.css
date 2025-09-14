@@ -270,9 +270,12 @@
 }
 
 .timerFill {
+  position: absolute;
+  inset: 0 auto 0 0;                /* top:0; right:auto; bottom:0; left:0 */
   height: 100%;
-  background-color: #bda274; /* כתמתם עדין – קו העיצוב של האתר */
-  transition: width 1s linear;
+  width: 0%;
+  border-radius: 999px;
+  transition: width 1s linear, background-color .3s linear, box-shadow .3s linear;
 }
 
 /* ---------------------------------------------------------
