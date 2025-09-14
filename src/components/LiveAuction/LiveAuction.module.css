@@ -1,15 +1,37 @@
-/* LiveAuction.module.css — גרסה תואמת לעיצוב האתר */
+/* =========================================================
+   LiveAuction.module.css
+   עיצוב מסך מכירה חיה – מותאם RTL, רספונסיבי, חדיש וטכנולוגי
+   מכיל קטעים מסודרים לפי הקומפוננטות:
+   - HeaderBar.jsx
+   - Gallery.jsx
+   - PreLivePanel.jsx / LivePanel.jsx / EndedPanel.jsx (מרכז)
+   - TimerBar.jsx
+   - ChatFeed.jsx
+   - עזרים/תגיות מצב/כפתורים/רספונסיביות
+   ========================================================= */
 
+/* ---------------------------------------------------------
+   בסיס עמוד + Layout כללי
+   (משמש כל הקומפוננטות)
+   --------------------------------------------------------- */
 .container {
-  /* כמו .page בדפים האחרים */
+  /* רקע מודרני בהיר עם גרדיאנט, לפי שאר האתר */
   background: linear-gradient(to bottom, #fcfaf7, #ffffff);
   min-height: 80vh;
-  padding: 100px 0px 100px;
+  padding: 100px 0 100px;
   font-family: "Heebo", sans-serif;
   direction: rtl;
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  color: #0f172a;
+}
+
+.loading {
+  width: 100%;
+  text-align: center;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .cardWrapper {
@@ -19,9 +41,10 @@
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  padding: 28px;
+  padding: 24px;
 }
 
+/* Grid ראשי: שמאל (גלריה) | מרכז (סטטוס/הגשה) | ימין (פיד הצעות) */
 .cardGrid {
   display: grid;
   grid-template-columns: 2fr 2fr 1fr;
@@ -29,6 +52,7 @@
   align-items: start;
 }
 
+/* רספונסיביות */
 @media (max-width: 1100px) {
   .cardGrid { grid-template-columns: 1fr 1fr; }
 }
@@ -36,19 +60,121 @@
   .cardGrid { grid-template-columns: 1fr; }
 }
 
-/* פאנל שמאלי (תמונות + טקסט) */
-.leftPanel h2 {
-  font-size: clamp(1.2rem, 1.1rem + 1vw, 1.8rem);
+/* כותרות משנה אחידות לכל הסקשנים */
+.sectionTitle {
+  font-size: clamp(1.05rem, 0.9rem + 0.8vw, 1.35rem);
   font-weight: 900;
   color: #111827;
-  margin: 0 0 8px;
+  margin: 0 0 14px;
 }
 
-.leftPanel p {
+/* ---------------------------------------------------------
+   HeaderBar.jsx – בר עליון: שם מוצר, תג מצב, מטא (מחיר/טיימר)
+   --------------------------------------------------------- */
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 10px 4px 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.titleBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0; /* לטובת טקסט ארוך */
+}
+
+.title {
+  font-size: clamp(1.2rem, 1.1rem + 1.2vw, 1.9rem);
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* תגיות מצב */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+
+.badgeLive {
+  color: #065f46;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  animation: pulse 1.8s infinite;
+}
+.badgeEnded {
+  color: #b45309;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+.badgeSoon {
+  color: #334155;
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.35); }
+  70% { box-shadow: 0 0 0 10px rgba(13, 148, 136, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0); }
+}
+
+.metaBlock {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.metaItem {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+  min-width: 120px;
+  padding: 6px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.metaLabel {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.metaValue {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+/* ---------------------------------------------------------
+   Gallery.jsx – פאנל שמאלי: תיאור + גלריית תמונות
+   --------------------------------------------------------- */
+
+.description {
   font-size: 1rem;
   line-height: 1.7;
   color: #2b2b2b;
-  margin: 8px 0 12px;
+  margin: 6px 0 14px;
 }
 
 .imageGallery {
@@ -58,16 +184,19 @@
 }
 
 .galleryImage {
-  width: 160px;
-  height: 160px;
-  border-radius: 12px;
+  width: clamp(120px, 32vw, 160px);
+  height: clamp(120px, 32vw, 160px);
+  border-radius: 14px;
   object-fit: cover;
   background: #fff;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
-  transition: transform .2s ease;
+  transition: transform .2s ease, box-shadow .2s ease;
   cursor: zoom-in;
 }
-.galleryImage:hover { transform: scale(1.03); }
+.galleryImage:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 18px rgba(0,0,0,.08);
+}
 
 .noImages {
   background: #f8fafc;
@@ -77,14 +206,16 @@
   padding: 16px;
 }
 
-/* מרכז (מחיר, טיימרים, כפתור) */
+/* ---------------------------------------------------------
+   PreLivePanel.jsx / LivePanel.jsx / EndedPanel.jsx – אזור מרכזי
+   --------------------------------------------------------- */
 .centerPanel {
   text-align: center;
 }
 
 .currentPrice {
-  font-size: 1.2rem;
-  font-weight: 800;
+  font-size: 1.15rem;
+  font-weight: 900;
   color: #111827;
   margin-bottom: 8px;
 }
@@ -99,6 +230,36 @@
   margin: 8px 0 10px;
 }
 
+/* הודעות סטטוס זכייה/הפסד */
+.winner {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.loser {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------
+   TimerBar.jsx – בר התקדמות 15ש׳
+   --------------------------------------------------------- */
+.timerWrap {
+  position: relative;
+}
+
 .timerBar {
   width: 100%;
   height: 10px;
@@ -110,10 +271,13 @@
 
 .timerFill {
   height: 100%;
-  background-color: #bda274; /* כתמתם עדין כמו באתר */
+  background-color: #bda274; /* כתמתם עדין – קו העיצוב של האתר */
   transition: width 1s linear;
 }
 
+/* ---------------------------------------------------------
+   כפתורים (משותף: הגשת הצעה / תשלום)
+   --------------------------------------------------------- */
 .bidButton,
 .paymentButton {
   background-color: #000;
@@ -122,45 +286,36 @@
   border-radius: 30px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color .2s ease;
+  transition: transform .12s ease, background-color .2s ease, box-shadow .2s ease;
   border: none;
   margin-top: 10px;
   width: 100%;
-  max-width: 260px;
+  max-width: 280px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
 }
 .bidButton:hover,
 .paymentButton:hover {
-  background-color: #333;
+  background-color: #222;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.12);
 }
-.bidButton[disabled] {
+.bidButton:active,
+.paymentButton:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+}
+.btnDisabled,
+.bidButton[disabled],
+.paymentButton[disabled] {
   opacity: .6;
   cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
-/* סטטוסים */
-.winner {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #047857;
-  background: #ecfdf5;
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-  padding: 10px 12px;
-  text-align: center;
-}
-
-.loser {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #b45309;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 12px;
-  padding: 10px 12px;
-  text-align: center;
-}
-
-/* פאנל “צ׳אט” (היסטוריית הצעות) */
+/* ---------------------------------------------------------
+   ChatFeed.jsx – פאנל ימין: היסטוריית/פיד הצעות בזמן אמת
+   --------------------------------------------------------- */
 .chatPanel {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -170,29 +325,62 @@
   box-shadow: 0 6px 18px rgba(0,0,0,0.04);
 }
 
-.chatPanel h4 {
-  margin: 0 0 10px;
-  font-size: 1rem;
-  font-weight: 800;
-  color: #0f172a;
-  text-align: right;
+.chatPanel .sectionTitle {
+  margin-bottom: 10px;
 }
 
 .chatLog {
-  max-height: 320px;
+  max-height: 340px;
   overflow-y: auto;
   font-size: .95rem;
   line-height: 1.6;
+  padding-right: 6px; /* מקום ל־scroll */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+.chatLog::-webkit-scrollbar {
+  width: 8px;
+}
+.chatLog::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+.chatLog::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 999px;
 }
 
-/* קישוריות בתוך מודאל (אם צריך) */
-.modalMessage span {
-  display: block;
-  margin-bottom: 6px;
+.chatRow {
+  margin: 0 0 6px;
+  word-break: break-word;
 }
 
-/* יישור RTL כללי */
-.container, .leftPanel, .centerPanel, .chatPanel, .chatLog {
+/* ---------------------------------------------------------
+   עזרים כלליים / RTL / פוקוסים
+   --------------------------------------------------------- */
+.container,
+.leftPanel,
+.centerPanel,
+.chatPanel,
+.chatLog {
   direction: rtl;
   text-align: right;
+}
+
+a, button, [role="button"], .chatLog {
+  outline: none;
+}
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+.chatLog:focus-visible {
+  box-shadow: 0 0 0 3px rgba(189,162,116,.35);
+  border-radius: 10px;
+}
+
+/* המרווחים קטנים יותר במסכים צרים */
+@media (max-width: 500px) {
+  .cardWrapper { padding: 18px; }
+  .metaItem { min-width: 110px; padding: 6px 10px; }
+  .chatLog { max-height: 300px; }
 }

@@ -1,5 +1,5 @@
-//LiveAuction/LiveAuction.jsx
-// קומפוננטת מכירה חיה: התחברות Socket.IO לחדר מוצר, ניהול קאונטדאונים (עד התחלה/סיום ו־15ש׳ לאחר כל הצעה), טיפול בהצעות והזרמה בזמן אמת, מצבים לפני/בזמן/אחרי מכירה, סיום מפוקח בשרת, ותשלום לזוכה דרך PayPal.
+// /src/pages/LiveAuction/LiveAuction.jsx
+// ⚠️ פיצול ל־UI Components בלבד — ללא שינוי לוגיקה/סוקטים/סטייט.
 
 import styles from "./LiveAuction.module.css";
 import { useCallback, useEffect, useState, useRef } from "react";
@@ -9,7 +9,17 @@ import { useAuth } from "../../auth/AuthContext";
 import CustomModal from "../../components/CustomModal/CustomModal.jsx";
 import { getProductById } from "../../services/productApi.js";
 import { createOrder } from "../../services/paymentApi.js";
-import { endAuction } from "../../services/auctionApi"; // axios -> /api/auction/end/:productId
+import { endAuction } from "../../services/auctionApi";
+
+// 👇 מייבא את תתי-הקומפוננטות מה־barrel
+import {
+  HeaderBar,
+  Gallery,
+  PreLivePanel,
+  LivePanel,
+  EndedPanel,
+  ChatFeed,
+} from "./components";
 
 // מחבר פעם אחת (מחוץ לקומפוננטה כדי להימנע מחיבורים כפולים ב-StrictMode)
 const socket = io("http://localhost:5000");
@@ -34,7 +44,6 @@ function formatDateAndTime(dateStr) {
     hour: "2-digit",
     minute: "2-digit",
   });
-
   return `${formattedDate} בשעה ${formattedTime}`;
 }
 
@@ -61,14 +70,14 @@ function LiveAuction() {
   const [product, setProduct] = useState(null);
 
   // מצבים עיקריים
-  const [isLive, setIsLive] = useState(false); // לייב כרגע
-  const [auctionEnded, setAuctionEnded] = useState(false); // נגמרה
+  const [isLive, setIsLive] = useState(false);
+  const [auctionEnded, setAuctionEnded] = useState(false);
   const [winnerId, setWinnerId] = useState(null);
 
   // קאונטדאונים
-  const [startCountdown, setStartCountdown] = useState(null); // עד התחלה (שניות)
-  const [auctionTimeLeft, setAuctionTimeLeft] = useState(null); // עד סוף (שניות)
-  const [roundTimeLeft, setRoundTimeLeft] = useState(null); // טיימר סבב של 15 שניות
+  const [startCountdown, setStartCountdown] = useState(null);
+  const [auctionTimeLeft, setAuctionTimeLeft] = useState(null);
+  const [roundTimeLeft, setRoundTimeLeft] = useState(null);
 
   // מצב הצעות
   const [currentPrice, setCurrentPrice] = useState(0);
@@ -193,7 +202,6 @@ function LiveAuction() {
 
     load();
     const interval = setInterval(load, 10000); // פולינג עדין
-
     return () => {
       mounted = false;
       clearInterval(interval);
@@ -326,239 +334,94 @@ function LiveAuction() {
     // נועלים מיידית ומסמנים שההצעה האחרונה שלי (אופטימית)
     setCanBid(false);
     setLastBidder(buyerId);
-
     socket.emit("placeBid", { productId, buyerId, customAmount: amount });
   }
 
-  if (!product) return <p>טוען מוצר...</p>;
+  if (!product) return <p className={styles.loading}>טוען מוצר...</p>;
 
-  // ===== מסך "נגמרה" =====
-  if (auctionEnded) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.cardWrapper}>
-          <div className={styles.cardGrid}>
-            <div className={styles.leftPanel}>
-              <h2>{product.product_name}</h2>
-              <p>{product.description}</p>
-              <div className={styles.imageGallery}>
-                {product.images?.map((url, i) => (
-                  <img
-                    key={i}
-                    src={`http://localhost:5000${url}`}
-                    alt={`תמונה ${i + 1}`}
-                    className={styles.galleryImage}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.centerPanel}>
-              {buyerId === winnerId ? (
-                <>
-                  <p className={styles.winner}>🎉 זכית במכירה!</p>
-                  <button
-                    className={styles.paymentButton}
-                    onClick={async () => {
-                      const total = Number(currentPrice);
-                      showModal({
-                        title: "🧾 פירוט המחיר",
-                        message: `המחיר הסופי הינו ₪${total}`,
-                        confirmText: "עבור לתשלום",
-                        onConfirm: async () => {
-                          try {
-                            const data = await createOrder(productId);
-                            const approveUrl = data?.links?.find(
-                              (l) => l.rel === "approve"
-                            )?.href;
-                            if (approveUrl) window.location.href = approveUrl;
-                            else alert("שגיאה בקבלת קישור לתשלום");
-                          } catch {
-                            alert("שגיאה ביצירת בקשת תשלום");
-                          }
-                        },
-                        onCancel: () => setModalVisible(false),
-                      });
-                    }}
-                  >
-                    עבור לתשלום
-                  </button>
-                </>
-              ) : (
-                <p className={styles.loser}> המכירה הסתיימה. לא זכית.</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {modalVisible && (
-          <CustomModal
-            title={modalContent.title}
-            message={modalContent.message}
-            confirmText={modalContent.confirmText}
-            cancelText={modalContent.cancelText}
-            onConfirm={modalContent.onConfirm}
-            onCancel={modalContent.onCancel}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // ===== מסך "עוד לא התחילה" =====
-  if (!isLive && !auctionEnded) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.cardWrapper}>
-          <div className={styles.cardGrid}>
-            {/* שמאל: תמונות + תיאור (בדיוק כמו בלייב) */}
-            <div className={styles.leftPanel}>
-              <h2>{product.product_name}</h2>
-              <p>{product.description}</p>
-              <div className={styles.imageGallery}>
-                {product.images?.length ? (
-                  product.images.map((url, i) => (
-                    <img
-                      key={i}
-                      src={`http://localhost:5000${url}`}
-                      alt={`תמונה ${i + 1}`}
-                      className={styles.galleryImage}
-                    />
-                  ))
-                ) : (
-                  <div className={styles.noImages}>אין תמונות להצגה</div>
-                )}
-              </div>
-            </div>
-
-            {/* מרכז: מתי מתחילה + קאונטדאון + כפתור מנוטרל */}
-            <div className={styles.centerPanel}>
-              <p className={styles.currentPrice}>
-                מחיר פתיחה: {product.price} ₪
-              </p>
-              <p className={styles.startText}>
-                המכירה תחל בתאריך{" "}
-                {product.start_date
-                  ? formatDateAndTime(product.start_date)
-                  : "תאריך לא זמין"}
-              </p>
-              {startCountdown != null && (
-                <p className={styles.countdownToStart}>
-                  ספירה לאחור: {fmtHMS(startCountdown)}
-                </p>
-              )}
-              <button className={styles.bidButton} disabled>
-                ההגשה תיפתח בתחילת המכירה
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {modalVisible && (
-          <CustomModal
-            title={modalContent.title}
-            message={modalContent.message}
-            confirmText={modalContent.confirmText}
-            cancelText={modalContent.cancelText}
-            onConfirm={modalContent.onConfirm}
-            onCancel={modalContent.onCancel}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // ===== מסך "לייב" =====
+  // חישוב שעון כללי להצגה בכותרת/מרכז
   const minutesLeft =
-    auctionTimeLeft != null ? Math.floor(auctionTimeLeft / 60) : 0;
-  const secondsLeft = auctionTimeLeft != null ? auctionTimeLeft % 60 : 0;
+    auctionTimeLeft != null ? Math.floor(auctionTimeLeft / 60) : null;
+  const secondsLeft =
+    auctionTimeLeft != null ? auctionTimeLeft % 60 : null;
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.cardWrapper}>
-        <div className={styles.cardGrid}>
-          <div className={styles.leftPanel}>
-            <h2>{product.product_name}</h2>
-            <p>{product.description}</p>
-            <div className={styles.imageGallery}>
-              {product.images?.map((url, i) => (
-                <img
-                  key={i}
-                  src={`http://localhost:5000${url}`}
-                  alt={`תמונה ${i + 1}`}
-                  className={styles.galleryImage}
-                />
-              ))}
-            </div>
-          </div>
+  // פעולה לפתיחת מודאל תשלום לזוכה (נשאר כמו קודם)
+  const openPayModal = async () => {
+    const total = Number(currentPrice);
+    showModal({
+      title: "🧾 פירוט המחיר",
+      message: `המחיר הסופי הינו ₪${total}`,
+      confirmText: "עבור לתשלום",
+      onConfirm: async () => {
+        try {
+          const data = await createOrder(productId);
+          const approveUrl = data?.links?.find((l) => l.rel === "approve")?.href;
+          if (approveUrl) window.location.href = approveUrl;
+          else alert("שגיאה בקבלת קישור לתשלום");
+        } catch {
+          alert("שגיאה ביצירת בקשת תשלום");
+        }
+      },
+      onCancel: () => setModalVisible(false),
+    });
+  };
 
-          <div className={styles.centerPanel}>
-            <p className={styles.currentPrice}>מחיר נוכחי: {currentPrice} ₪</p>
+  // -------- UI מפוצל לתת־קומפוננטות --------
+  // במקום שלושה returns גדולים, נחזיר Grid אחד עם מרכז משתנה לפי מצב
+return (
+  <div className={styles.container} dir="rtl">
+    <div className={styles.cardWrapper}>
+      <HeaderBar
+        productName={product.product_name}
+        isLive={isLive}
+        auctionEnded={auctionEnded}
+        currentPrice={currentPrice}
+        minutesLeft={minutesLeft}
+        secondsLeft={secondsLeft}
+      />
 
-            {/* הודעת סטטוס על ההצעות */}
-            <p className={styles.lastBidInfo}>
-              {!hasFirstBid
-                ? "טרם הוגשה הצעה. היה/י הראשון/ה להגיש!"
-                : lastBidder === buyerId
-                ? "נתת את ההצעה האחרונה!"
-                : "ניתנה הצעה ממשתמש! לחץ הגש הצעה כדי לזכות!"}
-            </p>
+      <div className={styles.cardGrid}>
+        {/* שמאל: פרטי מוצר + גלריה */}
+        <Gallery
+          description={product.description}
+          images={product.images}
+        />
 
-            {/* טיימר 15ש׳ – רק אחרי הצעה ראשונה */}
-            {hasFirstBid && roundTimeLeft != null && (
-              <>
-                <div className={styles.timerBar}>
-                  <div
-                    className={styles.timerFill}
-                    style={{ width: `${(roundTimeLeft / 15) * 100}%` }}
-                  />
-                </div>
-                <p className={styles.timeText}>
-                  ⌛ זמן להגשת הצעה: {roundTimeLeft} שניות
-                </p>
-              </>
-            )}
+        {/* מרכז: משתנה לפי מצב */}
+        {!isLive && !auctionEnded && (
+          <PreLivePanel
+            startText={
+              product.start_date
+                ? formatDateAndTime(product.start_date)
+                : "תאריך לא זמין"
+            }
+            countdown={startCountdown != null ? fmtHMS(startCountdown) : null}
+          />
+        )}
 
-            {/* כפתור הגשה – טקסט משתנה לפני/אחרי ההצעה הראשונה */}
-            <button
-              className={styles.bidButton}
-              disabled={isBidDisabled}
-              title={
-                isMyLastBid
-                  ? "הצעת כבר — ממתינים להצעה נגדית"
-                  : !canBid
-                  ? "ממתינים לאישור/עדכון מהשרת"
-                  : ""
-              }
-              onClick={() => handleBid(Number(product.bid_increment))}
-            >
-              {hasFirstBid
-                ? isMyLastBid
-                  ? "ממתינים להצעה נגדית…"
-                  : `הגש הצעה של +${product.bid_increment} ₪`
-                : ` הגש הצעה ראשונה של +${product.bid_increment} ₪`}
-            </button>
+        {isLive && !auctionEnded && (
+          <LivePanel
+            hasFirstBid={hasFirstBid}
+            isMyLastBid={isMyLastBid}
+            isBidDisabled={isBidDisabled}
+            roundTimeLeft={roundTimeLeft}
+            bidIncrement={product.bid_increment}
+            onBid={() => handleBid(Number(product.bid_increment))}
+            minutesLeft={minutesLeft}
+            secondsLeft={secondsLeft}
+          />
+        )}
 
-            {/* טיימר כללי של המכירה */}
-            {auctionTimeLeft != null && auctionTimeLeft > 0 && (
-              <p className={styles.timeRemaining} style={{ marginTop: 10 }}>
-                המכירה תסתיים בעוד {String(minutesLeft).padStart(2, "0")}:
-                {String(secondsLeft).padStart(2, "0")} דקות
-              </p>
-            )}
-          </div>
+        {auctionEnded && (
+          <EndedPanel
+            isWinner={buyerId === winnerId}
+            currentPrice={currentPrice}
+            onPayClick={openPayModal}
+          />
+        )}
 
-          <div className={styles.chatPanel}>
-            <h4>הצעות בזמן אמת:</h4>
-            <div className={styles.chatLog}>
-              {chatLog.map((msg, i) => (
-                <p key={i} style={{ color: msg.color }}>
-                  {msg.text}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* ימין: פיד ההצעות */}
+        <ChatFeed chatLog={chatLog} />
       </div>
 
       {modalVisible && (
@@ -572,7 +435,9 @@ function LiveAuction() {
         />
       )}
     </div>
-  );
+  </div>
+);
+
 }
 
 export default LiveAuction;

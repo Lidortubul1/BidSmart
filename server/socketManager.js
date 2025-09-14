@@ -79,10 +79,11 @@ async function endAuction(io, productId) {
     }
 
     // שידור לכולם
-    io.to(`room_${productId}`).emit("auctionEnded", {
-      winnerId: winnerId,
-      finalPrice: Number(finalPrice) || 0,ו
-    });
+io.to(`room_${productId}`).emit("auctionEnded", {
+  winnerId: winnerId,
+  finalPrice: Number(finalPrice) || 0
+});
+
 
     console.log(` Auction ${productId} ended. Winner: ${winnerId || "—"}`);
   } catch (err) {
