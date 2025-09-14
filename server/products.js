@@ -13,29 +13,35 @@
   const nodemailer = require("nodemailer");
 
   // קבלת כל המוצרים למכירה בלבד שהם לא sale
-  router.get("/", async (req, res) => {
-    try {
-      const conn = await db.getConnection();
+router.get("/", async (req, res) => {
+  try {
+    const conn = await db.getConnection();
 
-      const [products] = await conn.execute(
-        "SELECT * FROM product WHERE product_status = 'for sale'"
+    const [products] = await conn.execute(
+      `SELECT * 
+       FROM product 
+       WHERE product_status = 'for sale' 
+       AND winner_id_number IS NULL`
+    );
+
+    // console.log(products[0]);
+
+    // הוספת תמונות לכל מוצר
+    for (const product of products) {
+      const [images] = await conn.execute(
+        "SELECT image_url FROM product_images WHERE product_id = ?",
+        [product.product_id]
       );
-      console.log(products[0])
-      //  הוספת תמונות לכל מוצר
-      for (const product of products) {
-        const [images] = await conn.execute(
-          "SELECT image_url FROM product_images WHERE product_id = ?",
-          [product.product_id]
-        );
-        product.images = images.map((img) => img.image_url); // מוסיף product.images
-      }
-
-      res.json(products); //  כאן מחזיר את כל המוצרים ללקוח
-    } catch (e) {
-      console.error("שגיאה בקבלת מוצרים:", e);
-      res.status(500).json({ error: "Failed to fetch product" });
+      product.images = images.map((img) => img.image_url);
     }
-  });
+
+    res.json(products);
+  } catch (e) {
+    console.error("שגיאה בקבלת מוצרים:", e);
+    res.status(500).json({ error: "Failed to fetch product" });
+  }
+});
+
 
 
 
