@@ -1,6 +1,4 @@
-// src/pages/adminProducts/AdminProductsPage.jsx
-// ניהול מוצרים (מנהל): מציג לכלל המוכרים את כל המוצרים עם סינון סטטוס (תפריט נפתח), חיפוש טקסטואלי, וייצוא לאקסל; טוען לפי פילטר, מציג כרטיסי ProductCardUnified בלי מחיקה, וניווט לצפייה בפרטי מוצר.
-
+// ניהול מוצרים (מנהל) — עיצוב בלבד (שמות מחלקות ייחודיים), ללא שינוי לוגי
 import { useEffect, useMemo, useRef, useState } from "react";
 import ProductCardUnified from "../../components/ProductCardUnified/ProductCardUnified.jsx";
 import styles from "./AdminProductsPage.module.css";
@@ -8,16 +6,18 @@ import { useNavigate } from "react-router-dom";
 import { getSellerProducts } from "../../services/ManagementApi.js";
 import { exportProductsToExcel } from "../../utils/exportProductsToExcel.jsx";
 
+// התאמת הסטטוסים לדף המוכר (ManageProductsPage)
 const FILTERS = [
-  { value: "all", label: "כל המוצרים" },
-  { value: "sold", label: "נמכרו" },
-  { value: "toShip", label: "מיועדים לשליחה" },
-  { value: "sent", label: "נשלחו/נמסרו" },
-  { value: "pending", label: "טרם התחיל" },
-  { value: "unsold", label: "לא נמכרו" },
-  { value: "blocked", label: "חסומים" },
+  { value: "all",          label: "כל המוצרים" },
+  { value: "forSale",      label: "מוצרים שטרם חלה המכירה" },  // status = for_sale
+  { value: "sold",         label: "כל המוצרים שנמכרו" },       // status = sale
+  { value: "soldDelivery", label: "נמכרו - משלוח" },           // status = sale + delivery
+  { value: "soldPickup",   label: "נמכרו - איסוף עצמי" },      // status = sale + pickup
+  { value: "notSold",      label: "מוצרים שלא נמכרו" },        // status = Not sold
+  { value: "blocked",      label: "מוצרים שנחסמו על ידי המוכר" },     // status = blocked
+  { value: "adminBlocked", label: "מוצרים חסומים על ידי ההנהלה" } // status = admin blocked
 ];
-//דף ניהול מוצרים של כל המוכרים של המנהל
+
 export default function AdminProductsPage() {
   const [rows, setRows] = useState([]);
   const [filter, setFilter] = useState("all");
@@ -56,9 +56,7 @@ export default function AdminProductsPage() {
         (p.seller_name || "").toLowerCase().includes(s) ||
         (p.category_name || "").toLowerCase().includes(s) ||
         (p.subcategory_name || "").toLowerCase().includes(s) ||
-        String(p.seller_id_number || "")
-          .toLowerCase()
-          .includes(s)
+        String(p.seller_id_number || "").toLowerCase().includes(s)
     );
   }, [rows, q]);
 
@@ -75,46 +73,42 @@ export default function AdminProductsPage() {
     FILTERS.find((f) => f.value === filter)?.label || "";
 
   return (
-    <div className={styles.page}>
-      <div className={styles.hero}>
-        <div className={styles.heroText}>
+    <div className={styles.adminProductsPage}>
+      <div className={styles.adminProductsHero}>
+        <div className={styles.adminProductsHeroText}>
           <h1>ניהול כל המוצרים (מנהל)</h1>
-          <p className={styles.subText}>צפייה בכל המוצרים של כל המוכרים</p>
+          <p className={styles.adminProductsSubText}>צפייה בכל המוצרים של כל המוכרים</p>
 
-          <div className={styles.filterBar} ref={pickerRef}>
+          <div className={styles.adminProductsFilterBar} ref={pickerRef}>
             <button
               type="button"
-              className={styles.filterTrigger}
+              className={styles.adminProductsFilterTrigger}
               onClick={() => setIsMenuOpen((v) => !v)}
               aria-expanded={isMenuOpen}
               aria-haspopup="listbox"
             >
               {currentFilterLabel}
               <svg
-                className={styles.chevron}
+                className={styles.adminProductsChevron}
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
-                <path
-                  d="M6 9l6 6 6-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
+                <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" />
               </svg>
             </button>
+
             {isMenuOpen && (
-              <ul className={styles.filterMenu} role="listbox">
+              <ul className={styles.adminProductsFilterMenu} role="listbox">
                 {FILTERS.map((opt, i) => (
                   <li key={opt.value}>
                     <button
                       type="button"
                       role="option"
                       aria-selected={filter === opt.value}
-                      className={`${styles.filterOption} ${
-                        filter === opt.value ? styles.activeOption : ""
+                      className={`${styles.adminProductsFilterOption} ${
+                        filter === opt.value ? styles.adminProductsActiveOption : ""
                       }`}
                       style={{ "--i": i }}
                       onClick={() => {
@@ -130,37 +124,35 @@ export default function AdminProductsPage() {
             )}
           </div>
 
-          <div className={styles.searchContainer} style={{ marginTop: 12 }}>
+          <div className={styles.adminProductsSearchContainer} style={{ marginTop: 12 }}>
             <input
               type="text"
               placeholder="חפש לפי שם מוצר או שם מוכר…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className={styles.searchInput}
+              className={styles.adminProductsSearchInput}
             />
           </div>
 
           <div style={{ marginTop: 12 }}>
-            <button onClick={exportToExcel} className={styles.exportBtn}>
+            <button onClick={exportToExcel} className={styles.adminProductsExportBtn}>
               📤 ייצא לאקסל
             </button>
           </div>
         </div>
       </div>
 
-      <section className={styles.productsSection}>
+      <section className={styles.adminProductsProductsSection}>
         {filtered.length === 0 ? (
-          <p className={styles.empty}>לא נמצאו מוצרים תואמים.</p>
+          <p className={styles.adminProductsEmpty}>לא נמצאו מוצרים תואמים.</p>
         ) : (
-          <div className={styles.grid}>
+          <div className={styles.adminProductsGrid}>
             {filtered.map((p) => (
-              <div className={styles.gridItem} key={p.product_id}>
+              <div className={styles.adminProductsGridItem} key={p.product_id}>
                 <ProductCardUnified
                   viewer="admin"
                   product={{ ...p, status: p.status || p.product_status }}
-                  onOpenDetails={(prod) =>
-                    navigate(`/product/${prod.product_id}`)
-                  }
+                  onOpenDetails={(prod) => navigate(`/product/${prod.product_id}`)}
                 />
               </div>
             ))}

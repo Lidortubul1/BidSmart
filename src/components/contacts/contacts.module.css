@@ -14,129 +14,189 @@
   display: grid;
   place-items: start center;
   padding: 48px 16px;
-  color: #0f172a;
   font-family: "Heebo", system-ui, Arial, sans-serif;
 }
 
-/* כרטיס */
-.card { width: 100%; background: #fff; border-radius: 14px; border: 1px solid #e5e7eb; }
-.cardCompact { max-width: 420px; padding: 14px; box-shadow: 0 6px 16px rgba(15,23,42,.08); }
-.cardPage    { max-width: 780px; padding: 28px; box-shadow: 0 10px 30px rgba(2,6,23,.08); }
+/* כרטיס – שקוף, מסגרת עדינה וצל רך */
+.card {
+  width: 100%;
+  background: transparent;           /* ← שקוף */
+  border: 1px solid transparent;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+.cardCompact { max-width: 480px; padding: 16px; }
+.cardPage    { max-width: 820px; padding: 28px; }
 
 /* כותרות */
-.heading { margin: 0; font-weight: 800; letter-spacing: -.2px; }
-.headingCompact { font-size: 18px; margin-bottom: 10px; }
-.headingPage    { font-size: 28px; margin-bottom: 6px; }
-.sub { margin: 0 0 18px 0; color: #ada598; font-size: 15px; }
+.heading {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -.2px;
+  color: var(--cocoa-800, #3a2a1a);
+  text-align: center;
+}
+.headingCompact { font-size: 20px; margin-bottom: 10px; }
+.headingPage    { font-size: 28px; margin-bottom: 8px; }
+.sub {
+  margin: 0 0 18px 0;
+  color: #64748b;
+  font-size: 15px;
+  text-align: center;
+}
 
 /* ===== טפסי compact/page – לייבל ושדה באותה שורה ===== */
 .form { display: grid; gap: 14px; }
-.formCompact { gap: 10px; }
+.formCompact { gap: 12px; }
+
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid2Compact { gap: 10px; }
 
-.rowInline { display: flex; align-items: center; gap: 8px; }
+.rowInline { display: flex; align-items: center; gap: 10px; }
 .rowInlineText { align-items: flex-start; } /* לטקסט־אריה גבוהה */
 
-.lbl { font-size: 13px; color: #0f172a; font-weight: 700; }
-.lblInline { width: 110px; flex: 0 0 110px; text-align: right; white-space: nowrap; }
+.lbl {
+  font-size: 13px;
+  color: var(--cocoa-800, #3a2a1a);
+  font-weight: 800;
+}
+.lblInline {
+  width: 120px; flex: 0 0 120px;
+  text-align: right; white-space: nowrap;
+}
 
-.inputInline { flex: 1 1 auto; background-color: #aca18e; }
+/* השדה בשורה – רק פריסה, בלי צבע רקע */
+.inputInline { flex: 1 1 auto; }
 
+/* אלמנטים של שדה */
 .input, .textarea {
-
-  border: 1px solid #e2e8f0;
+  width: 100%;
+  border: 1px solid #e7dfd1;
   border-radius: 12px;
   padding: 10px 12px;
-  background: #fafafa;
+  background: #fff;
   outline: none;
   font-size: 14px;
-  transition: border-color .2s, background .2s, box-shadow .2s;
+  color: #111827;
+  transition: border-color .2s, background .2s, box-shadow .2s, transform .05s;
 }
+.input::placeholder, .textarea::placeholder { color: #9aa3af; }
 .input:focus, .textarea:focus {
-  border-color: #3b82f6;
-  background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(217, 213, 190, 0.12);
+  border-color: var(--gold-500, #c9993a);
+  box-shadow: 0 0 0 4px rgba(201,153,58,.12);
+  background: #fff;
 }
 .textarea { resize: vertical; }
 
-.actions { margin-top: 4px; }
-.actionsCompact { margin-top: 2px; }
+/* אזור פעולות – כפתור בשורה נפרדת וממורכז */
+.actions {
+  margin-top: 6px;
+  display: flex;
+  justify-content: center;   /* מרכז אופקית */
+  width: 100%;               /* שורה נפרדת מלאה */
+}
+.actionsCompact { margin-top: 4px; }
+
+/* כפתור ראשי – גרדיאנט חום-זהב וממורכז */
 .btn {
   padding: 12px 18px;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg,#76736d,#edddbf);
-  color: white;
-  font-weight: 800;
+  background-color: #9e8859;
+  color: #fff;
+  font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(240, 221, 136, 0.25);
+  box-shadow: 0 8px 18px rgba(201,153,58,.25), inset 0 1px 0 rgba(255,255,255,.3);
+  transition: transform .12s, box-shadow .2s, opacity .2s;
+  margin-inline: auto;        /* מרכז את הכפתור עצמו */
 }
-.btn:disabled { opacity: .55; cursor: not-allowed; }
-.btnCompact { padding: 10px 14px; border-radius: 12px; box-shadow: none; }
+.btn:hover   { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(201,153,58,.32), inset 0 1px 0 rgba(255,255,255,.3); }
+.btn:active  { transform: translateY(0); }
+.btn:focus   { outline: none; box-shadow: 0 0 0 3px rgba(201,153,58,.28), 0 8px 18px rgba(201,153,58,.25); }
+.btn:disabled{ opacity: .55; cursor: not-allowed; }
+.btnCompact  { padding: 10px 16px; border-radius: 12px; }
 
 /* רספונסיביות לעמוד */
 @media (max-width: 640px) {
   .grid2, .grid2Compact { grid-template-columns: 1fr; }
-  .lblInline { width: 90px; flex-basis: 90px; } /* עדיין באותה שורה */
+  .lblInline { width: 100px; flex-basis: 100px; }
 }
 
-/* ===== strip – פס עם רקע חמים וכל זוג לייבל+שדה בשורה אחת ===== */
+/* ===== strip – פס תחתון תואם סגנון האתר (שקוף) ===== */
 .stripWrap { direction: rtl; width: 100%; padding: 22px 0; background: transparent; }
 .strip {
   max-width: 1200px; margin: 0 auto;
   padding: 16px 14px; border-radius: 16px;
-  background-color: #EAE7DC; /* רקע לבן-אפור כמו hero */
+  background: transparent;           /* ← שקוף */
 }
-.stripTitle { margin: 0 0 12px; text-align: center; font-weight: 800; font-size: 20px; color: #393939; }
+.stripTitle {
+  margin: 0 0 12px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--cocoa-800, #3a2a1a);
+}
 
 .stripForm {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+  display: flex; flex-wrap: wrap;
+  align-items: center; justify-content: center; gap: 10px;
 }
 
 .stripField {
-  display: flex; align-items: center; gap: 6px;
-  flex: 1 1 230px; min-width: 210px;
-
+  display: flex; align-items: center; gap: 8px;
+  flex: 1 1 240px; min-width: 220px;
 }
 .stripLbl {
-  font-size: 13px; font-weight: 500; color: #393939; white-space: nowrap;
-  
+  font-size: 13px; font-weight: 700; color: var(--cocoa-800, #3a2a1a); white-space: nowrap;
 }
 
+/* שדות strip – תואמים לשדות בעמוד */
 .stripInput {
   height: 38px; min-width: 30px;
-  padding: 0 10px; font-size: 11px;
-  border-radius: 10px; border: 1px solid #ebe9e5; background: #fff;
-  text-align: right; outline: none;
-  transition: border-color .15s, box-shadow .15s, background .15s;
-
+  padding: 0 10px; font-size: 13px;
+  border-radius: 10px; border: 1px solid #e7dfd1; background: #fff;
+  text-align: right; outline: none; color: #111827;
+  transition: border-color .2s, box-shadow .2s, background .2s;
 }
-.stripInput::placeholder { color: #a8a8a8; }
-.stripInput:focus { border-color: #9b9b9b; background: #fff; }
+.stripInput::placeholder { color: #9aa3af; }
+.stripInput:focus {
+  border-color: var(--gold-500, #c9993a);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(201,153,58,.12);
+}
 
-.stripMsg { flex: 2 1 360px; min-width: 260px; }
+.stripMsg { flex: 2 1 380px; min-width: 260px; }
 
+/* כפתור strip – זהב, בשורה נפרדת וממורכז */
 .stripBtn {
-  height: 30px; padding: 0 16px; border: 0; border-radius: 12px;
-  background-color: #c4c0b7; color: #2a2929; font-weight: 800; cursor: pointer;
-  box-shadow: 0 4px 8px rgba(54, 54, 54, 0.25);
-  transition: transform .08s, opacity .2s, box-shadow .2s;
+  height: 36px; padding: 0 16px; border: 0; border-radius: 999px;
+  background-color: #9e8859;
+  color: #fff;
+  font-weight: 900; cursor: pointer;
+  box-shadow: 0 6px 14px rgba(201,153,58,.22), inset 0 1px 0 rgba(255,255,255,.3);
+  transition: transform .1s, opacity .2s, box-shadow .2s;
+
+  /* שורה נפרדת וממרכז בתוך stripForm */
+  flex: 0 0 100%;         /* תופס שורה מלאה */
+  align-self: center;     /* ממרכז אנכית ב-row */
+  width: auto;            /* לפי תוכן */
+  min-width: 180px;       /* נראה טוב */
+  margin-top: 8px;        /* רווח מהשדות */
 }
-.stripBtn:hover { transform: translateY(-1px); background-color: #aca18e;}
+.stripBtn:hover  { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(201,153,58,.28), inset 0 1px 0 rgba(255,255,255,.3); }
 .stripBtn:active { transform: translateY(0); }
 .stripBtn:disabled { opacity: .55; cursor: not-allowed; }
 
-/* פס דק מתחת לקומפוננטה strip */
+/* פס דק מתחת לקומפוננטת strip */
 .stripUnderbar {
   height: 2px; width: 100%; margin: 10px 0 0;
   background: linear-gradient(to left, transparent, rgba(0,0,0,.08), transparent);
   border-radius: 1px;
 }
 
-/* רספונסיביות */
+/* רספונסיביות strip */
 @media (max-width: 680px) {
   .stripField { flex: 1 1 100%; min-width: 0; }
   .stripMsg   { flex: 1 1 100%; }
-  .stripBtn   { width: 100%; }
+  .stripBtn   { width: 100%; max-width: 320px; }
 }

@@ -1,589 +1,490 @@
-.page {
-  background: linear-gradient(to bottom, #fcfaf7, #ffffff);
-  min-height: 100vh;
-  padding: 200px 100px 50px;
-  display: flex;
-  flex-direction: column;   /* ⬅️ חשוב: מסדר את הילדים בעמודה */
-  align-items: center;      /* מרכז אופקית את הבלוקים */
-  justify-content: flex-start;
-  gap: 16px;                /* רווח אנכי בין תיבת המוצר לפאנל המנהל */
-  font-family: "Heebo", sans-serif;
-}
-.adminSection {
-  max-width: min(95vw, 1600px);
+:root{
+  /* ========= פלטת צבעים חמה: זהב/חום ========= */
+  --gold-50:#fffaf0;
+  --gold-100:#fdf3df;
+  --gold-200:#f7e4bf;
+  --gold-300:#eaca8b;
+  --gold-400:#dbb460;
+  --gold-500:#c9993a;     /* Accent עיקרי */
+  --gold-600:#b8842b;
+  --gold-700:#9c6f22;
+  --cocoa-800:#3a2a1a;    /* טקסט כהה חם */
+  --ink:#1f1b16;
+
+  /* ========= גדלי כרטיס ========= */
+  --product-card-width:1300px;
+  --product-card-minh:700px;
+  --product-card-pad:50px;
 }
 
-.content {
-  display: flex;
-  flex-direction: row-reverse;
-  gap: 40px;
-  background-color: #fff;
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  max-width: 1000px;
-  width: 100%;
-}
-.registeredButton {
-  opacity: 0.85;
-  cursor: not-allowed;
-  background: #e8f5e9;  /* ירקרק עדין */
-  color: #2e7d32;       /* ירוק כהה */
-  border: 1px solid #c8e6c9;
-}
-
-.linkLikeButton {
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  font: inherit;
-  color: #111;
-  text-decoration: underline;
-  line-height: 1.8;
-  display: inline;
-  transition: color 120ms ease-in-out;
-  appearance: none;
-  -webkit-appearance: none;
-  box-shadow: none;
+/* =====================================================================================
+   פריסת דף כללית
+   ===================================================================================== */
+.page{
+  min-height:110vh;
+  padding: clamp(90px, 10vh, 120px)
+           clamp(16px, 6vw, 80px)
+           clamp(40px, 8vh, 100px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:18px;
+  font-family:"Heebo",sans-serif;
+  background:
+    radial-gradient(1200px 600px at 90% -80px, var(--gold-50), transparent 60%),
+    radial-gradient(1000px 500px at -40% 120%, #f7f3eb, transparent 55%);
 }
 
-.linkLikeButton:hover,
-.linkLikeButton:active,
-.linkLikeButton:focus,
-.linkLikeButton:focus-visible {
-  background: transparent !important;   /* מבטל כל רקע שמגיע מכלל גלובלי */
-  border: none !important;
-  box-shadow: none !important;
+/* מיכל התוכן המרכזי (החלק הלבן עם תוכן וגלריה) */
+.content{
+  display:flex;
+  flex-direction:row-reverse;
+  gap:40px;
+  background-color:#fff;
+  border-radius:20px;
+  padding:var(--product-card-pad);
+  box-shadow:0 8px 32px rgba(0,0,0,.08);
+  max-width:var(--product-card-width);
+  width:100%;
 }
 
-/* מצב לחוץ/פעיל – רק צבע טקסט אדום */
-.linkLikeButtonActive {
-  color: #e11d48;
-  background: transparent;
+/* מיושרת לרוחב הכרטיס לאזורי אדמין מתחת לכרטיס */
+.adminSection{
+  width:100%;
+  max-width:var(--product-card-width);
+  margin:0 auto;
 }
 
-.countdown {
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: #d35400; /* כתמתם עדין */
-  direction: rtl;
+/* כשאין גלריה – שמירת פריסה אלטרנטיבית */
+.contentNoRight{ grid-template-columns:1fr; }
+
+/* =====================================================================================
+   כרטיס מוצר – מסגרת גרדיאנט זהובה מודרנית
+   ===================================================================================== */
+.productCard{
+  width:100%;
+  max-width:var(--product-card-width);
+  min-height:var(--product-card-minh);
+  background:
+    linear-gradient(#fff,#fff) padding-box,                          /* מילוי */
+    linear-gradient(135deg,var(--gold-200),var(--gold-500)) border-box;/* מסגרת */
+  border-radius:22px;
+  padding:var(--product-card-pad);
+  margin:0 auto;
+  box-shadow:0 10px 34px rgba(0,0,0,.08);
 }
 
-.imageWrapper {
-  flex: 1;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+/* פריסה דו-עמודתית עם גלריה (ימין גלריה / שמאל פרטים) */
+.cardWithGallery{
+  display:grid;
+  grid-template-columns:minmax(320px,45%) 1fr;
+  gap:36px;
+  align-items:start;
 }
 
-.image {
-  width: 100%;
-  height: 300px; /* גובה קבוע */
-  object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-  cursor: zoom-in;
-  background-color: #fff; /* רקע לבן לאזור התמונה */
+/* =====================================================================================
+   גלריה ותמונה
+   ===================================================================================== */
+.imageWrapper{
+  flex:1;
+  max-width:520px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:16px;
+}
+.image{
+  width:100%;
+  height:clamp(320px,36vw,460px);
+  object-fit:contain;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
+  cursor:zoom-in;
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.image:hover{ transform:scale(1.02); box-shadow:0 10px 28px rgba(0,0,0,.12); }
+
+.gallery{ text-align:center; }
+.controls{ margin-top:10px; }
+
+/* בקרים לגלריה (חיצים/אינדקס) */
+.imageControls{ display:flex; justify-content:center; align-items:center; gap:15px; margin-top:10px; }
+.imageButton{ background:#eee; border:none; border-radius:50%; width:40px; height:40px; font-size:20px; font-weight:700; cursor:pointer; transition:background .3s ease, transform .2s ease; }
+.imageButton:hover{ background:#e2e2e2; transform:scale(1.06); }
+.imageIndex{ font-size:1rem; font-weight:500; color:#333; }
+
+/* =====================================================================================
+   טיפוגרפיה ואלמנטים טקסטואליים כלליים
+   ===================================================================================== */
+.details{ flex:1; text-align:center; color:var(--ink); }
+.details h1{
+  font-size:clamp(1.6rem,1.1rem + 1.4vw,2.2rem);
+  margin:0 0 8px;
+  color:var(--cocoa-800);
+  letter-spacing:.2px;
+}
+.description{ font-size:1.02rem; margin-bottom:10px; color:#4a4a4a; }
+.price, .status{ font-weight:800; color:var(--cocoa-800); margin-bottom:10px; }
+
+/* תגית מחיר מעודנת (בסיס – יוחלף בהמשך ע"י איחוד) */
+.priceText{
+  font-weight:800;
+  color:var(--gold-700);
+  border-radius:12px;
+  padding:10px 12px;
+  display:inline-block;
 }
 
-.gallery {
-  text-align: center;
+/* קישור טקסטואלי דמוי קישור */
+.linkLikeButton{
+  background:transparent; border:none; padding:0; margin:0; cursor:pointer;
+  font:inherit; color:#111; text-decoration:underline; line-height:1.8; display:inline;
+  transition:color 120ms ease-in-out, text-underline-offset .12s ease;
+  text-underline-offset:2px;
+}
+.linkLikeButton:hover{ color:var(--gold-700); text-underline-offset:4px; }
+.linkLikeButtonActive{ color:var(--gold-700); }
+
+/* ספירה לתחילת מכירה (בסיס – יוחלף בהמשך ע"י איחוד) */
+.countdown{
+  font-weight:800;
+  color:var(--gold-700);
+  border-radius:12px;
+  padding:10px 12px;
+  display:inline-block;
 }
 
-.controls {
-  margin-top: 10px;
+/* הודעות/נוטיפיקציות טקסטואליות */
+.notice{
+  background:#fff;
+  border:1px dashed #e7e5dd;
+  border-radius:12px;
+  padding:12px 14px;
+  color:#6b7280;
+}
+.textNote{
+  background:#ffffff;
+  border:1px solid #eadfcf;
+  border-radius:12px;
+  padding:10px 12px;
+  color:#374151;
 }
 
-.details {
-  flex: 1;
-  text-align: right;
+/* תגי סטטוס קטנים */
+.inlineBadge{
+  display:inline-flex; align-items:center; gap:6px; padding:2px 10px;
+  border-radius:999px; font-size:.82rem; font-weight:800; vertical-align:baseline;
+  background:#f8fafc; color:#334155; border:1px solid #e5e7eb;
+}
+.inlineBadge--warn{ background:linear-gradient(180deg,var(--gold-100),var(--gold-50)); color:var(--gold-700); border-color:var(--gold-300); }
+.statusLiveText{ font-weight:900; color:#dc2626; letter-spacing:.2px; }
+
+/* מעטפת טקסט/רוחב קריא */
+.textWrap{ max-width:70ch; width:100%; margin-inline:auto; }
+.sectionTitle{ margin:18px 0 10px; font-size:1.1rem; font-weight:800; line-height:1.25; color:var(--cocoa-800); }
+.details p, .description{ margin:8px 0 12px; line-height:1.7; color:#2b2b2b; word-break:break-word; }
+.textList{ margin:8px 0 12px; padding-inline-start:1.25rem; }
+.textList li{ margin:4px 0; line-height:1.6; }
+.kvList{ display:grid; grid-template-columns:1fr 2fr; gap:8px 16px; margin:10px 0 12px; }
+.kvList dt{ font-weight:700; color:var(--cocoa-800); text-align:center; }
+.kvList dd{ margin:0; color:#334155; text-align:center; overflow-wrap:anywhere; }
+.sectionDivider{ height:1px; background:linear-gradient(to left,#f1f5f9,#e2e8f0,#f1f5f9); border:0; margin:12px 0; width:100%; }
+.subNote{ font-size:.92rem; color:#64748b; line-height:1.6; }
+
+/* תיבת כתובת איסוף */
+.pickupBox{
+  background:#fcfaf8;
+  border:1px solid #f0ebe2;
+  border-radius:10px;
+  padding:10px 12px;
+  color:#000000;
+  text-align:center;
 }
 
-.details h1 {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-  color: #222;
+/* ממרכזים הכל (חוץ מפרטי הזמנה) */
+.details, .textWrap, .kvList, .textList{ direction:rtl; text-align:center; }
+.description, .price, .status, .countdown, .priceText, .notice, .textNote, .success, .sellerRating{
+  text-align:center; margin-left:auto; margin-right:auto;
 }
 
-.description {
-  font-size: 1rem;
-  margin-bottom: 10px;
-  color: #444;
+/* =====================================================================================
+   בלוק פרטי מוצר (כרטיס) – קומפקטי כמו "פירוט מוצרים"
+   ===================================================================================== */
+.infoSection{
+  /* מראה כרטיס עדין */
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(135deg, var(--gold-100), transparent) border-box;
+  border:1px solid transparent;
+  border-radius:16px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+
+  /* פירוט מוצר טיפוסי ב-RTL וקומפקטי */
+  text-align:right;
+  padding:14px 16px;
+  margin-inline:auto;
+  max-width:70ch;
+}
+/* מרווח אנכי קטן בין אלמנטים */
+.infoSection > *{ margin:0; }
+.infoSection > * + *{ margin-top:6px; }
+
+/* כותרת מוצר – מרכזית אך צמודה */
+.infoSection .productTitle{
+  text-align:center;
+  margin-bottom:4px;
 }
 
-.price,
-.status {
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 10px;
+/* קו דק ועדין בין שורות עיקריות (קומפקטי) */
+.infoSection > :is(.textNote, .statusText, p):not(:first-child){
+  border-top:1px solid rgba(0,0,0,.08);
+  padding-top:6px;     /* ← היה 40px */
 }
 
-.bidButton,
-.cancelButton {
-  background-color: #000;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 30px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  border: none;
-  margin-top: 15px;
-  width: 100%;
-  max-width: 250px;
+/* טקסט שורה הדוקה */
+.infoSection p,
+.infoSection .statusText{
+  line-height:1.55;
+  margin:0;
 }
 
-.bidButton:hover,
-.cancelButton:hover {
-  background-color: #333;
+/* קומפקט ל-SellerRating עם inline-style בקומפוננטה */
+.infoSection > div[style]{
+  margin:4px 0 !important;
+  padding:4px 6px;
 }
 
-.success {
-  background-color: #d4edda;
-  color: #155724;
+/* לא לצייר קו בין פסקאות רצופות? אפשר להשאיר דק */
+.infoSection p + p{
+  border-top:1px solid rgba(0,0,0,.08);
+  margin-top:6px;
+  padding-top:6px;
+}
+
+/* ===== מחיר פתיחה + ספירה לאחור — אותו עיצוב "פיל" קומפקטי ואחד מתחת לשני ===== */
+/* ===== מחיר פתיחה + ספירה לאחור — בלי רקע/פיל ===== */
+.infoSection :is(.priceText, .countdown){
+  display:block;           /* אחת מתחת לשנייה */
+  width:fit-content;       /* קופסה ברוחב הטקסט */
+  margin-inline:auto;      /* ממורכז */
+  background:transparent;  /* ללא רקע */
+  box-shadow:none;         /* ללא הצללה פנימית */
+  border:none;             /* ללא מסגרת */
+  padding:0;               /* ללא ריווח “פיל” */
+  border-radius:0;         /* ללא פינות מעוגלות */
+  color:var(--gold-700);
+  font-weight:800;
+  line-height:1.45;
+  text-align:center;
+}
+
+/* לשמור אותן צמודות בלי קו מפריד ביניהן */
+.infoSection .priceText + .countdown{
+  border-top:0;
+  margin-top:4px;
+}
+
+/* בדיוק מתחת למחיר, בלי קו מפריד ובמרווח קטן */
+.infoSection .priceText + .countdown{
+  border-top:0;
+  padding-top:0;
+  margin-top:4px;
+}
+
+/* =====================================================================================
+   אזור CTA מתחת לכרטיס הפרטים (הרשמה/ביטול)
+   ===================================================================================== */
+.ctaWrap{
+  margin-top:12px;
+  padding-top:12px;
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  border-top:1px solid rgba(0,0,0,.28);
+  flex-wrap: wrap;            /* ← חדש */
+}
+/* אם היה קו ::before על הכפתור – מנטרלים כאן שלא יהיה כפול */
+.ctaWrap .bidButton::before{ content:none; }
+/* השורה של הכפתורים לאחר שהמשתמש רשום */
+.actionsRow{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;             /* במסכים צרים זה יישבר אנכית */
+  width:100%;                 /* נשארת כשורה מלאה בתוך ה־ctaWrap */
+}
+
+/* לשבור את ברירת המחדל של width:100% על הכפתורים במקרה הזה */
+.actionsRow .bidButton,
+.actionsRow .cancelButton{
+  width:auto;                 /* ← כך יהיו בשורה אחת */
+  max-width:none;
+  min-width:200px;            /* אופציונלי: רוחב מינימלי יפה */
+  margin-top:0;               /* אל תדחף למטה */
+}
+
+/* יישור ורוחב סביר */
+.ctaWrap > *{
+  margin-inline:auto;
+  max-width:480px;
+  width:100%;
+}
+.ctaWrap .cancelButton{ margin-top: 0; }
+/* =====================================================================================
+   כפתורים / מצבי הצלחה / טפסים
+   ===================================================================================== */
+.bidButton, .cancelButton{
+  appearance:none; border:none; cursor:pointer;
+  width:100%; max-width:320px;
+  padding:14px 20px;
+  border-radius:999px;
+  font-size:1.05rem;
+  transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+}
+
+/* הירשם/י למכירה – זהב אלגנטי */
+.bidButton{
+  background-color:#9e8859;
+  color:#fff; font-weight:900; letter-spacing:.2px;
+  box-shadow:0 8px 18px rgba(78, 71, 56, 0.25), inset 0 1px 0 rgba(255,255,255,.3);
+  position:relative; /* לקו ההפרדה כשלא מנוטרל ב-CTA */
+}
+.bidButton:hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(83, 58, 9, 0.32); }
+.bidButton:active{ transform:translateY(0); }
+.bidButton:focus{ outline:none; box-shadow:0 0 0 3px rgba(201,153,58,.35); }
+
+/* פס דק מעל הכפתור (אם לא ב-CTA) */
+.bidButton::before{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  top:-14px;
+  width:100%; height:1px;
+  background:#000; opacity:.28;
+  pointer-events:none;
+}
+/* כשיש כפתור ביטול לפניו – אל תצייר קו */
+.cancelButton + .bidButton::before{ content:none; }
+
+/* ביטול/הסרה – קונטור זהוב על רקע לבן */
+.cancelButton{
+  background:linear-gradient(#fff,#fff);
+  color:var(--gold-700);
+  border:1px solid var(--gold-400);
+}
+.cancelButton:hover{ background:linear-gradient(180deg,#fff,var(--gold-50)); }
+
+/* הודעת הצלחה */
+/* Success banner – Green, matching the site's style */
+.success{
+  color: #09691e !important;                         /* ירוק כהה לקריאות */
+  border: 0.1px solid rgba(11, 77, 55, 0.45);   /* בורדר ירקרק רך */
+  box-shadow: 0 8px 18px rgba(5,150,105,.12), inset 0 1px 0 rgba(255,255,255,.35);
   padding: 15px;
   border-radius: 12px;
-  border: 1px solid #c3e6cb;
   margin-bottom: 15px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.idForm {
-  margin-top: 30px;
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-}
-
-.idForm h3 {
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-  color: #222;
-}
-
-.idForm label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: bold;
-  color: #333;
-}
-
-.idForm input[type="text"],
-.idForm input[type="file"] {
-  width: 100%;
-  padding: 12px;
-  margin-top: 5px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 1rem;
-}
-
-.idForm button {
-  background-color: #2196f3;
-  color: white;
-  padding: 12px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  width: 100%;
-}
-
-.idForm button:hover {
-  background-color: #1976d2;
-}
-
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.modalImage {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 8px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  cursor: zoom-out;
-}
-
-.modalContent {
-  background-color: white;
-  padding: 30px;
-  border-radius: 16px;
-  max-width: 420px;
-  width: 90%;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  position: relative;
-}
-
-.cancel {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  background-color: transparent;
-  border: none;
-  color: #444;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 5px;
-}
-
-.cancel:hover {
-  color: #000;
-}
-
-.imageControls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-top: 10px;
-}
-
-.imageButton {
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.imageButton:hover {
-  background-color: #ccc;
-  transform: scale(1.1);
-}
-
-.imageIndex {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.notice { background:#fff; border:1px dashed #cbd5e1; border-radius:12px; padding:12px 14px; color:#475569; }
-/* ================================
-   Product text & typography only
-   ================================ */
-
-/* עטיפת טקסט כללית לחלק הימני/פרטי המוצר */
-.textWrap {
-  max-width: 64ch;            /* רוחב קריא לפסקאות */
-  width: 100%;
-}
-
-/* כותרות משנה בתוך פרטי המוצר */
-.sectionTitle {
-  margin: 18px 0 10px;
-  font-size: 1.1rem;
   font-weight: 800;
-  line-height: 1.25;
-  color: #0f172a;             /* כהה ונקי */
-}
-
-/* פסקאות ותיאורים */
-.details p,
-.description {
-  margin: 8px 0 12px;
-  line-height: 1.7;
-  color: #2b2b2b;
-  word-break: break-word;
-}
-
-/* נקודות/רשימות מידע קצרות */
-.details ul,
-.textList {
-  margin: 8px 0 12px;
-  padding-inline-start: 1.25rem;  /* ריווח ל־RTL/LTR */
-}
-.details li,
-.textList li {
-  margin: 4px 0;
-  line-height: 1.6;
-}
-
-/* רשימת מפתח:ערך (מאוד נוח למטא־נתונים) */
-.kvList {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 8px 16px;
-  margin: 10px 0 12px;
-}
-.kvList dt {
-  font-weight: 700;
-  color: #0f172a;
-  text-align: start;          /* עובד טוב ב־RTL */
-}
-.kvList dd {
-  margin: 0;
-  color: #334155;
-  text-align: start;
-  overflow-wrap: anywhere;
-}
-
-/* פס מפריד עדין בין מקטעי מלל */
-.sectionDivider {
-  height: 1px;
-  background: linear-gradient(to left, #f1f5f9, #e2e8f0, #f1f5f9);
-  border: 0;
-  margin: 12px 0;
-  width: 100%;
-}
-
-/* תת-טקסט/מידע משני (כמו “כולל אחריות …”) */
-.subNote {
-  font-size: .92rem;
-  color: #64748b;
-  line-height: 1.6;
-}
-
-/* תג סטטוס טקסטואלי קטן Inline (לא נוגע בכפתורים) */
-.inlineBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: .82rem;
-  font-weight: 700;
-  vertical-align: baseline;
-}
-.inlineBadge--ok     { background:#fdf6ec; color:#047857; }
-.inlineBadge--warn   { background:#fffbeb; color:#b45309; }
-.inlineBadge--muted  { background:#f1f5f9; color:#334155; }
-
-/* סטטוס "המכירה מתקיימת עכשיו" – הדגשה אדומה בטקסט בלבד */
-.statusLiveText {
-  font-weight: 900;
-  color: #dc2626;             /* אדום בוהק, קריא */
-  letter-spacing: .2px;
-}
-
-/* קישורי טקסט בתוך תיאורים (לא נוגע ב .linkLikeButton הקיים) */
-.textLink {
-  color: #0ea5e9;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.textLink:hover { color:#0284c7; }
-
-/* קופסת מלל רכה (לשילוב הודעות מידע בתוך הפרטים) */
-.textNote {
-  background:#fffdfb;
-  border:1px solid #c5c3bf;
-  border-radius: 12px;
-  padding: 10px 12px;
-  color:#334155;
-  line-height: 1.6;
-}
-
-/* כותרת המוצר (לא נוגעת ב-h1 גלובלי) */
-.details .productTitle {
-  font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
-  font-weight: 900;
-  margin: 0 0 8px;
-  color: #111827;
-}
-
-/* מחיר/סטטוס – טקסט מובלט אך לא ענק */
-.details .priceText {
-  font-weight: 800;
-  font-size: 1.05rem;
-  color: #111827;
-  margin: 6px 0 8px;
-}
-.details .statusText {
-  font-weight: 700;
-  color: #111827;
-  margin: 2px 0 8px;
-}
-
-/* ריווח פנימי בין בלוקי מידע בטקסט */
-.blockGap > * + * { margin-top: 10px; }
-
-/* התאמות RTL לנוחות קריאה */
-.details, .textWrap, .kvList, .textList { direction: rtl; text-align: right; }
-
-/* ================================
-   OrderDetails – RTL & layout
-   ================================ */
-
-/* כרטיס הפרטים */
-.orderCard {
-  margin-top: 14px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px 16px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
-  direction: rtl;        /* עברית */
-  text-align: right;     /* יישור טקסט לימין */
-}
-
-/* כותרת הכרטיס */
-.orderTitle {
-  margin: 0 0 12px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  text-align: right;
-}
-
-/* שורת פריט (תווית + ערך) */
-.orderRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between; /* תווית בימין, ערך בשמאל (ב־RTL) */
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid #f1f5f9;
-  text-align: right;
-}
-
-/* ללא קו אחרון */
-.orderRow:last-child {
-  border-bottom: 0;
-}
-
-/* תווית */
-.orderLabel {
-  font-weight: 700;
-  color: #0f172a;
-  margin-inline-start: 0; /* לוגי ל־RTL/LTR */
-  min-width: 140px;       /* שומר יישור אחיד */
-}
-
-/* ערכים */
-.orderRow span {
-  text-align: right;
-  color: #334155;
-}
-
-/* תג סטטוס */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: .85rem;
-  font-weight: 600;
-}
-
-/* גוונים לסטטוס */
-.toneGreen { background: #ecfdf5; color: #047857; }
-.toneAmber { background: #fffbeb; color: #b45309; }
-
-/* רספונסיביות: בערוצים צרים מציגים את התווית מעל הערך */
-@media (max-width: 600px) {
-  .orderRow {
-    flex-direction: column;
-    align-items: flex-start; /* לימין ב־RTL */
-    gap: 4px;
-  }
-  .orderLabel {
-    min-width: auto;
-  }
-}
-
-
-/* ===== Admin panel (ProductPage) ===== */
-.adminPanel {
-  border: 1px solid #e7ebf0;
-  padding: 16px;
-  border-radius: 16px;
-  margin-bottom: 16px;
-  direction: rtl;
-  background: #fff;
-  max-width: none;      /* מבטל כל הגבלה פנימית אם קיימת */
-  width: 100%;
-  margin-inline: auto;
-}
-
-.adminPanelTitle {
-  margin-top: 0;
-  margin-bottom: 8px;
-  font-weight: 700;
   text-align: center;
 }
-/* גורם לפריט ב-grid לתפוס רוחב מלא (מעמודה 1 עד הסוף) */
-.adminItemFull {
-  grid-column: 1 / -1;
+
+
+/* טופס הזנת/העלאת ת"ז */
+.idForm{
+  margin-top:30px; 
+  background-color:#fdfcfa; 
+  border:1px solid #e7dfd1;
+  border-radius:16px; 
+  padding:20px; box-shadow:0 4px 16px rgba(0,0,0,.05);
+}
+.idForm h3{ margin-bottom:15px; font-size:1.2rem; color:#000 }
+.idForm label{ display:block; margin-bottom:10px; font-weight:700; color:#333; }
+.idForm input[type="text"], .idForm input[type="file"]{
+  width:100%; padding:12px; margin-top:5px; margin-bottom:15px;
+  border:1px solid #d9cbb4; border-radius:12px; font-size:1rem; background:#fff;
+}
+.idForm button{
+  background:linear-gradient(180deg,var(--gold-400),var(--gold-600));
+  color:#fff; padding:12px; font-size:1rem; border:none; border-radius:999px; cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease; width:100%; font-weight:800;
+}
+.idForm button:hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(201,153,58,.25); }
+
+/* =====================================================================================
+   מודאלים (תמונה/כללי)
+   ===================================================================================== */
+.modalOverlay{ position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,.6); display:flex; justify-content:center; align-items:center; z-index:999; }
+.modalImage{ max-width:90%; max-height:90%; border-radius:8px; box-shadow:0 0 15px rgba(0,0,0,.5); cursor:zoom-out; }
+.modalContent{ background:#fff; padding:30px; border-radius:16px; max-width:420px; width:90%; box-shadow:0 8px 30px rgba(0,0,0,.2); text-align:center; position:relative; }
+.cancel{ position:absolute; top:10px; right:14px; background:transparent; border:none; color:#444; font-size:1.2rem; cursor:pointer; padding:5px; }
+.cancel:hover{ color:#000; }
+
+/* =====================================================================================
+   OrderDetails – נשאר RTL ויישור ימין
+   ===================================================================================== */
+.orderCard{
+  margin-top:14px; background:#fff; border:1px solid #e2e8f0; border-radius:14px;
+  padding:16px 18px; box-shadow:0 6px 18px rgba(0,0,0,.04); direction:rtl; text-align:right;
+}
+.orderTitle{ margin:0 0 12px; font-size:1.12rem; font-weight:700; text-align:right; }
+.orderRow{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid #f1f5f9; text-align:right; }
+.orderRow:last-child{ border-bottom:0; }
+.orderLabel{ font-weight:700; color:#0f172a; margin-inline-start:0; min-width:140px; }
+.orderRow span{ text-align:right; color:#334155; }
+.badge{ display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:999px; font-size:.85rem; font-weight:600; }
+.toneGreen{ background:#ecfdf5; color:#047857; }
+.toneAmber{ background:#fffbeb; color:#b45309; }
+
+/* =====================================================================================
+   Admin Panel
+   ===================================================================================== */
+.adminPanel{
+  border:1px solid #efe6d6; padding:16px; border-radius:16px; margin-bottom:16px;
+  direction:rtl; background:#fff; width:100%; margin-inline:auto;
+  box-shadow:0 6px 16px rgba(0,0,0,.05);
+}
+.adminPanelTitle{ margin-top:0; margin-bottom:8px; font-weight:800; text-align:center; color:var(--cocoa-800); }
+.adminItemFull{ grid-column:1/-1; }
+
+.adminGrid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+@media (max-width:1100px){ .adminGrid{ grid-template-columns:1fr 1fr; } }
+@media (max-width:750px){ .adminGrid{ grid-template-columns:1fr; } }
+@media (min-width:1500px){ .adminGrid{ grid-template-columns:repeat(4,1fr); } }
+
+.userRow{ display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; }
+.smallBtn{ font-size:12px; padding:4px 8px; border-radius:8px; border:1px solid #d0b991; background:#fff8ea; cursor:pointer; line-height:1.4; }
+.smallBtn:hover{ background:#fff2d6; }
+.userDetailsBox{ border:1px solid #e7ebf0; border-radius:12px; padding:12px; flex:0 1 900px; background:#fafbfc; min-width:320px; max-width:100%; }
+.ticketsBox{ margin-top:16px; }
+.errorText{ color:crimson; margin-top:8px; }
+
+/* =====================================================================================
+   “דירוג מוכר” (רק אם יתווסף class="sellerRating" בקומפוננטה)
+   ===================================================================================== */
+/* “דירוג מוכר” – ממורכז באמצע */
+.sellerRating{
+  display:flex;
+  justify-content:center;   /* מרכז את התוכן אופקית */
+  align-items:center;
+  gap:8px;
+  margin:10px auto;         /* מרכז את הקופסה עצמה */
+  padding:10px 12px;
+  border-radius:999px;
+  direction:rtl;
+  width:fit-content;        /* שומר על רוחב קומפקטי סביב הטקסט/כוכבים */
 }
 
-.adminGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* שלושה טורים */
-  gap: 12px;
-}
 
-@media (max-width: 1100px) {
-  .adminGrid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 750px) {
-  .adminGrid { grid-template-columns: 1fr; }
-}
-@media (min-width: 1500px) {
-  .adminGrid { grid-template-columns: repeat(4, 1fr); }
-}
-
-/* שורה של כותרת + כפתור + כרטיס פרטים – הכל לרוחב */
-.userRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  flex-wrap: wrap; /* כדי שלא יגלוש במסכים צרים */
-}
-
-/* כפתור קטן ניטרלי */
-.smallBtn {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  border: 1px solid #d0d7de;
-  background: #f6f8fa;
-  cursor: pointer;
-  line-height: 1.4;
-}
-.smallBtn:hover { background: #eef1f4; }
-
-/* הקופסה שבה מוצג AdminUserDetails */
-.userDetailsBox {
-  border: 1px solid #e7ebf0;
-  border-radius: 12px;
-  padding: 12px;
-   flex: 0 1 900px; 
-  background: #fafbfc;
-  min-width: 320px;   /* רוחב נח למניעת שבירה */
-  max-width: 100%;
-}
-
-/* תיבת כרטיסי הדיווח */
-.ticketsBox {
-  margin-top: 16px;
-}
-
-/* טקסט שגיאה כללי בפאנל */
-.errorText {
-  color: crimson;
-  margin-top: 8px;
+/* =====================================================================================
+   רספונסיביות
+   ===================================================================================== */
+@media (max-width:900px){
+  .cardWithGallery{ grid-template-columns:1fr; gap:20px; }
+  .page{ padding:80px 20px 20px; }
+  /* CTA “דביק” במובייל – הכפתור נשאר קרוב לתחתית */
+  .bidButton{ position:sticky; bottom:12px; z-index:2; }
+  .infoSection{ padding:16px; }
+  .ctaWrap{ padding-top:16px; }
 }

@@ -412,13 +412,14 @@ return (
           />
         )}
 
-        {auctionEnded && (
-          <EndedPanel
-            isWinner={buyerId === winnerId}
-            currentPrice={currentPrice}
-            onPayClick={openPayModal}
-          />
-        )}
+      {auctionEnded && (
+  <EndedPanel
+    isWinner={buyerId === winnerId}
+    currentPrice={currentPrice}
+    onPayClick={openPayModal}
+    isForSale={product?.status === "for sale"}   // ← חדש
+  />
+)}
 
         {/* ימין: פיד ההצעות */}
         <ChatFeed chatLog={chatLog} />

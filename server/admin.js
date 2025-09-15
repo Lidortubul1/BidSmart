@@ -751,62 +751,89 @@ support@bidsmart.com
 
 
 // מוצרים של מוכר מסוים לפי ת״ז (למנהל)
+// מוצרים של מוכר מסוים לפי ת״ז (למנהל)
 router.get("/seller/:id_number/products", async (req, res) => {
   const { id_number } = req.params;
   const conn = await db.getConnection();
+
   try {
-    // אותם שדות כמו /products, עם end_time + end_at מחושב
-    const [products] = await conn.query(`
-      SELECT 
+    // אותם שדות כמו /management/products + זמן סיום מחושב + תמונות
+    const [rows] = await conn.query(`
+      SELECT
         p.product_id,
         p.product_name,
+        p.price,                 -- מחיר פתיחה
         p.current_price,
-        p.product_status,
+        p.product_status AS product_status,
+        p.product_status AS status,   -- אליאס תואם לקוד קיים
         p.is_live,
         p.start_date,
-        p.end_time,  -- TIME: משך המכרז
-        ADDTIME(p.start_date, COALESCE(p.end_time, '00:00:00')) AS end_at, -- זמן סיום בפועל
+        p.end_time,                    -- משך המכרז (TIME)
+        ADDTIME(p.start_date, COALESCE(p.end_time,'00:00:00')) AS end_at, -- זמן סיום בפועל
         p.winner_id_number,
-        c.name AS category_name,
-        s.name AS subcategory_name,
+        p.description,
+
+        -- נתוני מכירה/משלוח (מטבלת sale)
+        sa.sent,
+        sa.is_delivered,
+        sa.delivery_method,
+        sa.city, sa.street, sa.house_number, sa.apartment_number, sa.zip, sa.notes,
+
+        -- קטגוריות/תתי־קטגוריות
+        p.category_id, p.subcategory_id,
+        c.name  AS category_name,
+        sc.name AS subcategory_name,
+
+        -- פרטי המוכר
+        u.id_number AS seller_id_number,
         u.first_name,
         u.last_name,
-        u.id_number AS seller_id_number
+        CONCAT(u.first_name, ' ', u.last_name) AS seller_name
+
       FROM product p
-      LEFT JOIN categories   c ON p.category_id = c.id
-      LEFT JOIN subcategories s ON p.subcategory_id = s.id
-      LEFT JOIN users        u ON p.seller_id_number = u.id_number
+      LEFT JOIN sale          sa ON sa.product_id     = p.product_id
+      LEFT JOIN categories     c ON p.category_id     = c.id
+      LEFT JOIN subcategories sc ON p.subcategory_id  = sc.id
+      LEFT JOIN users          u ON p.seller_id_number = u.id_number
       WHERE p.seller_id_number = ?
       ORDER BY p.product_id DESC
     `, [id_number]);
 
-    // שליפת תמונות רק אם יש מוצרים
-    let allImages = [];
-    if (products.length > 0) {
-      const ids = products.map(p => p.product_id);
-      const [imgs] = await conn.query(
-        `SELECT product_id, image_url 
-           FROM product_images
-          WHERE product_id IN (${ids.map(() => "?").join(",")})`,
-        ids
-      );
-      allImages = imgs;
+    if (!rows.length) return res.json([]);
+
+    // שליפת תמונות לכל המוצרים שנמצאו
+    const ids = rows.map(p => p.product_id);
+    const [imgs] = await conn.query(
+      `SELECT product_id, image_id, image_url
+         FROM product_images
+        WHERE product_id IN (${ids.map(() => "?").join(",")})
+        ORDER BY product_id, image_id`,
+      ids
+    );
+
+    // מיפוי product_id -> images[]
+    const imgsMap = new Map();
+    for (const r of imgs) {
+      if (!imgsMap.has(r.product_id)) imgsMap.set(r.product_id, []);
+      imgsMap.get(r.product_id).push(r.image_url);
     }
 
-    const enriched = products.map(p => ({
+    // העשרה במערך תמונות
+    const enriched = rows.map(p => ({
       ...p,
-      seller_name: [p.first_name, p.last_name].filter(Boolean).join(" "),
-      images: allImages
-        .filter(img => img.product_id === p.product_id)
-        .map(img => img.image_url),
+      images: imgsMap.get(p.product_id) || []
     }));
 
-    res.json(enriched);
+    return res.json(enriched);
   } catch (err) {
     console.error("שגיאה בשליפת מוצרים למוכר:", err);
-    res.status(500).json({ success: false, message: "שגיאה בשליפת מוצרים למוכר" });
+    return res.status(500).json({ success: false, message: "שגיאה בשליפת מוצרים למוכר" });
+  } finally {
+    try { conn.release?.(); } catch {}
   }
 });
+
+
 
 //ניהול קטגוריות
 

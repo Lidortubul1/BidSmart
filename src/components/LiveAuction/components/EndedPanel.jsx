@@ -11,14 +11,12 @@ import styles from "../LiveAuction.module.css";
 // - isWinner: boolean → האם המשתמש הנוכחי הוא הזוכה
 // - currentPrice: number → המחיר הסופי של המוצר (לא מוצג כרגע, אבל אפשר להוסיף)
 // - onPayClick: function → callback שמפעיל את תהליך התשלום (PayPal למשל)
+// - isForSale: boolean → האם סטטוס המוצר הוא "for sale" (כדי להחליט אם להציג כפתור תשלום)
 
-
-//מצב לאחר סיום המכירה -מציג: אני זוכה הודעת זכייה +כפתור לתשלום/ אם לא זוכה: הודעה פשוטה של המכירה הסתיימה ושלא זכה 
-export default function EndedPanel({ isWinner, currentPrice, onPayClick }) {
+export default function EndedPanel({ isWinner, currentPrice, onPayClick, isForSale }) {
   return (
     // שימוש ב-<section> עם aria-labelledby → מקל על נגישות לקוראי מסך
     <section className={styles.centerPanel} aria-labelledby="ended-area">
-      
       {/* כותרת אזור סיכום */}
       <h2 id="ended-area" className={styles.sectionTitle}>
         סיכום
@@ -30,13 +28,17 @@ export default function EndedPanel({ isWinner, currentPrice, onPayClick }) {
           {/* הודעת זכייה בולטת עם אמוג'י לחגיגה */}
           <p className={styles.winner}>🎉 זכית במכירה!</p>
 
-          {/* כפתור תשלום – מפעיל את onPayClick שנשלח מהורה */}
-          <button
-            className={styles.paymentButton}
-            onClick={onPayClick}
-          >
-            עבור לתשלום
-          </button>
+          {/* אם המוצר כבר לא בסטטוס "for sale" – במקום כפתור תשלום מציגים טקסט */}
+          {isForSale ? (
+            <button
+              className={styles.paymentButton}
+              onClick={onPayClick}
+            >
+              עבור לתשלום
+            </button>
+          ) : (
+            <p className={styles.loser}>המכירה הסתיימה</p>
+          )}
         </>
       ) : (
         // הודעת הפסד

@@ -80,7 +80,6 @@ const io = new Server(server, {
 setupSocket(io);
 
 //שימוש בstatic
-// חשיפת תיקיית התמונות לצפייה בדפדפן דרך /uploads
 app.use("/uploads", express.static("uploads"));
 app.use("/api/Management", ManagementRoutes); //ניהול מוצרים של מוכר
 // רישום כל הנתיבים (ראוטים) עם prefix מתאים לפי נושא

@@ -2,7 +2,6 @@
 
 import React from "react";
 import ProductLayout from "../components/ui/ProductLayout";
-import Box from "../components/ui/Box";
 import OrderDetails from "../components/OrderDetails";
 import styles from "../ProductPage.module.css";
 
@@ -30,38 +29,30 @@ export default function OwnerView({
   const ProductEditor = require("../components/productEditor").default;
 
   /* ----- 1) מוצר חסום ע"י הנהלה – אין עריכה ----- */
-  if (status === "admin blocked") {
-    return (
-      <Box>
-        <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
-        <div>ההנהלה חסמה מוצר זה, נא לפנות לתמיכה להמשך בירור.</div>
-        <div style={{ marginTop: 8, color: "#555" }}>
-          תיאור: {product.description || "-"}
-        </div>
-        <div style={{ marginTop: 4, color: "#555" }}>
-          מחיר פתיחה: ₪{product.price ?? "-"}
-        </div>
-        <div style={{ marginTop: 12, fontWeight: 600 }}>לא ניתן לערוך.</div>
-      </Box>
-    );
-  }
+// ----- 1) מוצר חסום ע"י הנהלה – אין עריכה -----
+if (status === "admin blocked") {
+  return (
+    <ProductLayout images={images}>
+      <h1>{product.product_name}</h1>
+      <p className={styles.notice}>ההנהלה חסמה מוצר זה, נא לפנות לתמיכה להמשך בירור.</p>
+      <p className={styles.description}>תיאור: {product.description || "-"}</p>
+      <p className={styles.price}>מחיר פתיחה: ₪{product.price ?? "-"}</p>
+    </ProductLayout>
+  );
+}
 
-  /* ----- 2) מוצר שנמחק ע"י המוכר – אין עריכה ----- */
-  if (status === "blocked") {
-    return (
-      <Box>
-        <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
-        <div>מחקת מוצר זה.</div>
-        <div style={{ marginTop: 8, color: "#555" }}>
-          תיאור: {product.description || "-"}
-        </div>
-        <div style={{ marginTop: 4, color: "#555" }}>
-          מחיר פתיחה: ₪{product.price ?? "-"}
-        </div>
-        <div style={{ marginTop: 12, fontWeight: 600 }}>לא ניתן לערוך.</div>
-      </Box>
-    );
-  }
+// ----- 2) מוצר שנמחק ע"י המוכר – אין עריכה -----
+if (status === "blocked") {
+  return (
+    <ProductLayout images={images}>
+      <h1>{product.product_name}</h1>
+      <p className={styles.notice}>מחקת מוצר זה.</p>
+      <p className={styles.description}>תיאור: {product.description || "-"}</p>
+      <p className={styles.price}>מחיר פתיחה: ₪{product.price ?? "-"}</p>
+    </ProductLayout>
+  );
+}
+
 
   /* ----- 3) מוצר שנמכר – תצוגת פרטי מכירה בצד המוכר ----- */
   // מציגים ProductLayout + OrderDetails במצב sellerView, ללא יכולת עריכה של המוצר.

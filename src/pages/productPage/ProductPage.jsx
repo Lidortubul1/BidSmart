@@ -210,20 +210,43 @@ const { modal, setModal, showLogin, setShowLogin, openModal, askLogin } =
       );
       break;
 
-    case "admin":
-      content = (
-        <AdminView
-          id={id}
-          product={product}
-          status={status}
-          saleInfo={saleInfo}
-          images={images}
-          loading={loading}
-          sellerOption={sellerOption}
-          sellerRating={sellerRating}
-        />
-      );
-      break;
+// בתוך ה-switch:
+case "admin":
+  content = (
+    <AdminView
+      id={id}
+      product={product}
+      status={status}
+      saleInfo={saleInfo}
+      images={images}
+      loading={loading}
+      sellerOption={sellerOption}
+      sellerRating={sellerRating}
+      guestViewProps={{
+        isEnded,
+        derivedStatus,
+        loading,
+        sellerOption,
+        pickupAddressText,
+        startCountdownSec,
+        isLive,
+        user,
+        setUser,
+        canRegister,
+        openModal,
+        askLogin,
+        sellerRating,
+        navigate,
+        onAttemptRegister: () => setAttemptedRegister(true),
+        shouldAutoRegister: attemptedRegister && isLoggedIn && canRegister,
+        clearAttempt: () => setAttemptedRegister(false),
+        openLoginDirect: () => setShowLogin(true),
+      goRegister: () => navigate("/register"),
+      }}
+    />
+  );
+  break;
+
 
     case "winner":
       content = (
@@ -266,6 +289,8 @@ const { modal, setModal, showLogin, setShowLogin, openModal, askLogin } =
           onAttemptRegister={() => setAttemptedRegister(true)}
           shouldAutoRegister={attemptedRegister && isLoggedIn && canRegister}
           clearAttempt={() => setAttemptedRegister(false)}
+           openLoginDirect={() => setShowLogin(true)}
+    goRegister={() => navigate("/register")}
         />
       );
   }

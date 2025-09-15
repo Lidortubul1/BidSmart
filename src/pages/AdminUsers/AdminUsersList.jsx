@@ -1,43 +1,23 @@
-import React, { useEffect, useMemo, useState } from "react"; // React + hooks לניהול מצב, חישובים נגזרים וטעינות
-import { getUsers, updateUserStatus } from "../../services/adminApi"; // קריאות API: שליפת משתמשים + עדכון סטטוס
-import AdminUserDetails from "./AdminUserDetails";                   // קומפוננטה להצגת פרטי משתמש מתחת לשורה
-import styles from "./AdminUsers.module.css";                        // מודול CSS לעיצוב עמוד המשתמשים
+import React, { useEffect, useMemo, useState } from "react";
+import { getUsers, updateUserStatus } from "../../services/adminApi";
+import AdminUserDetails from "./AdminUserDetails";
+import styles from "./AdminUsers.module.css";
 
-/**
- * AdminUsersList
- * טבלת ניהול משתמשים (buyer/seller) עם:
- * - סינון לפי תפקיד/סטטוס + חיפוש
- * - פתיחת פרטי משתמש בשורה מתחת (inline)
- * - פעולה מהירה: חסימה/החזרה לפעילות
- *
- * props:
- *  - selectedId: number | null  → המזהה של המשתמש שהשורה שלו פתוחה (פרטים)
- *  - onSelectUser: (id: number | null) => void → פותח/סוגר פרטי משתמש
- */
-//רשימה של המשתמשים - דף מנהל
+/** טבלת ניהול משתמשים — ללא שינוי פונקציונלי */
 export default function AdminUsersList({ selectedId, onSelectUser }) {
-  // כל המשתמשים שנטענו מהשרת (buyer/seller)
   const [users, setUsers] = useState([]);
-
-  // מסננים עליונים
-  const [role, setRole] = useState("");                  // "" | "buyer" | "seller"
-  const [statusFilter, setStatusFilter] = useState("");  // "" | "active" | "blocked"
-  const [query, setQuery] = useState("");                // חיפוש טקסטואלי חופשי
-
-  // סטטוסי טעינה/שגיאה
+  const [role, setRole] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // מזהה משתמש שנמצא כרגע בעדכון סטטוס (לחסימת/השבה) – כדי להראות "מבצע…" ולמנוע קליקים כפולים
   const [togglingId, setTogglingId] = useState(null);
 
-  // טעינת משתמשים בעת שינוי ה-role (תפקיד)
   useEffect(() => {
     (async () => {
       setLoading(true);
       setError("");
       try {
-        // אם role ריק – לא נשלח פרמטר ונטען את כולם; אחרת נטעין רק buyer/seller כפי שנבחר
         const data = await getUsers({ role: role || undefined });
         setUsers(Array.isArray(data) ? data : []);
       } catch (e) {
@@ -49,18 +29,11 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
     })();
   }, [role]);
 
-  // רשימה מסוננת לתצוגה – תלויה במשתמשים + מסננים
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase(); // מחרוזת חיפוש מנורמלת
+    const q = query.trim().toLowerCase();
     let arr = users;
-
-    // סינון לפי סטטוס אם נבחר (active/blocked)
     if (statusFilter) arr = arr.filter(u => (u.status || "").toLowerCase() === statusFilter);
-
-    // סינון לפי תפקיד אם נבחר (buyer/seller)
     if (role) arr = arr.filter(u => u.role === role);
-
-    // חיפוש טקסטואלי בכמה שדות רלוונטיים
     if (q) {
       arr = arr.filter(u => {
         const hay = [
@@ -69,57 +42,48 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
         return hay.includes(q);
       });
     }
-
-    // ביטוח: נציג רק buyer/seller (למקרה שהגיעו תפקידים אחרים)
-    arr = arr.filter(u => u.role === "buyer" || u.role === "seller");
-
-    return arr;
+    return arr.filter(u => u.role === "buyer" || u.role === "seller");
   }, [users, query, role, statusFilter]);
 
-  // פתיחת/סגירת פרטי משתמש לשורה שנלחצה
-  const toggleRow = (id) => {
-    onSelectUser?.(selectedId === id ? null : id);
+  const toggleRow = (id) => onSelectUser?.(selectedId === id ? null : id);
+
+  const handleToggleStatus = async (user) => {
+    const nextStatus = user.status === "active" ? "blocked" : "active";
+    setTogglingId(user.id);
+    try {
+      const resp = await updateUserStatus(user.id, nextStatus);
+      setUsers(prev => prev.map(u => (u.id === user.id ? { ...u, status: nextStatus } : u)));
+      console.log("Admin status toggle result:", resp);
+    } finally {
+      setTogglingId(null);
+    }
   };
 
-  // לחצן חסימה/החזרה לפעילות (טיפול בסטטוס המשתמש)
-const handleToggleStatus = async (user) => {
-  const nextStatus = user.status === "active" ? "blocked" : "active";
-  setTogglingId(user.id);
-  try {
-    const resp = await updateUserStatus(user.id, nextStatus);
-    setUsers(prev => prev.map(u => (u.id === user.id ? { ...u, status: nextStatus } : u)));
-    console.log("Admin status toggle result:", resp);
-  } finally {
-    setTogglingId(null);
-  }
-};
-
-
-  // מספר העמודות בטבלה (לשימוש ב-colSpan של שורת הפרטים)
   const COLS = 7;
 
   return (
-    <div className={styles.auList_wrapper}>
-      {/* כותרת + סרגל מסננים */}
-      <div className={styles.auList_headerRow}>
-        <div>
-          <h2 className={styles.au_title}>כל המשתמשים </h2>
-          <p className={styles.au_subtitle}>לחיצה על שורה תפתח פרטי משתמש מתחתיה</p>
+    <div className={styles.adminUsersListWrap}>
+      {/* כותרת + מסננים בסגנון הכדורי/גרדיאנט כמו בקטגוריות */}
+      <div className={styles.adminUsersHeaderCard}>
+        <div className={styles.adminUsersHeaderText}>
+          <h2 className={styles.adminUsersTitle}>כל המשתמשים</h2>
+          <p className={styles.adminUsersSubtitle}>לחיצה על שורה תפתח פרטי משתמש מתחתיה</p>
         </div>
 
-        {/* מסננים עליונים: חיפוש, תפקיד, סטטוס */}
-        <div className={styles.auList_filters}>
+        <div className={styles.adminUsersFilters}>
           <input
-            className={styles.au_input}
+            className={styles.adminUsersInput}
             placeholder="חיפוש: דוא״ל / שם / ת״ז / טלפון…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            aria-label="חיפוש משתמשים"
           />
 
           <select
-            className={styles.au_select}
+            className={styles.adminUsersSelect}
             value={role}
             onChange={(e) => setRole(e.target.value)}
+            aria-label="סינון לפי תפקיד"
           >
             <option value="">כל התפקידים</option>
             <option value="buyer">קונה</option>
@@ -127,9 +91,10 @@ const handleToggleStatus = async (user) => {
           </select>
 
           <select
-            className={styles.au_select}
+            className={styles.adminUsersSelect}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="סינון לפי סטטוס"
             title="סינון לפי סטטוס"
           >
             <option value="">כל הסטטוסים</option>
@@ -139,23 +104,21 @@ const handleToggleStatus = async (user) => {
         </div>
       </div>
 
-      {/* מצבי טעינה/שגיאה */}
-      {loading && <div className={styles.au_state}>טוען…</div>}
-      {error && <div className={styles.au_error}>{error}</div>}
+      {loading && <div className={styles.adminUsersState}>טוען…</div>}
+      {error && <div className={styles.adminUsersError}>{error}</div>}
 
-      {/* טבלה: מוצגת רק כשאין טעינה ואין שגיאה */}
       {!loading && !error && (
-        <div className={styles.auTable_wrap}>
-          <table className={styles.auTable}>
+        <div className={styles.adminUsersTableWrap}>
+          <table className={styles.adminUsersTable}>
             <thead>
               <tr>
-                <th>ת״ז</th>             
-                <th>שם</th>                
-                <th>דוא״ל</th>           
-                <th>טלפון</th>           
-                <th>תפקיד</th>            
-                <th>סטטוס</th>           
-                <th>נרשם בתאריך</th>                 
+                <th>ת״ז</th>
+                <th>שם</th>
+                <th>דוא״ל</th>
+                <th>טלפון</th>
+                <th>תפקיד</th>
+                <th>סטטוס</th>
+                <th>נרשם בתאריך</th>
               </tr>
             </thead>
 
@@ -163,38 +126,33 @@ const handleToggleStatus = async (user) => {
               {filtered.map((u) => (
                 <React.Fragment key={u.id}>
                   <tr>
-                  
-                    <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.id_number || "-"}</td>
-                    <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
+                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>{u.id_number || "-"}</td>
+                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>
                       {[u.first_name, u.last_name].filter(Boolean).join(" ") || "-"}
                     </td>
-                    <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.email || "-"}</td>
-                    <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.phone || "-"}</td>
-                    <td className={styles.au_row} onClick={() => toggleRow(u.id)}>{u.role}</td>
-                    <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
-                      <span className={`${styles.au_badge} ${u.status === "active" ? styles.au_badgeActive : styles.au_badgeBlocked}`}>
+                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>{u.email || "-"}</td>
+                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>{u.phone || "-"}</td>
+                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>{u.role}</td>
+                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>
+                      <span className={`${styles.adminUsersBadge} ${u.status === "active" ? styles.adminUsersBadgeActive : styles.adminUsersBadgeBlocked}`}>
                         {u.status === "active" ? "פעיל" : "חסום"}
                       </span>
                     </td>
-                    <td className={styles.au_row} onClick={() => toggleRow(u.id)}>
+                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>
                       {u.registered ? new Date(u.registered).toLocaleDateString("he-IL") : "-"}
                     </td>
-                 
                   </tr>
 
                   {selectedId === u.id && (
-                    <tr className={styles.auDetails_row}>
-                     
-                      <td colSpan={COLS} className={styles.auDetails_cell}>
-                        <div className={styles.auDetails_card}>
-<AdminUserDetails
-  userId={u.id}
-  onClose={() => onSelectUser(null)}
-  onToggleStatus={(user) => handleToggleStatus(user)}
-  togglingId={togglingId}
-/>
-
-
+                    <tr className={styles.adminUsersDetailsRow}>
+                      <td colSpan={COLS} className={styles.adminUsersDetailsCell}>
+                        <div className={styles.adminUsersDetailsCard}>
+                          <AdminUserDetails
+                            userId={u.id}
+                            onClose={() => onSelectUser(null)}
+                            onToggleStatus={(user) => handleToggleStatus(user)}
+                            togglingId={togglingId}
+                          />
                         </div>
                       </td>
                     </tr>
@@ -204,7 +162,7 @@ const handleToggleStatus = async (user) => {
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={COLS} className={styles.au_state}>לא נמצאו משתמשים</td>
+                  <td colSpan={COLS} className={styles.adminUsersState}>לא נמצאו משתמשים</td>
                 </tr>
               )}
             </tbody>

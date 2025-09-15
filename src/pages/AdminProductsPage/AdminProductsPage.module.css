@@ -1,343 +1,299 @@
+/* src/pages/AdminProducts/AdminProductsPage.module.css */
 @import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
 
-/* בסיס */
-.page {
+/* ===== משתני עיצוב ייחודיים לעמוד המנהל ===== */
+:root{
+  /* גובה כרטיס אחיד בגריד (מותאם לגובה הכרטיס ProductCardUnified: 380px) */
+  --ap-card-h: 380px;
+
+  /* טוקנים */
+  --ap-card:#ffffff;
+  --ap-text:#0f172a;
+  --ap-muted:#56637a;
+  --ap-border:#e2e8f0;
+  --ap-shadow-lg:0 12px 40px rgba(16,24,40,.12);
+  --ap-shadow-md:0 6px 18px rgba(2,32,71,.08);
+  --ap-ring:0 0 0 4px rgba(26,137,255,.18);
+  --ap-radius-xl:22px;
+}
+
+/* התאמות גובה במובייל/טבלט
+   (ב-<600px כרטיס ProductCardUnified יורד ל-340px, לכן הגריד מתאים עצמו) */
+@media (max-width: 900px){ :root{ --ap-card-h: 380px; } }
+@media (max-width: 600px){ :root{ --ap-card-h: 340px; } }
+
+/* ===== מבנה עמוד כללי (כמו בדף המוכר) ===== */
+.adminProductsPage{
   direction: rtl;
-  background: linear-gradient(to bottom, #fbfdff, #ffffff);
+  background: linear-gradient(145deg, #f0efee, #ffffff);
+  background-attachment: fixed;
   font-family: "Heebo", sans-serif;
-  color: #0f172a;
+  color: var(--ap-text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* ===== Hero עליון ===== */
-.hero {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 96px 5% 56px;
-  background: linear-gradient(145deg, #eef5ff, #ffffff);
+/* ===== Hero שקוף עם כתמי אור ===== */
+.adminProductsHero{
+  display:flex; justify-content:center; align-items:center; text-align:center;
+  padding:96px 5% 56px;
+  background: transparent;
   position: relative;
-  overflow: visible; /* חשוב: לא לחתוך את התפריט הנפתח */
+  overflow: visible;
   z-index: 1;
 }
-
-.hero::before,
-.hero::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.28;
-  z-index: 0;
-  pointer-events: none;
+.adminProductsHero::before,
+.adminProductsHero::after{
+  content:""; position:absolute; border-radius:50%; filter:blur(70px); opacity:.28; z-index:0; pointer-events:none;
 }
+.adminProductsHero::before{ width:300px; height:300px; background:#9e9b7f; top:-100px; right:-100px; }
+.adminProductsHero::after { width:420px; height:420px; background:#9e9b7f; bottom:-160px; left:-160px; }
 
-.hero::before {
-  width: 300px;
-  height: 300px;
-  background: #7cc4ff;
-  top: -100px;
-  right: -100px;
-}
-
-.hero::after {
-  width: 420px;
-  height: 420px;
-  background: #c2ffd2;
-  bottom: -160px;
-  left: -160px;
-}
-
-.heroText {
-  max-width: 680px;
-  background: rgba(255, 255, 255, 0.65);
+.adminProductsHeroText{
+  max-width:760px; margin-inline:auto;
+  background: rgba(255,255,255,.65);
   backdrop-filter: blur(10px);
-  padding: 36px;
-  border-radius: 22px;
-  box-shadow: 0 12px 40px rgba(16, 24, 40, 0.12);
-  position: relative;
-  z-index: 1;
+  padding: 36px 24px 28px;
+  border-radius: var(--ap-radius-xl);
+  box-shadow: var(--ap-shadow-lg);
+  position: relative; z-index: 1;
 }
+.adminProductsHeroText h1{ font-size:2.4rem; margin:0 0 10px; line-height:1.25; }
+.adminProductsSubText{ font-size:1.05rem; color:var(--ap-muted); margin:0 0 18px; }
 
-.heroText h1 {
-  font-size: 2.4rem;
-  margin: 0 0 10px;
-  line-height: 1.25;
+/* ===== Dropdown (בחירת פילטר/מיון) — זהה לסגנון המוכר ===== */
+.adminProductsFilterBar { position: relative; display: inline-block; z-index: 5; }
+.adminProductsFilterTrigger{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:12px 16px; border-radius:14px;
+  color:var(--ap-text); border:1px solid var(--ap-border);
+  background: linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  box-shadow: var(--ap-shadow-md);
+  cursor: pointer; font-weight: 600;
+  transition: transform .06s, box-shadow .2s, border-color .2s;
 }
-
-.subText {
-  font-size: 1.05rem;
-  color: #56637a;
-  margin: 0 0 18px;
-}
-
-/* ===== בחירת פילטר (Picker) ===== */
-.filterBar {
-  position: relative;
-  display: inline-block;
-  z-index: 5; /* מעל רקעי ה-hero */
-}
-
-.filterTrigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-  box-shadow: 0 6px 18px rgba(2, 32, 71, 0.08);
-  cursor: pointer;
-  font-weight: 600;
-  transition: transform 0.06s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.filterTrigger:hover {
+.adminProductsFilterTrigger:hover{
   transform: translateY(-1px);
-  border-color: #bcd7ff;
-    color: #0f172a;
-  box-shadow: 0 10px 26px rgba(2, 32, 71, 0.12);
+  border-color:#bcd7ff;
+  box-shadow: 0 10px 26px rgba(2,32,71,.12);
 }
-
-.filterTrigger:focus-visible {
-  outline: none;
-    color: #0f172a;
-  box-shadow: 0 0 0 4px rgba(26, 137, 255, 0.2);
-  border-color: #1a89ff;
+.adminProductsFilterTrigger:focus-visible{
+  outline:none; box-shadow: var(--ap-ring); border-color:#1a89ff;
 }
+.adminProductsChevron{ transition: transform .2s ease; }
+.adminProductsFilterTrigger[aria-expanded="true"] .adminProductsChevron{ transform: rotate(180deg); }
 
-.chevron {
-  transition: transform 0.2s ease;
-}
-
-.filterTrigger[aria-expanded="true"] .chevron {
-  transform: rotate(180deg);
-
-}
-
-
-
-.filterMenu {
-    list-style: none;   /* אין bullets */
-  position: absolute; /* יושב בתוך ה-hero ולכן צריך overflow:visible */
-  inset-inline-start: 0;
-  inset-block-start: calc(100% + 10px);
-  min-width: 280px;
-  background: rgba(255, 255, 255, 0.9);
+.adminProductsFilterMenu{
+  list-style:none;
+  position:absolute;
+  inset-inline-start:0; inset-block-start:calc(100% + 10px);
+  min-width:280px;
+  background: rgba(255,255,255,.9);
   backdrop-filter: blur(8px);
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-
-  box-shadow: 0 20px 50px rgba(2, 32, 71, 0.15);
-  padding: 8px;
-  display: grid;
-  gap: 6px;
-  z-index: 20;
+  border: 1px solid var(--ap-border);
+  border-radius:14px;
+  box-shadow: 0 20px 50px rgba(2,32,71,.15);
+  padding:8px; display:grid; gap:6px; z-index:20;
 }
-
-.filterOption {
-  width: 100%;
-  text-align: start;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-    color: #0f172a;
-
-  background: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.06s ease;
-  opacity: 0;
-  transform: translateY(-6px) scale(0.98);
-  animation: popIn 0.22s ease forwards;
+.adminProductsFilterOption{
+  width:100%; text-align:start; padding:10px 12px;
+  border-radius:10px; border:1px solid transparent;
+  background:#fff; color:var(--ap-text); cursor:pointer;
+  transition: background .2s, border-color .2s, transform .06s;
+  opacity:0; transform: translateY(-6px) scale(.98);
+  animation: apPopIn .22s ease forwards;
   animation-delay: calc(var(--i, 0) * 60ms);
 }
+.adminProductsFilterOption:hover{ background:#f2f7ff; border-color:#cfe4ff; transform:translateY(-1px); }
+.adminProductsActiveOption{ background:#e8f2ff; border-color:#bcd7ff; }
+@keyframes apPopIn{ to{ opacity:1; transform:none; } }
 
-.filterOption:hover {
-  background: #f2f7ff;
-  border-color: #cfe4ff;
+/* ===== Toolbar ממורכז (כמו בדף המוכר) ===== */
+.adminProductsToolbar{
+  margin-top: 10px;
+  display:flex; justify-content:center;
+}
+.adminProductsToolbarRow{
+  display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
+  background: rgba(255,255,255,.65);
+  backdrop-filter: blur(8px);
+  border:1px solid var(--ap-border);
+  border-radius:14px;
+  padding:10px 12px;
+  box-shadow: var(--ap-shadow-md);
+  max-width:760px; margin-inline:auto;
+}
+
+/* חיפוש */
+.adminProductsSearchContainer{ display:flex; justify-content:center; margin-top:12px; }
+.adminProductsSearchInput{
+  width:min(420px, 92vw);
+  height:40px; padding:0 12px;
+  border:1px solid var(--ap-border); border-radius:10px;
+  outline:none; background:#fff; color:var(--ap-text);
+  transition: border-color .2s, box-shadow .2s, transform .06s;
+}
+.adminProductsSearchInput:focus{
+  border-color:#bcd7ff;
+  box-shadow: var(--ap-ring);
   transform: translateY(-1px);
 }
 
-.activeOption {
-  background: #e8f2ff;
-  border-color: #bcd7ff;
+/* Badges & Buttons */
+.adminProductsCountBadge{
+  display:inline-flex; align-items:center; gap:6px;
+  height:40px; padding:0 12px; border-radius:999px; font-weight:600;
+  color:var(--ap-text);
+  background: linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  border:1px solid var(--ap-border); box-shadow:0 6px 18px rgba(2,32,71,.06);
+  white-space:nowrap;
+}
+.adminProductsExportBtn{
+  height:40px; padding:0 14px; border-radius:12px;
+  border:1px solid var(--ap-border);
+  background: linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  color:var(--ap-text); font-weight:600; cursor:pointer;
+  box-shadow: var(--ap-shadow-md);
+  transition: transform .06s, box-shadow .2s, border-color .2s;
+}
+.adminProductsExportBtn:hover{
+  transform: translateY(-1px);
+  border-color:#bcd7ff;
+  box-shadow:0 10px 26px rgba(2,32,71,.12);
+}
+.adminProductsExportBtn:focus-visible{
+  outline:none; box-shadow: var(--ap-ring); border-color:#1a89ff;
 }
 
-@keyframes popIn {
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* כפתור חזרה – אותו מראה כמו כפתור הייצוא */
+.adminProductsBackBtn{
+  height:40px; padding:0 14px; border-radius:12px;
+  border:1px solid var(--ap-border);
+  background: linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  color:var(--ap-text); font-weight:600; cursor:pointer;
+  box-shadow: var(--ap-shadow-md);
+  transition: transform .06s, box-shadow .2s, border-color .2s;
+}
+.adminProductsBackBtn:hover{
+  transform: translateY(-1px);
+  border-color:#bcd7ff;
+  box-shadow:0 10px 26px rgba(2,32,71,.12);
+}
+.adminProductsBackBtn:focus-visible{
+  outline:none; box-shadow: var(--ap-ring); border-color:#1a89ff;
 }
 
 /* ===== אזור המוצרים ===== */
-.productsSection {
-  padding: 28px 5% 60px;
+.adminProductsProductsSection{ padding: 20px 5% 30px; }
+
+/* ===== גריד כרטיסים עם גובה אחיד (כמו בדף המוכר) ===== */
+.adminProductsGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap:18px;
+  align-items: stretch;
+  grid-auto-rows: var(--ap-card-h);
 }
-
-/* כותרת + חיפוש */
-.headerRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+.adminProductsGridItem{
+  display:flex;
+  height: var(--ap-card-h);
+  overflow: hidden;
 }
-
-
-
-.searchContainer {
-  display: flex;
-  justify-content: center; /* מרכז אופקית */
-  margin: 16px 0;          /* רווחים עדינים מלמעלה/למטה */
+.adminProductsGridItem > *{
+  display:flex; flex-direction:column;
+  height:100%; min-height:0;
 }
-
-.searchInput {
-  width: min(520px, 92vw); /* רוחב נוח ורספונסיבי */
-  padding: 12px 14px;
-  font-size: 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  outline: none;
-  transition: box-shadow .2s ease, border-color .2s ease;
-}
-
-.searchInput:focus {
-  box-shadow: 0 0 0 4px rgba(156, 156, 156, 0.12);
-}
-
-
-/* הגריד צריך למתוח את כל האייטמים לגובה זהה */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  align-items: stretch;   /* ← חשוב */
-}
-
-/* כל כרטיס בתוך התא צריך למלא 100% מהגובה */
-.gridItem > * {
-  height: 100%;
-  display: flex;
-}
-
 
 /* אין תוצאות */
-.empty {
-  background: #ffffff;
-  border: 1px dashed #cbd5e1;
-  border-radius: 12px;
-  padding: 22px;
-  text-align: center;
-  color: #64748b;
-  margin-top: 12px;
+.adminProductsEmpty{
+  background:#ffffff; border:1px dashed #cbd5e1; border-radius:12px;
+  padding:22px; text-align:center; color:#64748b; margin-top:12px;
+}
+/* ===== עטיפה עמודתית חדשה ל-Toolbar ===== */
+.adminProductsToolbarCol{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  background: rgba(255,255,255,.65);
+  backdrop-filter: blur(8px);
+  border:1px solid var(--ap-border);
+  border-radius:14px;
+  padding:12px;
+  box-shadow: var(--ap-shadow-md);
+  max-width:760px;
+  margin-inline:auto;
 }
 
-/* ===== מובייל/רספונסיביות ===== */
-@media (max-width: 600px) {
-  .heroText {
-    padding: 24px;
-  }
-  .heroText h1 {
-    font-size: 1.9rem;
-  }
-  .searchInput {
-    min-width: 0;
-    width: 100%;
-  }
-  .filterMenu {
-    inset-inline-start: 50%;
-    transform: translateX(-50%);
+/* שורה 1: סטטוס + מיון */
+.adminProductsControlsRow{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:center;
+}
+
+/* שורה 2: חיפוש + מונה */
+.adminProductsSearchRow{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+/* שורה 3: פעולות */
+.adminProductsActionsRow{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+/* שיפורים קלים לשדה החיפוש בשורה */
+.adminProductsSearchInput{
+  width:min(520px, 92vw);   /* מעט רחב יותר כדי להכיל את הבדג' לצדו */
+  height:40px;
+  padding:0 12px;
+  border:1px solid var(--ap-border);
+  border-radius:10px;
+  outline:none;
+  background:#fff;
+  color:var(--ap-text);
+  transition: border-color .2s, box-shadow .2s, transform .06s;
+}
+.adminProductsSearchInput:focus{
+  border-color:#bcd7ff;
+  box-shadow: var(--ap-ring);
+  transform: translateY(-1px);
+}
+
+/* מובייל */
+@media (max-width: 640px){
+  .adminProductsToolbarCol{ gap:8px; padding:10px; }
+  .adminProductsSearchInput,
+  .adminProductsExportBtn,
+  .adminProductsBackBtn,
+  .adminProductsCountBadge{ height:38px; font-size:14px; }
+}
+
+/* ===== רספונסיביות ===== */
+@media (max-width: 640px){
+  .adminProductsHero{ padding:70px 4% 42px; }
+  .adminProductsHeroText{ padding:24px; }
+  .adminProductsHeroText h1{ font-size:1.9rem; }
+  .adminProductsFilterMenu{
+    inset-inline-start:50%; transform:translateX(-50%);
     width: min(92vw, 420px);
   }
-}
+  .adminProductsToolbarRow{ gap:8px; padding:8px; }
+  .adminProductsSearchInput,
+  .adminProductsExportBtn,
+  .adminProductsBackBtn,
+  .adminProductsCountBadge{ height:38px; font-size:14px; }
 
-/* src/pages/AdminProducts/AdminProductsPage.module.css */
-:root{
-  --ink:#0f172a;
-  --muted:#64748b;
-  --card:#ffffff;
-  --bg:#f8fafc;
-  --border:#e5e7eb;
-  --primary:#1a89ff;
-  --accent:#14b8a6;
-  --shadow:0 10px 28px rgba(15,23,42,.12);
+  /* רשת צפופה יותר במובייל */
+  .adminProductsGrid{ grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 }
-
-.page{
-  direction: rtl;
-  min-height: 100dvh;
-  background:
-    radial-gradient(1200px 600px at 110% -10%, rgba(20, 184, 166, .06), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(26, 137, 255, .07), transparent 60%),
-    var(--bg);
-  padding-bottom: 32px;
-}
-
-/* HERO */
-.hero{
-  padding: 28px 16px 8px;
-}
-.heroText{
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.hero h1{
-  margin: 0 0 6px;
-  font-weight: 800;
-  color: var(--ink);
-  letter-spacing: .2px;
-}
-.subText{
-  margin: 0 0 14px;
-  color: var(--muted);
-}
-
-.toolbar{
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  padding: 10px;
-}
-.toolbarRow{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-.searchInput{
-  flex: 1 1 280px;
-  min-width: 220px;
-  padding: 10px 12px;
-  border:1px solid var(--border);
-  border-radius: 10px;
-  background: #fbfdff;
-}
-.select{
-  padding: 10px 12px;
-  border:1px solid var(--border);
-  border-radius: 10px;
-  background: #fbfdff;
-}
-.countBadge{
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: #eef6ff;
-  color: #0b4ea2;
-  border: 1px solid #dbeafe;
-  font-weight: 600;
-}
-.backBtn{
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #fff;
-  cursor:pointer;
-}
-

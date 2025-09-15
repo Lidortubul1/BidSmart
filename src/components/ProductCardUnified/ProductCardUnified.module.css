@@ -1,118 +1,149 @@
-/* הכרטיס ממלא את התא בגריד */
-.wrapper {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: transparent;
+/* src/components/ProductCardUnified/ProductCardUnified.module.css */
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
+
+/* כרטיס גדול ואחיד כמו BuyerCard/SellerCard */
+.card {
+  background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  box-shadow: none;
-  overflow: hidden;
-  transition: border-color 0.2s ease, transform 0.08s ease;
-}
-.wrapper:hover { transform: translateY(-1px); border-color: #ffffff; }
-
-/* אופציונלי אבל עוזר ליציבות הגובה של החלק העליון */
-.wrapper :global(.product) {
-  background: transparent !important;
-  box-shadow: none !important;
-    box-shadow: none !important;
-
-  border-radius: 0 !important;
-  margin: 0 !important;
-  flex: 0 0 auto;               /* לא “נמתח”/לא דוחף את הפוטר */
-}
-.wrapper :global(.imageWrapper) { background: transparent !important; }
-
-
-/* footer קבוע בתחתית הכרטיס */
-.cardFooter {
-  margin-top: auto;             /* מצמיד את כל הפוטר לתחתית הכרטיס */
-  padding: 12px 14px;
-  border-top: 1px solid #e9eef5;
-  background: transparent;
-
-  /* חשוב: לוודא שאין display:grid בשום מקום אחר! */
+  border-radius: 16px;
+  width: 100%;
   display: flex;
   flex-direction: column;
-
-  gap: 10px;
-  height: 150px;                /* גובה קבוע => הקו באותו גובה בכל הכרטיסים */
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,.04);
+  height: 380px;
 }
 
-
-/* מוודאים סדר חד-משמעי: קודם הסטטוסים, ואז הכפתור */
-.metaRow {
-  order: 1;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  max-height: 72px;            /* ~2–3 שורות */
-  overflow: auto;              /* ← במקום hidden */
-  align-content: flex-start;
-  padding-inline-end: 2px;     /* שלא יעלה על הסקרול */
-  scrollbar-width: thin;       /* Firefox */
-}
-.metaRow::-webkit-scrollbar { width: 6px; height: 6px; }           /* Chrome/Edge */
-.metaRow::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-.metaRow::-webkit-scrollbar-track { background: transparent; }
-
-
-
-/* באדג'ים וצבעים – ללא שינוי */
-.badge {
-  --tone-bg: #eef2ff;
-  --tone-br: #e2e8f0;
-  --tone-fg: #0f172a;
-  display: inline-flex;
+/* ראש הכרטיס */
+.cardHead {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  padding: 10px 20px 6px;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  padding: 6px 10px;
-  background: var(--tone-bg);
-  border: 1px solid var(--tone-br);
-  color: var(--tone-fg);
-  border-radius: 999px;
-  line-height: 1;
-  white-space: nowrap;
-    white-space: normal;         /* ← היה nowrap */
+  cursor: pointer;
+  min-height: 140px;
+}
+
+.cardImg {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.noImg {
+  width: 140px;
+  height: 140px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background:#f1f5f9;
+  color:#94a3b8;
+  font-size: .9rem;
+}
+
+.cardTitleWrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 550;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  width: 100%;
+  unicode-bidi: plaintext;
+  padding: 1px 2px;
+}
+
+.cardBody { padding: 10px 15px 0; flex: 1; }
+.row { display: flex; justify-content: space-between; padding: 6px 0; font-size: .95rem; }
+.label { color:#64748b; }
+
+/* תגיות סטטוס – כמו SellerCard */
+.badge {
+  display: inline-block;
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
   word-break: break-word;
   max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: .85rem;
+  font-weight: 600;
 }
-.badge svg { width: 14px; height: 14px; }
 
-.toneBlue  { --tone-bg: #e8f2ff; --tone-br: #bcd7ff; --tone-fg: #0b63c9; }
-.toneGreen { --tone-bg: #e8f9f0; --tone-br: #b6eccd; --tone-fg: #0a7a43; }
-.toneGray  { --tone-bg: #f3f6fb; --tone-br: #e5ecf7; --tone-fg: #475569; }
-.toneAmber { --tone-bg: #fff5e7; --tone-br: #ffe2b8; --tone-fg: #a36200; }
-.toneRed   { --tone-bg: #ffffff; --tone-br: #c94e47; --tone-fg: #991b1b; }
+.toneGreen { background: #f1fef8; color: #047857; }
+.toneAmber { background: #faf9f3; color: #9f4e0f; }
+.toneBlue  { background: #f5f9ff; color: #173997; }
+.toneGray  { background: #f3f4f6; color: #374151; }
+.toneRed   { background: #fff5f5; color: #b91c1c; }
 
-
-.actions {
-  order: 2;
+/* פוטר */
+.cardFooter {
   margin-top: auto;
   display: flex;
-  justify-content: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid #e2e8f0;
+  justify-content: center;
+  align-items: center;
 }
 
-/* כפתור */
 .viewButton {
-  padding: 10px 14px;
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid #5d5d5d;
-  background: linear-gradient(90deg, #000000 0%, #0e0e0e 100%);
+  background: #0f172a;
   color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: .9rem;
+  border: none;
+  cursor: pointer;
+  transition: .2s ease;
+}
+.viewButton:hover { background: #1f2937; }
+
+.deleteBtn {
+  background: #fff1f2;
+  color: #b91c1c;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: .9rem;
+  border: 1px solid #fecdd3;
+  cursor: pointer;
+}
+
+/* כפתור/תגית קישור אופציונלי שתעביר דרך rightExtra */
+.linkBtn {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 10px 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: .2s ease;
 }
-.viewButton:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(26,137,255,.25); }
-.viewButton:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(26,137,255,.2); }
+.linkBtn:hover { background: #f8fafc; border-color: #cbd5e1; }
 
-/* רספונסיביות: נותנים טיפה יותר מקום ב־mobile */
-@media (max-width: 520px) {
-  .cardFooter { height: 136px; }   /* היה 120 */
-  .metaRow { max-height: 64px; }
-  .viewButton { width: 100%; text-align: center; }
+/* מובייל */
+@media (max-width: 600px) {
+  .card { height: 340px; }
+  .cardHead {
+    grid-template-columns: 110px 1fr;
+    padding: 8px 12px 12px;
+    align-items: flex-start;
+    min-height: 110px;
+  }
+  .cardImg, .noImg { width: 110px; height: 110px; }
 }

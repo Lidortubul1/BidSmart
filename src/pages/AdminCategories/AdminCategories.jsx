@@ -1,8 +1,4 @@
-//src\pages\AdminCategories\AdminCategories.jsx
-// ניהול קטגוריות למנהל: טעינת קטגוריות ותתי־קטגוריות, פתיחה/סגירה לצפייה,
-// הוספת קטגוריה (כולל יצירת תת־קטגוריה ברירת־מחדל "אחר"), הוספה/מחיקה של תתי־קטגוריות,
-// מחיקת קטגוריה שלמה עם אישור במודאל, ומניעת כפילויות בשם — הכל עם רענון רשימות בזמן אמת.
-
+//src/pages/AdminCategories/AdminCategories.jsx
 import { useEffect, useState } from "react";
 import styles from "./AdminCategories.module.css";
 import {
@@ -66,8 +62,7 @@ export default function AdminCategories() {
     if (!newCategory.trim()) return;
 
     const exists = categories.some(
-      (cat) =>
-        cat.name.trim().toLowerCase() === newCategory.trim().toLowerCase()
+      (cat) => cat.name.trim().toLowerCase() === newCategory.trim().toLowerCase()
     );
     if (exists) {
       openModal({
@@ -76,14 +71,17 @@ export default function AdminCategories() {
       });
       return;
     }
+
     const category = await addCategory(newCategory);
+    const createdName = newCategory; // לשימוש אחרי reset
     setNewCategory("");
+
     if (category && category.id) {
       await addSubcategory("אחר", category.id);
     } else {
       await loadCategories();
       const updatedCategories = await fetchCategories();
-      const newCat = updatedCategories.find((cat) => cat.name === newCategory);
+      const newCat = updatedCategories.find((cat) => cat.name === createdName);
       if (newCat) {
         await addSubcategory("אחר", newCat.id);
       }
@@ -95,6 +93,7 @@ export default function AdminCategories() {
   async function handleAddSubcategory(categoryId) {
     const name = newSub[categoryId];
     if (!name || !name.trim()) return;
+
     const exists = (subcategories[categoryId] || []).some(
       (sub) => sub.name.trim().toLowerCase() === name.trim().toLowerCase()
     );
@@ -105,6 +104,7 @@ export default function AdminCategories() {
       });
       return;
     }
+
     await addSubcategory(name, categoryId);
     setNewSub((prev) => ({ ...prev, [categoryId]: "" }));
     const subs = await fetchSubcategories(categoryId);
@@ -137,81 +137,108 @@ export default function AdminCategories() {
   }
 
   return (
-    <div className={styles.categoriesPage}>
-      <h2 className={styles.title}>ניהול קטגוריות</h2>
-      <div className={styles.addCategoryBox}>
-        <input
-          placeholder="הוסף קטגוריה חדשה"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-        />
-        <button onClick={handleAddCategory}>הוסף</button>
-      </div>
-      <ul className={styles.categoriesList}>
-        {categories.map((cat) => (
-          <li className={styles.categoryItem} key={cat.id}>
-            <div className={styles.categoryTitleRow}>
-              <span className={styles.categoryName}>{cat.name}</span>
-              <button
-                className={styles.actionBtn}
-                onClick={() => handleExpand(cat.id)}
-              >
-                {expanded[cat.id] ? "סגור" : "הצג תתי קטגוריה"}
-              </button>
-              <button
-                className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                onClick={() => handleDeleteCategory(cat.id)}
-              >
-                מחק
+    <div className={styles.page}>
+      {/* Hero שקוף עם כתמי אור – תואם לעמודים האחרים */}
+      <section className={styles.hero}>
+        <div className={styles.heroText}>
+          <h1>ניהול קטגוריות</h1>
+          <p className={styles.subText}>
+            הוספה, צפייה ומחיקה של קטגוריות ותתי־קטגוריות בזמן אמת
+          </p>
+          <p className={styles.aiAssistantText}>
+            שמרו על היררכיה מסודרת למוצרים באתר
+          </p>
+          <div className={styles.actions}>
+            <div className={styles.addCategoryBox} aria-label="הוספת קטגוריה חדשה">
+              <input
+                className={styles.input}
+                placeholder="הוסף קטגוריה חדשה"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                aria-label="שם קטגוריה חדשה"
+              />
+              <button className={styles.actionButton} onClick={handleAddCategory}>
+                הוסף
               </button>
             </div>
-            {expanded[cat.id] && (
-              <div>
-                <ul className={styles.subList}>
-                  {(subcategories[cat.id] || [])
-                    .filter((sub) => sub.name.trim() !== "אחר")
-                    .map((sub) => (
-                      <li
-                        key={sub.id}
-                        style={{ display: "flex", alignItems: "center" }}
-                      >
-                        <span>{sub.name}</span>
-                        <button
-                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                          style={{
-                            marginRight: 7,
-                            fontSize: ".95em",
-                            padding: "0.3rem 1rem",
-                          }}
-                          onClick={() =>
-                            handleDeleteSubcategory(sub.id, cat.id)
-                          }
-                        >
-                          מחק
-                        </button>
-                      </li>
-                    ))}
-                </ul>
-                <div className={styles.addSubRow}>
-                  <input
-                    placeholder="הוסף תת קטגוריה"
-                    value={newSub[cat.id] || ""}
-                    onChange={(e) =>
-                      setNewSub((prev) => ({
-                        ...prev,
-                        [cat.id]: e.target.value,
-                      }))
-                    }
-                  />
-                  <button onClick={() => handleAddSubcategory(cat.id)}>
-                    הוסף
-                  </button>
+          </div>
+        </div>
+      </section>
+
+      {/* אזור התוכן/כרטיסים */}
+      <section className={styles.categoriesSection}>
+        <ul className={styles.categoriesList}>
+          {categories.map((cat) => (
+            <li className={styles.categoryItem} key={cat.id}>
+              <div className={styles.categoryCard}>
+                <div className={styles.categoryTitleRow}>
+                  <span className={styles.categoryName}>{cat.name}</span>
+                  <div className={styles.actionsRow}>
+                    <button
+                      className={styles.sortBtn}
+                      onClick={() => handleExpand(cat.id)}
+                      aria-expanded={!!expanded[cat.id]}
+                      aria-controls={`sub-${cat.id}`}
+                    >
+                      {expanded[cat.id] ? "סגור" : "הצג תתי־קטגוריה"}
+                    </button>
+                    <button
+                      className={`${styles.sortBtn} ${styles.sortBtnDanger}`}
+                      onClick={() => handleDeleteCategory(cat.id)}
+                    >
+                      מחק
+                    </button>
+                  </div>
                 </div>
+
+                {expanded[cat.id] && (
+                  <div id={`sub-${cat.id}`} className={styles.subBlock}>
+                    <ul className={styles.subList}>
+                      {(subcategories[cat.id] || [])
+                        .filter((sub) => sub.name.trim() !== "אחר")
+                        .map((sub) => (
+                          <li className={styles.subItem} key={sub.id}>
+                            <span className={styles.subName}>{sub.name}</span>
+                            <button
+                              className={`${styles.tagBtn} ${styles.tagBtnDanger}`}
+                              onClick={() => handleDeleteSubcategory(sub.id, cat.id)}
+                              aria-label={`מחק ${sub.name}`}
+                              title="מחק"
+                            >
+                              ✕
+                            </button>
+                          </li>
+                        ))}
+                    </ul>
+
+                    <div className={styles.addSubRow}>
+                      <input
+                        className={styles.input}
+                        placeholder="הוסף תת־קטגוריה"
+                        value={newSub[cat.id] || ""}
+                        onChange={(e) =>
+                          setNewSub((prev) => ({
+                            ...prev,
+                            [cat.id]: e.target.value,
+                          }))
+                        }
+                        aria-label={`תת־קטגוריה עבור ${cat.name}`}
+                      />
+                      <button
+                        className={styles.actionButton}
+                        onClick={() => handleAddSubcategory(cat.id)}
+                      >
+                        הוסף
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {modalOpen && (
         <CustomModal
           title={modalConfig.title}

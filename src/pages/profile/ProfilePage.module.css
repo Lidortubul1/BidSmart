@@ -233,6 +233,8 @@
   margin-top: 14px;
 }
 
+
+
 /* =============== רספונסיבי =============== */
 @media (max-width: 720px) {
   .pfPage { padding: 16px; padding-top: max(44px, calc(env(safe-area-inset-top) + 20px)); }

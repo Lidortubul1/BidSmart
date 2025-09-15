@@ -1,340 +1,192 @@
-/* =======================================================================
-   AdminUsers.module.css — Tech Admin Theme (cool, crisp, responsive)
-   מתאים ל: AdminUsersPage, AdminUsersList, AdminUserDetails
-   ======================================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
 
-@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap");
-
-/* =========================
-   0) Design tokens (Shared)
-   ========================= */
-:root {
-  --ink: #0f172a;          /* טקסט ראשי */
-  --muted: #64748b;        /* טקסט משני */
-  --card: #ffffff;         /* כרטיס */
-  --bg: #f8fafc;           /* רקע עמוד */
-  --border: #e5e7eb;       /* קווי מתאר */
-  --primary: #1a89ff;      /* כחול מנהלי */
-  --accent: #14b8a6;       /* טורקיז בהיר */
-  --danger: #ef4444;
-  --ok: #10b981;
-
-  --ring-prim: 0 0 0 4px rgba(26, 137, 255, .18);
-  --shadow-1: 0 8px 22px rgba(15, 23, 42, .06);
-  --shadow-2: 0 12px 28px rgba(15, 23, 42, .10);
-  --radius-lg: 16px;
-  --radius: 12px;
-  --radius-sm: 10px;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+/* ===== בסיס/משתנים ===== */
+:root{
+  --au-card:#fff;
+  --au-text:#0f172a;
+  --au-muted:#56637a;
+  --au-border:#e2e8f0;
+  --au-shadow-lg:0 12px 40px rgba(16,24,40,.12);
+  --au-shadow-md:0 6px 18px rgba(2,32,71,.08);
+  --au-ring:0 0 0 4px rgba(95,90,76,.18);
+  --au-radius-xl:22px;
+  --au-radius-lg:16px;
+  --au-radius-md:12px;
+  --au-mono:ui-monospace,Menlo,Consolas,"Courier New",monospace;
 }
 
-/* ===============================================================
-   1) עטיפת דף — טכנולוגי, נעים ועם ריווח עליון נדיב
-   =============================================================== */
-.auPage_single {
-  direction: rtl;
-  min-height: 100%;
-  font-family: "Heebo", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  color: var(--ink);
-  padding: 30px; /* בסיס */
-  padding-top: max(56px, calc(env(safe-area-inset-top) + 32px)); /* ריווח בטוח מלמעלה */
-  max-width: 1680px;
-  margin-inline: auto;
-  background:
-    radial-gradient(1200px 600px at 110% -10%, rgba(20, 184, 166, .06), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(26, 137, 255, .07), transparent 60%),
-    var(--bg);
+/* ===== רקע עמוד כמו הקטגוריות ===== */
+.adminUsersPage{
+  direction:rtl;
+  background:linear-gradient(145deg,#f0efee,#ffffff);
+  background-attachment:fixed;
+  font-family:"Heebo",sans-serif;
+  color:var(--au-text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
-/* ======================================
-   2) כותרת עליונה + סרגל מסננים (Toolbar)
-   ====================================== */
-.auList_wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-top: 8px; /* לא "נדבק" לראש הדף */
+/* ===== Hero שקוף + “כתמי אור” ===== */
+.adminUsersHero{
+  display:flex;justify-content:center;align-items:center;text-align:center;
+  padding:96px 5% 56px; background:transparent; position:relative; overflow:visible; z-index:1;
+}
+.adminUsersHero::before,.adminUsersHero::after{
+  content:""; position:absolute; border-radius:50%; filter:blur(70px); opacity:.28; z-index:0; pointer-events:none;
+}
+.adminUsersHero::before{ width:300px;height:300px;background:#9e9b7f; top:-100px; right:-100px; }
+.adminUsersHero::after{  width:420px;height:420px;background:#9e9b7f; bottom:-160px; left:-160px; }
+
+.adminUsersHeroText{
+  max-width:760px; background:rgba(255,255,255,.65); backdrop-filter:blur(10px);
+  padding:36px 28px; border-radius:var(--au-radius-xl); box-shadow:var(--au-shadow-lg);
+  position:relative; z-index:1; margin-inline:auto;
+}
+.adminUsersHeroText h1{ font-size:clamp(1.8rem,1.2rem + 1.8vw,2.4rem); margin:0 0 10px; line-height:1.25; }
+.adminUsersSubText{ font-size:1.05rem; color:var(--au-muted); margin:0; }
+
+/* ===== אזור התוכן כמו בקטגוריות ===== */
+.adminUsersSection{ padding:6px 5% 40px; }
+
+/* ===== כותרת+מסננים בכרטיס שקוף-לבן ===== */
+.adminUsersListWrap{ display:flex; flex-direction:column; gap:14px; }
+
+.adminUsersHeaderCard{
+  display:grid; grid-template-columns:1fr; row-gap:12px;
+  padding:14px; border-radius:var(--au-radius-xl);
+  background:var(--au-card); border:1px solid var(--au-border); box-shadow:var(--au-shadow-md);
 }
 
-/* כותרת/תת־כותרת במרכז אחת מתחת לשנייה; המסננים מתחתיהן */
-.auList_headerRow {
-  display: grid;
-  grid-template-columns: 1fr;  /* בלוק הכותרת למעלה, בלוק המסננים מתחתיו */
-  grid-auto-rows: auto;
-  row-gap: 12px;
+.adminUsersHeaderText{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center;
+}
+.adminUsersTitle{ margin:0; font-size:1.32rem; font-weight:600; letter-spacing:.2px; color:var(--au-text); }
+.adminUsersSubtitle{ margin:0; color:var(--au-muted); font-size:.98rem; }
 
-  padding: 14px;
-  border-radius: var(--radius-lg);
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-1);
+/* ===== מסננים (גלולה/גרדיאנט כמו אצלך) ===== */
+.adminUsersFilters{
+  width:min(100%,1000px); margin-inline:auto;
+  display:grid; grid-template-columns:minmax(280px,1fr) 160px 160px; gap:10px; align-items:center;
 }
 
-/* הבלוק הראשון בפנים (h2+p) – מרכזי ואנכי */
-.auList_headerRow > :first-child {
-  display: flex;
-  flex-direction: column;   /* אחד מתחת לשני */
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  text-align: center;
+.adminUsersInput,.adminUsersSelect{
+  height:44px; padding:10px 14px; border-radius:999px;
+  border:1px solid var(--au-border);
+  background:linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  box-shadow:var(--au-shadow-md);
+  color:var(--au-text); outline:none;
+  transition:transform .06s, box-shadow .2s, border-color .2s;
+}
+.adminUsersInput::placeholder{ color:var(--au-muted); }
+.adminUsersInput:hover,.adminUsersInput:focus,
+.adminUsersSelect:hover,.adminUsersSelect:focus{
+  transform:translateY(-1px);
+  border-color:#bcd7ff;
+  box-shadow:0 10px 26px rgba(2,32,71,.12), var(--au-ring);
 }
 
-.au_title {
-  margin: 0;
-  font-size: 1.32rem;
-  font-weight: 800;
-  letter-spacing: .2px;
-  color: var(--ink);
-  display: block;
+/* ===== מצבים ===== */
+.adminUsersState{
+  padding:12px 14px; color:var(--au-muted);
+  background:#fff; border:1px dashed var(--au-border); border-radius:var(--au-radius-md);
+}
+.adminUsersError{
+  padding:12px 14px; color:#7f1d1d;
+  background:linear-gradient(180deg,#ffeaea,#fff7f7); border:1px solid #fecaca; border-radius:var(--au-radius-md);
 }
 
-.au_subtitle {
-  margin: 0;
-  color: var(--muted);
-  font-size: .98rem;
-  display: block;
+/* ===== טבלה חדה ורספונסיבית ===== */
+.adminUsersTableWrap{
+  border:1px solid var(--au-border); border-radius:var(--au-radius-xl);
+  overflow-x:auto; background:var(--au-card); box-shadow:var(--au-shadow-lg); position:relative;
+}
+.adminUsersTable{
+  width:100%; min-width:980px; border-collapse:separate; border-spacing:0; direction:rtl;
+}
+.adminUsersTable thead th{
+  position:sticky; top:0; z-index:2;
+  background:linear-gradient(180deg,#ffffff,#f7fbff);
+  color:#0b1627; font-weight:700; letter-spacing:.2px;
+  padding:14px 12px; text-align:start; border-bottom:2px solid var(--au-border);
+}
+.adminUsersTable tbody td{
+  padding:14px 12px; text-align:start; border-bottom:1px solid var(--au-border); color:var(--au-text);
+}
+.adminUsersTable tbody tr:nth-child(even):not(.adminUsersDetailsRow){ background:#fbfdff; }
+
+.adminUsersRow{ cursor:pointer; transition:background .15s, transform .06s, filter .15s; }
+.adminUsersRow:hover{ background:#f2f7ff; filter:saturate(1.02); }
+
+/* טיפוגרפיה “מספרית” לעמודות מסוימות */
+.adminUsersTable tbody tr > td:first-child,
+.adminUsersTable tbody tr > td:nth-child(4),
+.adminUsersTable tbody tr > td:nth-child(5){
+  font-family:var(--au-mono); letter-spacing:.2px; color:#1f2937;
 }
 
-/* ===== סרגל הכלים: חיפוש + מסננים מתחת לכותרת ===== */
-.auList_filters {
-  width: min(100%, 1000px);
-  margin-inline: auto; /* מרכז את הסרגל */
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) 160px 160px; /* חיפוש | תפקיד | סטטוס */
-  align-items: center;
-  gap: 10px;
+/* ===== שורת פרטים מתחת לרשומה ===== */
+.adminUsersDetailsRow{ background:#f8fbff; }
+.adminUsersDetailsCell{ padding:0; }
+.adminUsersDetailsCard{
+  padding:16px; border-top:1px solid var(--au-border); background:var(--au-card);
+  animation:adminUsersExpand .18s ease-out;
 }
+@keyframes adminUsersExpand{ from{opacity:.6; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
 
-/* קלטים: גובה/טיפול פוקוס אחידים */
-.au_input,
-.au_select {
-  height: 42px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: #fbfdff;
-  color: var(--ink);
-  outline: none;
-  transition: box-shadow .15s ease, border-color .15s ease, transform .06s ease;
+/* ===== כרטיס פרטי משתמש ===== */
+.adminUsersDetailsWrap{ width:100%; direction:rtl; }
+.adminUsersDetailsHeader{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;
 }
-.au_input {
-  width: 100%;
-  min-width: 0; /* מונע שבירת גריד */
-}
-.au_input::placeholder { color: var(--muted); opacity: .9; }
-.au_input:focus,
-.au_select:focus {
-  border-color: var(--primary);
-  box-shadow: var(--ring-prim);
-  transform: translateY(-1px);
-}
+.adminUsersTitleSm{ margin:0; font-size:1.06rem; font-weight:600; letter-spacing:.2px; color:var(--au-text); }
 
-/* מצבי מידע */
-.au_state {
-  padding: 12px 14px;
-  color: var(--muted);
-  background: #ffffff;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
+.adminUsersGrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+
+.adminUsersCard{
+  background:var(--au-card); border:1px solid var(--au-border); border-radius:var(--au-radius-md);
+  padding:14px; box-shadow:var(--au-shadow-md);
 }
-.au_error {
-  padding: 12px 14px;
-  color: #7f1d1d;
-  background: linear-gradient(180deg, #ffeaea, #fff7f7);
-  border: 1px solid #fecaca;
-  border-radius: var(--radius);
+.adminUsersCard h4{ margin:0 0 10px; font-size:1.06rem; font-weight:600; letter-spacing:.2px; color:var(--au-text); }
+
+.adminUsersField{
+  display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+  padding:6px 0; border-bottom:1px dashed #eef2f6;
 }
+.adminUsersField:last-child{ border-bottom:0; }
+.adminUsersField span{ color:var(--au-muted); }
+.adminUsersField b{ color:var(--au-text); font-weight:600; }
 
-/* ==============================
-   3) טבלה — חדה, קריאה ורספונסיבית
-   ============================== */
-.auTable_wrap {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow-x: auto; /* גלילה אופקית למסכים צרים – שומר על העמודות */
-  background: var(--card);
-  box-shadow: var(--shadow-2);
-  position: relative;
+/* ===== תגיות סטטוס ===== */
+.adminUsersBadge{
+  display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+  border:1px solid var(--au-border); font-weight:600; font-size:.85rem; white-space:nowrap;
+  background:#f8fafc; color:var(--au-text);
 }
+.adminUsersBadgeActive{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+.adminUsersBadgeBlocked{ background:#fef2f2; color:#991b1b; border-color:#fecaca; }
 
-.auTable {
-  width: 100%;
-  min-width: 980px;  /* לא פוגעים במבנה העמודות */
-  border-collapse: separate;
-  border-spacing: 0;
-  direction: rtl;
+/* ===== כפתורים ===== */
+.adminUsersBtn, .adminUsersActionBtn{
+  padding:9px 14px; border-radius:999px; border:1px solid var(--au-border); background:#fff; color:var(--au-text);
+  cursor:pointer; font-weight:600; letter-spacing:.25px;
+  transition:transform .06s, box-shadow .15s, border-color .15s;
 }
-
-.auTable thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: linear-gradient(180deg, #ffffff, #f7fbff);
-  color: #0b1627;
-  font-weight: 800;
-  letter-spacing: .2px;
-  padding: 14px 12px;
-  text-align: start;
-  border-bottom: 2px solid var(--border);
+.adminUsersBtn:hover, .adminUsersActionBtn:hover{
+  border-color:#1a89ff; box-shadow:var(--au-ring); transform:translateY(-1px);
 }
+.adminUsersActionDanger{ color:#ef4444; }
+.adminUsersActionOk{ color:#0f5132; }
+.adminUsersActionBtn:disabled{ opacity:.6; transform:none; box-shadow:none; cursor:default; }
 
-.auTable tbody td {
-  padding: 14px 12px;
-  text-align: start;
-  border-bottom: 1px solid var(--border);
-  color: var(--ink);
+/* ===== רספונסיבי ===== */
+@media (max-width: 820px){
+  .adminUsersHero{ padding:70px 4% 42px; }
+  .adminUsersHeroText{ padding:28px 22px; }
+  .adminUsersSection{ padding:6px 4% 28px; }
+  .adminUsersFilters{ grid-template-columns:1fr 1fr; }
+  .adminUsersInput{ grid-column:1 / -1; }
 }
-
-/* זברה + הובר */
-.auTable tbody tr:nth-child(even):not(.auDetails_row) { background: #fbfdff; }
-.au_row { cursor: pointer; transition: background .15s, transform .06s, filter .15s; }
-.au_row:hover { background: #f2f7ff; filter: saturate(1.02); }
-.au_rowSelected { background: #eaf2ff; box-shadow: inset -4px 0 0 var(--primary); transform: translateY(-1px); }
-
-/* טיפוגרפיה "מספרית" לעמודות מתאימות */
-.auTable tbody tr > td:first-child,
-.auTable tbody tr > td:nth-child(2),
-.auTable tbody tr > td:nth-child(4),
-.auTable tbody tr > td:nth-child(5) {
-  font-family: var(--mono);
-  letter-spacing: .2px;
-  color: #1f2937;
-}
-
-/* שורת פרטים מתחת לרשומה */
-.auDetails_row  { background: #f8fbff; }
-.auDetails_cell { padding: 0; }
-.auDetails_card {
-  padding: 16px;
-  border-top: 1px solid var(--border);
-  background: var(--card);
-  animation: auExpand .18s ease-out;
-}
-@keyframes auExpand { from { opacity: .6; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ===================================================
-   4) פרטי משתמש (AdminUserDetails) — כרטיסים נקיים
-   =================================================== */
-.auDetails_wrap { width: 100%; direction: rtl; }
-.auDetails_header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.au_btn {
-  padding: 9px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  color: var(--ink);
-  cursor: pointer;
-  font-weight: 800;
-  letter-spacing: .25px;
-  transition: transform .06s, box-shadow .15s, border-color .15s;
-}
-.au_btn:hover { border-color: var(--primary); box-shadow: var(--ring-prim); transform: translateY(-1px); }
-
-.au_grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
-}
-
-.au_card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-  box-shadow: var(--shadow-1);
-}
-.au_card h4 { margin: 0 0 10px; font-size: 1.06rem; font-weight: 800; letter-spacing: .2px; color: var(--ink); }
-
-.au_field {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px dashed #eef2f6;
-}
-.au_field:last-child { border-bottom: 0; }
-.au_field span { color: var(--muted); }
-.au_field b   { color: var(--ink); font-weight: 800; }
-
-/* ================================
-   5) תגיות סטטוס וכפתורי פעולה
-   ================================ */
-.au_badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  font-weight: 800;
-  font-size: .85rem;
-  white-space: nowrap;
-  background: #f8fafc;
-  color: var(--ink);
-}
-.au_badgeActive {
-  background: #ecfdf5;
-  color: #065f46;
-  border-color: #a7f3d0;
-}
-.au_badgeBlocked {
-  background: #fef2f2;
-  color: #991b1b;
-  border-color: #fecaca;
-}
-
-.au_actionCol { white-space: nowrap; }
-
-.au_actionBtn {
-  padding: 7px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  color: var(--ink);
-  font-weight: 800;
-  letter-spacing: .2px;
-  cursor: pointer;
-  transition: transform .06s, box-shadow .15s, border-color .15s, filter .15s;
-}
-.au_actionBtn:hover { border-color: var(--primary); box-shadow: var(--ring-prim); transform: translateY(-1px); }
-
-.au_actionDanger { color: var(--danger); }
-.au_actionOk     { color: #0f5132; } /* ירקרק כהה קריא */
-
-.au_actionBtn:disabled { cursor: default; opacity: .6; transform: none; box-shadow: none; }
-
-/* ==========================
-   6) Responsiveness & A11y
-   ========================== */
-/* בינוני: מצמצמים מעט את הסלקטים */
-@media (max-width: 1024px) {
-  .auList_filters { grid-template-columns: minmax(220px, 1fr) 150px 150px; }
-}
-
-/* טבלט: החיפוש עובר לשורה נפרדת מעל, תפקיד+סטטוס לצד־לצד */
-@media (max-width: 820px) {
-  .auList_filters { grid-template-columns: 1fr 1fr; }
-  .au_input { grid-column: 1 / -1; } /* שורת חיפוש שלמה */
-}
-
-/* מובייל: כל פריט בשורה משלו */
-@media (max-width: 520px) {
-  .auPage_single { padding: 16px; padding-top: max(44px, calc(env(safe-area-inset-top) + 20px)); }
-  .auList_filters { grid-template-columns: 1fr; }
-}
-
-/* נגישות פוקוס */
-:where(.au_input, .au_select, .au_btn, .au_actionBtn):focus-visible {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: var(--ring-prim);
+@media (max-width: 640px){
+  .adminUsersFilters{ grid-template-columns:1fr; }
 }

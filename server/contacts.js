@@ -701,6 +701,9 @@ router.post("/product/:pid/message-to-seller", adminGuard, async (req, res) => {
   }
 });
 
+
+
+
 /* =======================================================================
    ↓↓↓ חדש: הערות מנהל פנימיות (לא נשלחות באימייל) ↓↓↓
 ======================================================================= */
@@ -738,6 +741,10 @@ router.post("/product/:pid/internal-note", adminGuard, async (req, res) => {
     return res.status(500).json({ success:false, message:"DB error saving note" });
   }
 });
+
+
+
+
 
 /**
  * POST /api/contacts/:ticketId/internal-note

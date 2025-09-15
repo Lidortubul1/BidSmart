@@ -1,12 +1,15 @@
 // src/pages/productPage/views/AdminView.jsx
-
 import React from "react";
 import ProductLayout from "../components/ui/ProductLayout";
 import AdminProductPanel from "../components/AdminProductPanel";
+
 import SellerRating from "../components/ui/SellerRating";
 import OrderDetails from "../components/OrderDetails";
-import Box from "../components/ui/Box";
+import UserGuestView from "./UserGuestView";
 import styles from "../ProductPage.module.css";
+// למעלה יחד עם הייבוא הקיימים
+import { usePaymentDeadline } from "../hooks/usePaymentDeadline";
+import { formatCountdown } from "../utils/time";
 
 /**
  * AdminView
@@ -22,43 +25,97 @@ import styles from "../ProductPage.module.css";
  * - אין שינויי מצב נתונים כאן; זהו רכיב תצוגה “טהור” שמקבל נתונים מהורה.
  */
 export default function AdminView({
-  id,            // product_id עבור פעולות ניהול
-  product,       // אובייקט מוצר מלא
-  status,        // סטטוס מנורמל של המוצר ("not sold" / "sale" / "blocked" / "admin blocked" ...)
-  saleInfo,      // רשומת מכירה אם קיימת (sale)
-  images,        // מערך תמונות ל־ProductLayout
-  loading,       // דגל לטעינת אופציות המוכר
-  sellerOption,  // "delivery" | "delivery+pickup" (מ־useSellerOptions)
-  sellerRating,  // דירוג ממוצע של המוכר
+  id,
+  product,
+  status,
+  saleInfo,
+  images,
+  loading,
+  sellerOption,
+  sellerRating,
+  guestViewProps = {},
 }) {
-  /* ----- 1) מוצר שלא נמכר ----- */
-  // מציגים פרטי מוצר, הודעת מצב (האם יש זוכה שלא שילם/לא נמכר), מידע על אופן המסירה, ודירוג מוכר.
+  const hasWinner =
+    (product?.winner_id_number && String(product.winner_id_number).trim() !== "") ||
+    !!(saleInfo?.buyer_id_number || saleInfo?.winner_id_number);
+const awaiting = status === "for sale" && hasWinner;
+const { secondsLeft, deadlineText } = usePaymentDeadline(
+  product?.last_bid_time,
+  awaiting,
+  product?.product_id
+);
+
+  // 0) for sale בלי זוכה – מציגים כמו קונה + פאנל ניהול למטה
+  if (status === "for sale" && !hasWinner) {
+    return (
+      <UserGuestView
+        product={product}
+        images={images}
+        status={status}
+        {...guestViewProps}
+        adminPanel={
+          <div className={styles.adminSection}>
+            <AdminProductPanel productId={id} />
+          </div>
+        }
+      />
+    );
+  }
+// 0.5) for sale עם זוכה – הרוכש טרם שילם + טיימר
+if (status === "for sale" && hasWinner) {
+  return (
+    <ProductLayout
+      images={images}
+      adminPanel={<AdminProductPanel productId={id} />}
+    >
+      <h1>{product.product_name}</h1>
+
+      {secondsLeft > 0 ? (
+        <>
+          <p
+            className={styles.notice}
+              style={{ background: "#fffcf2ff", border: "1px solid #e0d9c0ff", color: "#856404" }}
+          >
+            הרוכש טרם שילם. ניתן לשלם עד <b>{deadlineText}</b>.
+            <br />
+            זמן שנותר לתשלום: {formatCountdown(secondsLeft)}
+          </p>
+        </>
+      ) : (
+        <p className={styles.error} style={{ marginTop: 12 }}>
+          חלפו 24 שעות מאז הזכייה — הזכייה תבוטל והפריט ייחשב "לא נמכר".
+        </p>
+      )}
+
+      <p className={styles.description}>{product.description}</p>
+      <p className={styles.price}>מחיר פתיחה: ₪{product.price}</p>
+    </ProductLayout>
+  );
+}
+
+  // 1) not sold – כרטיס מוצר + פאנל ניהול
   if (status === "not sold") {
-    const hasWinner =
+    const hasWinnerOnNotSold =
       product?.winner_id_number != null &&
       String(product.winner_id_number).trim() !== "";
 
     return (
       <ProductLayout
         images={images}
-        adminPanel={
-          <div className={styles.adminSection}>
-            <AdminProductPanel productId={id} />
-          </div>
-        }
+        adminPanel={<AdminProductPanel productId={id} />}
       >
         <h1>{product.product_name}</h1>
 
-        {hasWinner ? (
-          <p
-            className={styles.notice}
-            style={{ background: "#fff3cd", border: "1px solid #ffeeba", color: "#856404" }}
-          >
-            הרוכש לא שילם על מוצר זה
-          </p>
-        ) : (
-          <p className={styles.notice}>מוצר זה לא נמכר.</p>
-        )}
+     {hasWinnerOnNotSold ? (
+   <p
+     className={styles.notice}
+     style={{ background: "#fffcf2ff", border: "1px solid #e0d9c0ff", color: "#856404" }}
+   >
+     הרוכש לא שילם על המוצר
+   </p>
+ ) : (
+   <p className={styles.notice}>מוצר זה לא נמכר.</p>
+ )}
 
         <p className={styles.description}>{product.description}</p>
         <p className={styles.price}>מחיר פתיחה: ₪{product.price}</p>
@@ -80,17 +137,12 @@ export default function AdminView({
     );
   }
 
-  /* ----- 2) מוצר שנמכר – פרטי מכירה (צד אדמין) ----- */
-  // מציגים OrderDetails עם adminView=true כדי להציג שדות/סטטוס מנוהלים ברמת אדמין.
+  // 2) sale – פרטי הזמנה + פאנל ניהול
   if (status === "sale" && saleInfo) {
     return (
       <ProductLayout
         images={images}
-        adminPanel={
-          <div className={styles.adminSection}>
-            <AdminProductPanel productId={id} />
-          </div>
-        }
+        adminPanel={<AdminProductPanel productId={id} />}
       >
         <h1>{product.product_name}</h1>
         <p className={styles.notice}>המוצר נמכר.</p>
@@ -104,28 +156,44 @@ export default function AdminView({
     );
   }
 
-  /* ----- 3) מוצר חסום/נמחק – הודעת מידע ----- */
-  // תצוגה לקהל שאינו בעלים – מסבירה שהמוצר הוסר/נחסם ואינו זמין עוד.
-  if (status === "admin blocked" || status === "blocked") {
+  // 3) admin blocked – כמו OwnerView מבחינת נראות + פאנל ניהול
+  if (status === "admin blocked") {
     return (
-      <Box>
-        <h3 style={{ marginTop: 0 }}>{product.product_name}</h3>
-        <div>
-          {status === "admin blocked"
-            ? 'מוצר זה נמחק ע"י ההנהלה ואינו זמין יותר'
-            : "המוצר נמחק על ידי המוכר ואינו זמין יותר"}
-        </div>
-        <div style={{ marginTop: 8, color: "#555" }}>
-          תיאור: {product.description || "-"}
-        </div>
-        <div style={{ marginTop: 4, color: "#555" }}>
-          מחיר פתיחה: ₪{product.price ?? "-"}
-        </div>
-      </Box>
+      <ProductLayout
+        images={images}
+        adminPanel={<AdminProductPanel productId={id} />}
+      >
+        <h1>{product.product_name}</h1>
+        <p className={styles.notice}>ההנהלה חסמה מוצר זה, נא לפנות לתמיכה להמשך בירור.</p>
+        <p className={styles.description}>תיאור: {product.description || "-"}</p>
+        <p className={styles.price}>מחיר פתיחה: ₪{product.price ?? "-"}</p>
+      </ProductLayout>
     );
   }
 
-  /* ----- 4) ברירת מחדל ----- */
-  // לא אמור להגיע לכאן בתרחיש תקין; שומר עקביות.
-  return null;
+  // 4) blocked – כמו OwnerView מבחינת נראות + פאנל ניהול
+  if (status === "blocked") {
+    return (
+      <ProductLayout
+        images={images}
+        adminPanel={<AdminProductPanel productId={id} />}
+      >
+        <h1>{product.product_name}</h1>
+        <p className={styles.notice}>המוצר נמחק על ידי המוכר ואינו זמין יותר.</p>
+        <p className={styles.description}>תיאור: {product.description || "-"}</p>
+        <p className={styles.price}>מחיר פתיחה: ₪{product.price ?? "-"}</p>
+      </ProductLayout>
+    );
+  }
+
+  // 5) ברירת מחדל
+  return (
+    <ProductLayout
+      images={images}
+      adminPanel={<AdminProductPanel productId={id} />}
+    >
+      <h1>{product?.product_name || "מוצר"}</h1>
+      <p className={styles.notice}>לא נמצאה תצוגה מתאימה לסטטוס הנוכחי.</p>
+    </ProductLayout>
+  );
 }

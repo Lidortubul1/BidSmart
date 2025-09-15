@@ -8,7 +8,6 @@ import {
   cancelQuotationRegistration,
 } from "../../../services/quotationApi";
 import { uploadIdCard, getCurrentUser } from "../../../services/authApi";
-import { durationToMinutesDisplay } from "../utils/time";
 import { formatDate, formatTime } from "../utils/datetime";
 
 export default function RegistrationBlock({
@@ -47,75 +46,76 @@ export default function RegistrationBlock({
       } catch {}
     })();
   }, [user?.email, user?.id_number, user?.id_card_photo, setUser]);
-const completeRegistration = useCallback(async (idNum) => {
-  try {
-    const productId = product?.product_id;
-    const res = await registerToQuotation(productId, idNum);
-    const dateStr = product?.start_date ? formatDate(product.start_date) : "";
-    const timeStr = product?.start_date ? formatTime(product.start_date) : "";
 
-    if (res.success || res.message === "כבר נרשמת למכירה הזו") {
-      setIsRegistered(true);
-      setShowIdForm(false);
+  const completeRegistration = useCallback(async (idNum) => {
+    try {
+      const productId = product?.product_id;
+      const res = await registerToQuotation(productId, idNum);
+      const dateStr = product?.start_date ? formatDate(product.start_date) : "";
+      const timeStr = product?.start_date ? formatTime(product.start_date) : "";
+
+      if (res.success || res.message === "כבר נרשמת למכירה הזו") {
+        setIsRegistered(true);
+        setShowIdForm(false);
+        openModal?.({
+          title: res.success ? "נרשמת!" : "כבר נרשמת!",
+          message: dateStr
+            ? `המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`
+            : "נרשמת למכירה בהצלחה.",
+          confirmText: "אישור",
+        });
+      } else {
+        throw new Error(res.message || "שגיאה");
+      }
+    } catch {
       openModal?.({
-        title: res.success ? "נרשמת!" : "כבר נרשמת!",
-        message: dateStr
-          ? `המכירה תחל בתאריך ${dateStr} בשעה ${timeStr}`
-          : "נרשמת למכירה בהצלחה.",
-        confirmText: "אישור",
+        title: "שגיאה",
+        message: "שגיאה בעת ניסיון ההרשמה למכרז",
+        confirmText: "סגור",
       });
-    } else {
-      throw new Error(res.message || "שגיאה");
     }
-  } catch {
-    openModal?.({
-      title: "שגיאה",
-      message: "שגיאה בעת ניסיון ההרשמה למכרז",
-      confirmText: "סגור",
-    });
-  }
-}, [product?.product_id, product?.start_date, openModal]);
+  }, [product?.product_id, product?.start_date, openModal]);
 
   // ⬇️ עטיפה ב-useCallback כדי שה-effect למטה יוכל לתלות בה נקייה
-const handleRegisterClick = useCallback(async () => {
-  if (!user?.email) {
-    onAttemptRegister?.();
-    onNeedLogin?.();
-    return;
-  }
-  if (isOwner) {
-    openModal?.({
-      title: "פעולה לא אפשרית",
-      message: "לא ניתן להירשם למוצר שהעלית.",
-      confirmText: "הבנתי",
-    });
-    return;
-  }
+  const handleRegisterClick = useCallback(async () => {
+    if (!user?.email) {
+      onAttemptRegister?.();
+      onNeedLogin?.();
+      return;
+    }
+    if (isOwner) {
+      openModal?.({
+        title: "פעולה לא אפשרית",
+        message: "לא ניתן להירשם למוצר שהעלית.",
+        confirmText: "הבנתי",
+      });
+      return;
+    }
 
-  let finalUser = user;
-  if (!user.id_number || !user.id_card_photo) {
-    try {
-      const fresh = await getCurrentUser();
-      if (fresh) {
-        setUser?.(fresh);
-        finalUser = fresh;
-      }
-    } catch {}
-  }
-  if (!finalUser.id_number || !finalUser.id_card_photo) {
-    setShowIdForm(true);
-  } else {
-    completeRegistration(finalUser.id_number);
-  }
-}, [
-  user,
-  isOwner,
-  onAttemptRegister,
-  onNeedLogin,
-  openModal,
-  setUser,
-  completeRegistration,
-]);
+    let finalUser = user;
+    if (!user.id_number || !user.id_card_photo) {
+      try {
+        const fresh = await getCurrentUser();
+        if (fresh) {
+          setUser?.(fresh);
+          finalUser = fresh;
+        }
+      } catch {}
+    }
+    if (!finalUser.id_number || !finalUser.id_card_photo) {
+      setShowIdForm(true);
+    } else {
+      completeRegistration(finalUser.id_number);
+    }
+  }, [
+    user,
+    isOwner,
+    onAttemptRegister,
+    onNeedLogin,
+    openModal,
+    setUser,
+    completeRegistration,
+  ]);
 
   // לא לתלות ב-onAutoHandled ישירות – נשמור אותה ב-ref
   const onAutoHandledRef = useRef(onAutoHandled);
@@ -159,9 +159,6 @@ const handleRegisterClick = useCallback(async () => {
       alive = false;
     };
   }, [product?.product_id, user?.id_number]);
-
-
-
 
   const handleIdChange = (e) => {
     const digitsOnly = e.target.value.replace(/\D/g, "");
@@ -228,12 +225,21 @@ const handleRegisterClick = useCallback(async () => {
 
   return (
     <>
-      <p className={styles.status}>
-        זמן המכירה למוצר זה הוא {durationToMinutesDisplay(product.end_time)} דקות
-      </p>
-
       {isRegistered ? (
-        <p className={styles.success}>נרשמת למכירה זו!</p>
+        <>
+          <p className={styles.success}>נרשמת למכירה זו!</p>
+          <div className={styles.actionsRow}>
+            <button className={styles.cancelButton} onClick={handleCancelRegistration}>
+              הסרה מהמכרז
+            </button>
+            <button
+              className={styles.bidButton}
+              onClick={() => navigate(`/live-auction/${product.product_id}`)}
+            >
+              למעבר למכירה הפומבית לחץ כאן!
+            </button>
+          </div>
+        </>
       ) : (
         <button className={styles.bidButton} onClick={handleRegisterClick}>
           {user ? "הירשם/י למכירה" : "התחבר/י והירשם/י למכירה"}
@@ -280,20 +286,6 @@ const handleRegisterClick = useCallback(async () => {
 
           <button type="submit">שלח ואשר הרשמה</button>
         </form>
-      )}
-
-      {isRegistered && (
-        <>
-          <button className={styles.cancelButton} onClick={handleCancelRegistration}>
-            הסרה מהמכרז
-          </button>
-          <button
-            className={styles.bidButton}
-            onClick={() => navigate(`/live-auction/${product.product_id}`)}
-          >
-            למעבר למכירה הפומבית לחץ כאן!
-          </button>
-        </>
       )}
     </>
   );
