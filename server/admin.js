@@ -751,7 +751,6 @@ support@bidsmart.com
 
 
 // מוצרים של מוכר מסוים לפי ת״ז (למנהל)
-// מוצרים של מוכר מסוים לפי ת״ז (למנהל)
 router.get("/seller/:id_number/products", async (req, res) => {
   const { id_number } = req.params;
   const conn = await db.getConnection();

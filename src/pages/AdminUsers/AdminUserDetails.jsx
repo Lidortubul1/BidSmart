@@ -10,6 +10,40 @@ export default function AdminUserDetails({ userId, onClose, onToggleStatus, togg
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // === פורמט תצוגה ===
+  const formatRole = (role) => {
+    switch (String(role || "").toLowerCase()) {
+      case "seller": return "משתמש מוכר";
+      case "buyer":  return "משתמש רגיל";
+      default:       return role || "-";
+    }
+  };
+
+  const formatStatus = (status) => {
+    switch (String(status || "").toLowerCase()) {
+      case "active":  return "פעיל";
+      case "blocked": return "חסום";
+      default:        return status || "-";
+    }
+  };
+
+  const formatDeliveryOptions = (val) => {
+    const raw = String(val || "").toLowerCase().trim();
+    if (!raw) return "-";
+
+    // תמיכה בגרסאות שונות: "delivery+pickup", "delivery,pickup", "pickup+delivery", "delivery_and_pickup" וכו'
+    const tokens = raw.split(/[^a-z]+/).filter(Boolean); // מפצל על כל תו שאינו אות
+    const hasDelivery = tokens.includes("delivery");
+    const hasPickup   = tokens.includes("pickup");
+
+    if (hasDelivery && hasPickup) return "משלוח ואיסוף עצמי";
+    if (hasDelivery)              return "משלוח";
+    if (hasPickup)                return "איסוף עצמי";
+
+    // ברירת מחדל אם הגיע ערך אחר
+    return val;
+  };
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -88,9 +122,14 @@ export default function AdminUserDetails({ userId, onClose, onToggleStatus, togg
             <div className={styles.adminUsersField}><span>שם:</span><b>{[user.first_name, user.last_name].filter(Boolean).join(" ") || "-"}</b></div>
             <div className={styles.adminUsersField}><span>דוא״ל:</span><b>{user.email || "-"}</b></div>
             <div className={styles.adminUsersField}><span>טלפון:</span><b>{user.phone || "-"}</b></div>
-            <div className={styles.adminUsersField}><span>תפקיד:</span><b>{user.role}</b></div>
-            <div className={styles.adminUsersField}><span>סטטוס:</span><b>{user.status}</b></div>
-            <div className={styles.adminUsersField}><span>נרשם:</span><b>{user.registered ? new Date(user.registered).toLocaleString("he-IL") : "-"}</b></div>
+
+            {/* מיפוי תפקיד */}
+            <div className={styles.adminUsersField}><span>תפקיד:</span><b>{formatRole(user.role)}</b></div>
+
+            {/* מיפוי סטטוס */}
+            <div className={styles.adminUsersField}><span>סטטוס:</span><b>{formatStatus(user.status)}</b></div>
+
+            <div className={styles.adminUsersField}><span>תאריך ושעת הרשמה:</span><b>{user.registered ? new Date(user.registered).toLocaleString("he-IL") : "-"}</b></div>
             {user.role !== "buyer" && "rating" in user && (
               <div className={styles.adminUsersField}><span>דירוג:</span><b>{user.rating ?? "-"}</b></div>
             )}
@@ -115,7 +154,10 @@ export default function AdminUserDetails({ userId, onClose, onToggleStatus, togg
           {user.role !== "buyer" && (
             <div className={styles.adminUsersCard}>
               <h4>העדפות משלוח</h4>
-              <div className={styles.adminUsersField}><span>אפשרויות:</span><b>{user.delivery_options || "-"}</b></div>
+              <div className={styles.adminUsersField}>
+                <span>אפשרויות:</span>
+                <b>{formatDeliveryOptions(user.delivery_options)}</b>
+              </div>
             </div>
           )}
         </div>

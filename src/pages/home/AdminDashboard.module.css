@@ -1,217 +1,199 @@
-.page {
-  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
-  font-family: "Heebo", sans-serif;
-  color: #222;
-  min-height: 100vh;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap");
+
+/* טוקנים ועוגנים */
+:root{
+  --ap-card:#ffffff;
+  --ap-text:#0f172a;
+  --ap-muted:#56637a;
+  --ap-border:#e2e8f0;
+  --ap-shadow-lg:0 12px 40px rgba(16,24,40,.12);
+  --ap-shadow-md:0 6px 18px rgba(2,32,71,.08);
+  --ap-ring:0 0 0 4px rgba(26,137,255,.18);
+  --ap-radius-xl:22px;
+  --page-w:1160px;
 }
 
-.hero {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-.heroText {
-  background: rgba(255, 255, 255, 0.65);
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-}
-
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(6, 150px);
-  gap: 20px;
-  justify-content: center;
-  margin-top: 30px;
-}
-
-.card {
-  background-color: #fff;
-  border-radius: 15px;
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.card h3 {
-  font-size: 1rem;
-  margin-bottom: 10px;
-}
-
-.card p {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.quickLinks {
-  margin-top: 40px;
-  text-align: center;
-}
-
-.quickLinks ul {
-  list-style: none;
-  padding: 0;
-}
-
-.quickLinks li {
-  margin: 10px 0;
-}
-
-.quickLinks a {
-  text-decoration: none;
-  color: #222;
-  font-weight: bold;
-}
-
-.messagesSection {
-  margin-top: 40px;
-  background-color: #fff;
-  padding: 34px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.messageList {
-  list-style: none;
-  width: 500px;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.messageItem {
-  padding: 12px 16px;
-  border: 1px solid #c2c2c2;
-  border-radius: 10px;
-  background-color: #f9f9f9;
+/* ===== מעטפת עמוד עם כתמים כמו שאר האתר ===== */
+.page{
   direction: rtl;
-}
+  background: linear-gradient(145deg, #f0efee, #ffffff);
+  background-attachment: fixed;
+  font-family: "Heebo", sans-serif;
+  color: var(--ap-text);
+  min-height: 100vh;
 
-.messageHeader {
   display: flex;
-  justify-content: space-between;
-  font-weight: 600;
-  margin-bottom: 6px;
+  flex-direction: column;
+  align-items: center;
+
+  position: relative;
+  padding: 140px 20px 48px;
 }
 
-.subject {
-  color: #1a89ff;
+/* שכבת כתמים צדדיים (מאחורי התוכן) */
+.pageBg{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.pageBg::before,
+.pageBg::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  transform: translateY(-50%);
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: .33;
+}
+.pageBg::before{ left: -220px; background: #e8f0ff; }
+.pageBg::after { right: -220px; background: #fff3e6; }
+
+/* מבטיח שהתוכן מעל הכתמים */
+.hero,
+.contentSection{
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== Hero ממורכז ומזוגג ===== */
+.hero{
+  width: 100%;
+  max-width: var(--page-w);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+
+.heroCard{
+  width:100%;
+  background: rgba(255,255,255,.65);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-xl);
+  box-shadow: var(--ap-shadow-lg);
+  padding: 28px 22px;
+}
+
+.heroText h1{
+  font-size: 2.2rem;
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+.subText{
+  margin: 0;
+  color: var(--ap-muted);
   font-size: 1.05rem;
 }
 
-.date {
-  font-size: 0.9rem;
-  color: #666;
+/* ===== קישורים מהירים — גלולות ממורכזות תואמות אתר ===== */
+.quickLinks{
+  margin-top: 16px;
 }
-
-.details {
-  font-size: 0.95rem;
-  color: #333;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.unreplied {
-  background-color: #eeffeb;
-  color: #28c62b;
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-right: 8px;
-}
-.replied {
-
-    background-color: #fffceb;
-  color: #7d6a0d;
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-right: 8px;
-}
-
-.viewAllLink {
-  margin-top: 12px;
-  text-align: center;
-  direction: rtl;
-}
-
-.viewAllLink a {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.viewAllLink a:hover {
-  text-decoration: underline;
-}
-.quickLinks {
-  margin-top: 40px;
-  text-align: center;
-}
-
-.quickLinks h3 {
-  font-size: 1.2rem;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.quickLinks ul {
+.quickLinks ul{
   list-style: none;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
+  margin: 0;
+  display:flex;
+  justify-content:center;
+  gap: 10px;
   flex-wrap: wrap;
 }
-
-.quickLinks li {
-  margin: 5px 0;
-}
-
-.quickLinks a {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #000;
-  color: #fff;
-  align-items: center;
-
-  border-radius: 30px;
+.quickLinks a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--ap-border);
+  background: linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  color: var(--ap-text);
   text-decoration: none;
-  transition: 0.3s;
-  font-weight: bold;
+  font-weight: 600;
+  box-shadow: var(--ap-shadow-md);
+  transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.quickLinks a:hover{
+  transform: translateY(-1px);
+  border-color:#bcd7ff;
+  box-shadow:0 10px 26px rgba(2,32,71,.12);
 }
 
-.quickLinks a:hover {
-  background-color: #333;
+/* ===== כרטיסי תוכן (פניות/סטטיסטיקות) ===== */
+.contentSection{
+  width: 100%;
+  max-width: var(--page-w);
+  margin-top: 16px;
+}
+.cardShell{
+  background: var(--ap-card);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-xl);
+  box-shadow: var(--ap-shadow-md);
+  padding: 18px;
 }
 
-
-/* כפתור השב לפניות אחרונות */
+/* ===== כפתור השב לפניות (נשמר סגנון אבל קצת מלוטש) ===== */
 .replyBtn {
   padding: 10px 18px;
-  border-radius: 30px;
-  border: none;
-  background-color: #000; /* רקע שחור */
-  color: #fff;            /* טקסט לבן */
+  border-radius: 999px;
+  border: 1px solid var(--ap-border);
+  background: linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  color: var(--ap-text);
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
   text-align: center;
-  margin: 12px auto;       /* מרווח אוטומטי כדי למרכז */
-  display: block;          /* דרוש כדי שה־margin יעבוד */
-  transition: background-color 0.3s ease;
+  margin: 12px auto 4px;
+  display: block;
+  box-shadow: var(--ap-shadow-md);
+  transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.replyBtn:hover{
+  transform: translateY(-1px);
+  border-color: #bcd7ff;
+  box-shadow: 0 10px 26px rgba(2,32,71,.12);
+}
+.replyBtn:focus-visible{
+  outline: none;
+  box-shadow: var(--ap-ring);
+  border-color: #1a89ff;
 }
 
-.replyBtn:hover {
-  background-color: #333; /* גוון כהה יותר במעבר עכבר */
+/* ===== גרסה ישנה של כרטיסי סטטיסטיקות (אם תחזיר) — שמרתי כדי שיהיה תואם אתר ===== */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.card {
+  background: var(--ap-card);
+  border: 1px solid var(--ap-border);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--ap-shadow-md);
+}
+.card h3 {
+  font-size: .98rem;
+  margin: 0 0 8px;
+  color: var(--ap-muted);
+}
+.card p {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
 }
 
+/* ===== מובייל ===== */
+@media (max-width: 640px){
+  .page{ padding-top: 120px; }
+  .pageBg::before, .pageBg::after{ width:520px; height:520px; filter: blur(90px); opacity:.3; }
+  .heroCard{ padding: 22px; }
+  .heroText h1{ font-size: 1.9rem; }
+}

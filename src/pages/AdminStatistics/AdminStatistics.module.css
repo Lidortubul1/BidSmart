@@ -1,317 +1,325 @@
 @import url("https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap");
 
-/* ========= Theme Vars ========= */
-:root {
-  --primary: #1a89ff;
-  --secondary: #14b8a6;
-  --accent: #ffa502;
-  --danger: #ff6b6b;
+/* ===== Tokens תואמי אתר ===== */
+:root{
+  --page-w:1160px;
 
-  --ink: #0f172a;
-  --muted: #64748b;
-  --bg: #f5f7fb;
-  --card: #ffffff;
-  --border: #e8eef5;
+  --ink:#0f172a;
+  --muted:#64748b;
 
-  --ring: 0 0 0 3px rgba(26, 137, 255, 0.15);
-  --radius: 16px;
-  --radius-lg: 20px;
-  --shadow: 0 12px 30px rgba(26, 35, 58, 0.12);
-  --shadow-soft: 0 10px 20px rgba(26, 35, 58, 0.08);
+  --primary:#1a89ff;
+  --secondary:#14b8a6;
+  --accent:#ffa502;
+
+  --card:#ffffff;
+  --border:#e8eef5;
+
+  --ring:0 0 0 4px rgba(26,137,255,.16);
+  --radius:16px;
+  --radius-lg:22px;
+
+  --shadow:0 12px 40px rgba(16,24,40,.12);
+  --shadow-soft:0 6px 18px rgba(2,32,71,.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ink: #e5e7eb;
-    --muted: #9aa3af;
-    --bg: #0b1220;
-    --card: #0f172a;
-    --border: #1f2a44;
-    --shadow: 0 12px 30px rgba(2, 6, 23, 0.5);
-    --shadow-soft: 0 10px 20px rgba(2, 6, 23, 0.35);
-    --ring: 0 0 0 3px rgba(20, 184, 166, 0.25);
-  }
+/* ===== מעטפת עמוד – גרדיאנט, ללא כתמים ===== */
+.page{
+  direction:rtl;
+  font-family:"Heebo",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+  background: linear-gradient(145deg, #f0efee, #ffffff);
+  background-attachment: fixed;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  padding:160px 20px 32px; /* התאמה להאדר העליון של האתר */
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
+/* ===== Hero עליון שקוף (ללא כתמים) ===== */
+.hero{
+  width:100%;
+  max-width:var(--page-w);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:0;
 }
-
-/* ========= Page Shell ========= */
-.adminStatsContainer {
-  direction: rtl;
-  font-family: "Heebo", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  padding: 2rem;
-  max-width: 1300px;
-  margin: auto;
-  background:
-    radial-gradient(1200px 600px at 110% -10%, rgba(20, 184, 166, 0.07), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(26, 137, 255, 0.08), transparent 60%),
-    var(--bg);
-  border-radius: 24px;
+.heroCard{
+  width:100%;
+  max-width:760px;
+  background: rgba(255,255,255,.65);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:28px 22px 22px;
+  box-shadow: var(--shadow);
 }
-
-/* כותרת */
-.adminStatsTitle {
-  font-size: clamp(1.6rem, 1.2rem + 1.2vw, 2rem);
-  font-weight: 800;
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: var(--ink);
-  letter-spacing: 0.2px;
+.title{
+  margin:0 0 6px;
+  font-size:clamp(1.8rem,1.2rem + 1.4vw,2.3rem);
+  font-weight:800;
+  letter-spacing:.2px;
   background: linear-gradient(90deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.subtitle{
+  margin:0;
+  color:var(--muted);
+  font-size:0.98rem;
 }
 
-/* ========= Filters Bar ========= */
-.adminStatsFiltersRow {
-  position: sticky;
-  top: 12px;
-  z-index: 5;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, var(--card) 92%, transparent);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-lg);
-  margin: 0 auto 1.75rem;
-  flex-wrap: wrap;
-  backdrop-filter: blur(8px);
+/* ===== סקשנים (וגם שמות ישנים – תאימות לאחור) ===== */
+.section,
+.adminStatsSection{
+  width:100%;
+  max-width:var(--page-w);
+  margin:16px auto 20px;
+}
+.sectionHeader,
+.adminStatsSectionHeader{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.5rem;
+  margin-bottom:.75rem;
+  padding-bottom:.25rem;
+  border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.sectionTitle,
+.adminStatsSectionTitle{
+  margin:0;
+  font-size:1.15rem;
+  font-weight:800;
+  color:var(--ink);
+  text-align:center;
 }
 
-.adminStatsFilterGroup {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+/* ===== מסננים עליונים (וגם שמות ישנים) ===== */
+.filtersRow,
+.adminStatsFiltersRow{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin:0;
 }
-
-.adminStatsFiltersRow label {
-  font-weight: 600;
-  color: var(--ink);
-  font-size: 0.95rem;
+.filterGroup,
+.adminStatsFilterGroup{
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
-
+.filtersRow label,
+.adminStatsFiltersRow label{
+  font-weight:600;
+  color:var(--ink);
+  font-size:.95rem;
+}
+.filtersRow input[type="date"],
+.filtersRow select,
 .adminStatsFiltersRow input[type="date"],
-.adminStatsFiltersRow select {
-  padding: 0.5rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fbfdff;
-  color: var(--ink);
-  outline: none;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.08s ease;
-}
-@media (prefers-color-scheme: dark) {
-  .adminStatsFiltersRow input[type="date"],
-  .adminStatsFiltersRow select {
-    background: #0b1220;
-  }
-}
-.adminStatsFiltersRow input[type="date"]:hover,
-.adminStatsFiltersRow select:hover {
-  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
-}
-.adminStatsFiltersRow input[type="date"]:focus,
-.adminStatsFiltersRow select:focus {
-  border-color: var(--primary);
-  box-shadow: var(--ring);
-  transform: translateY(-1px);
-}
-
-.adminStatsAllTimeBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0.55rem 0.9rem;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, #ffffff, #f9fbff);
-  color: var(--ink);
-  font-weight: 600;
+.adminStatsFiltersRow select{
+  height:40px;
+  padding:0 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  color:var(--ink);
+  outline:none;
   box-shadow: var(--shadow-soft);
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform .06s, box-shadow .2s, border-color .2s;
 }
-.adminStatsAllTimeBtn:hover {
+.filtersRow input[type="date"]:hover,
+.filtersRow select:hover,
+.adminStatsFiltersRow input[type="date"]:hover,
+.adminStatsFiltersRow select:hover{
   transform: translateY(-1px);
-  box-shadow: var(--shadow);
-  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  border-color:#bcd7ff;
+  box-shadow:0 10px 26px rgba(2,32,71,.12);
 }
-.adminStatsAllTimeBtn:disabled {
-  opacity: 0.7;
-  cursor: default;
-  transform: none;
-  box-shadow: none;
-}
-
-/* ========= Sections ========= */
-.adminStatsSection { margin-bottom: 2rem; }
-
-.adminStatsSectionHeader {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.4rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+.filtersRow input[type="date"]:focus,
+.filtersRow select:focus,
+.adminStatsFiltersRow input[type="date"]:focus,
+.adminStatsFiltersRow select:focus{
+  border-color:#1a89ff;
+  box-shadow: var(--ring);
 }
 
-.adminStatsSectionTitle {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--ink);
+/* כפתור "כל הזמנים" */
+.allTimeBtn{
+  height:40px;
+  padding:0 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background: linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);
+  color:var(--ink);
+  font-weight:600;
+  cursor:pointer;
+  box-shadow: var(--shadow-soft);
+  transition: transform .06s, box-shadow .2s, border-color .2s, opacity .2s;
+}
+.allTimeBtn:hover{
+  transform: translateY(-1px);
+  border-color:#bcd7ff;
+  box-shadow:0 10px 26px rgba(2,32,71,.12);
+}
+.allTimeBtn:disabled{
+  opacity:.7;
+  cursor:default;
+  transform:none;
+  box-shadow:none;
 }
 
-.adminStatsSectionSub {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.95rem;
+/* ===== גריד כרטיסים – יותר רחב כברירת־מחדל =====
+   ברירת־המחדל: 2 עמודות (כרטיסים רחבים יותר)
+   מסכים רחבים במיוחד: 3 עמודות
+   מובייל: עמודה אחת */
+.grid,
+.adminStatsGrid{
+  width:100%;
+  max-width:var(--page-w);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(.9rem, 1vw, 1.2rem);
+}
+/* 3 בעמודה רק במסכים ממש רחבים */
+@media (min-width:1400px){
+  .grid, .adminStatsGrid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* מובייל */
+@media (max-width:700px){
+  .grid, .adminStatsGrid{ grid-template-columns: 1fr; }
 }
 
-/* ========= Cards Grid ========= */
-.adminStatsGrid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: clamp(1rem, 1vw, 1.5rem);
-}
-
-.adminStatsCard {
-  grid-column: span 4;
+/* ===== כרטיס סטטיסטיקה – “Glass” שקפקף, ללא ריבוע כפוי ===== */
+/* מכסה גם את המחלקה הישנה .adminStatsCard */
+.card,
+.adminStatsCard{
   position: relative;
-  background: color-mix(in srgb, var(--card) 92%, transparent);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+
+  /* זכוכית */
+  background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.48));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(232,238,245,.85);
   box-shadow: var(--shadow);
-  padding: 1.1rem 1.2rem 1rem;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.18s ease, box-shadow 0.25s ease, border-color 0.2s ease;
-  backdrop-filter: blur(8px);
-}
-@media (max-width: 1200px) {
-  .adminStatsCard { grid-column: span 6; }
-}
-@media (max-width: 700px) {
-  .adminStatsCard { grid-column: span 12; }
+  border-radius: var(--radius-lg);
+
+  /* רוחב – נשלט ע"י הגריד; גובה עקבי */
+  min-height: 380px;
+
+  /* תוכן */
+  padding: 16px 16px 14px;
+  display:flex;
+  flex-direction:column;
+  text-align:center;
+  transition: transform .18s ease, box-shadow .25s ease, border-color .2s ease;
 }
 
-.adminStatsCard::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 4px;
+/* פס עליון עדין */
+.card::before,
+.adminStatsCard::before{
+  content:"";
+  position:absolute; inset-inline:0; top:0; height:4px;
   background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-  opacity: 0.95;
-  animation: pulseBar 7s ease-in-out infinite alternate;
+  opacity:.85;
 }
 
-.adminStatsCard:hover {
+/* Hover */
+.card:hover,
+.adminStatsCard:hover{
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
-  box-shadow: 0 14px 40px rgba(26, 35, 58, 0.16);
+  border-color: color-mix(in srgb, var(--primary) 35%, rgba(232,238,245,.85));
+  box-shadow: 0 14px 40px rgba(26,35,58,.16);
 }
 
-.adminStatsCardTitle {
-  margin: 0 0 0.75rem;
-  font-weight: 800;
-  color: var(--ink);
-  letter-spacing: 0.2px;
-  font-size: 1.05rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* כותרות/סרגלים בתוך כרטיס */
+.cardTitle,
+.adminStatsCardTitle{
+  margin:0 0 .6rem;
+  font-weight:800;
+  color:var(--ink);
+  font-size:1.05rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.cardHeaderRow,
+.adminStatsCardHeaderRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.75rem;
+  margin-bottom:.5rem;
 }
 
-.adminStatsCardHeaderRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  margin-bottom: .5rem;
+/* פילטרים פנימיים בכרטיס */
+.inlineFilters,
+.adminStatsInlineFilters{
+  display:flex;
+  gap:.6rem;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom:.5rem;
+}
+.inlineFilters label,
+.adminStatsInlineFilters label{
+  font-weight:600; color:var(--ink);
+}
+.inlineFilters select,
+.adminStatsInlineFilters select{
+  padding:.4rem .7rem;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  color:var(--ink);
 }
 
-/* אזור גרף */
-.adminStatsChart {
-  width: 100%;
+/* אזור הגרף בתוך כרטיס – גובה עקבי */
+.chart,
+.adminStatsChart{
+  width:100%;
   height: 260px;
-  flex: 1;
-  min-height: 260px;
+  min-height:260px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-/* פילטרים פנימיים */
-.adminStatsInlineFilters {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 0.75rem;
+/* טקסטי עזר */
+.subTitle, .adminStatsSubTitle{
+  margin:.5rem 0; color:var(--muted); font-weight:600; text-align:center;
 }
-.adminStatsInlineFilters label {
-  font-weight: 600;
-  color: var(--ink);
-}
-.adminStatsInlineFilters select {
-  padding: 0.4rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fbfdff;
-  color: var(--ink);
-}
-@media (prefers-color-scheme: dark) {
-  .adminStatsInlineFilters select { background: #0b1220; }
+.conv, .adminStatsConv{
+  margin-top:.6rem; font-weight:800; color:var(--ink); text-align:center;
 }
 
-.adminStatsSubTitle {
-  margin-top: 0.75rem;
-  color: var(--muted);
-  font-weight: 600;
-}
+/* ===== רספונסיבי – רווח עליון ===== */
+@media (max-width:1024px){ .page{ padding-top:140px; } }
+@media (max-width:640px){  .page{ padding-top:120px; } }
 
-.adminStatsConv {
-  margin-top: 0.6rem;
-  font-weight: 800;
-  color: var(--ink);
-}
-
-/* ========= Recharts helpers ========= */
+/* ===== Recharts — שיפורים קלים ===== */
 :global(.recharts-rectangle),
-:global(.recharts-sector) {
-  cursor: pointer;
+:global(.recharts-sector){ cursor:pointer; }
+:global(.recharts-cartesian-axis-tick text){
+  fill:#64748b; font-weight:600; font-size:12px;
 }
-
-:global(.recharts-cartesian-axis-tick text) {
-  fill: var(--muted);
-  font-weight: 600;
-  font-size: 12px;
-}
-
 :global(.recharts-cartesian-grid-horizontal line),
-:global(.recharts-cartesian-grid-vertical line) {
+:global(.recharts-cartesian-grid-vertical line){
   stroke: color-mix(in srgb, var(--border) 65%, transparent);
 }
 
-/* ========= Small polish ========= */
-::selection {
-  background: color-mix(in srgb, var(--primary) 25%, transparent);
-}
-
-:focus-visible {
-  outline: none;
-  box-shadow: var(--ring);
-  border-color: var(--primary);
-}
-
-@keyframes pulseBar {
-  0% { opacity: .7; transform: translateX(-10%); }
-  50% { opacity: 1; transform: translateX(0%); }
-  100% { opacity: .7; transform: translateX(10%); }
-}
+/* ===== A11y / מיקרו-פוליש ===== */
+:focus-visible{ outline:none; box-shadow: var(--ring); border-color:#1a89ff; }
+::selection{ background: color-mix(in srgb, var(--primary) 25%, transparent); }

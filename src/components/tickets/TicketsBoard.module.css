@@ -31,6 +31,7 @@
   box-sizing: border-box;
   max-width: 80%;
   overflow: hidden; /* שלא "ידחוף" את העמודה */
+
 }
 
 /* רספונסיביות למסננים */

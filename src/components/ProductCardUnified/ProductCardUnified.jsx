@@ -76,6 +76,14 @@ const toNum = (v) => {
   const n = Number(String(v).replace(/[^\d.-]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
+// זיהוי ת״ז מוכר (מי שהעלה את המוצר) ממקורות שונים
+const sellerIdNumber =
+  String(
+    item?.seller_id_number ??
+    item?.sellerIdNumber ??
+    item?.seller?.id_number ??
+    ""
+  ).trim();
 
 // --- סורק חכם: אם לא נמצא באליוסים הידועים, נסרוק מפתחות שנשמעים כמו "מחיר פתיחה"
 function smartScanOpeningPrice(obj) {
@@ -181,6 +189,10 @@ const primaryBtnLabel = "צפייה נרחבת";
 
       {/* גוף הכרטיס – זהה ל-SellerCard */}
       <div className={styles.cardBody}>
+         <div className={styles.row}>
+    <span className={styles.label}>ת״ז מוכר:</span>
+    <span>{sellerIdNumber || "-"}</span>
+  </div>
         <div className={styles.row}>
           <span className={styles.label}>כמות נרשמים למוצר:</span>
           <span>{registrations === null ? "..." : registrations}</span>

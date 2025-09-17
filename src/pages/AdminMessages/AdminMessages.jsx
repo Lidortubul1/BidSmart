@@ -1,21 +1,12 @@
-//src\pages\AdminMessages\AdminMessages.jsx
-// דף ניהול פניות (Admin):
-// מציג למנהל את לוח הפניות (TicketsBoard) עם סינון, צפייה ומענה לדיווחים/פניות כלליות,
-// כולל כותרת עמוד, כפתור רענון מהיר (מעדכן key ללוח), ובקרת גישה — מציג מסך "אין הרשאה" למי שאינו מנהל.
-
+// src/pages/AdminMessages/AdminMessages.jsx
 import React, { useState } from "react";
 import TicketsBoard from "../../components/tickets/TicketsBoard";
 import { useAuth } from "../../auth/AuthContext";
 import s from "./AdminMessages.module.css";
 
-/**
- * דף ניהול פניות למנהל
- * - מוודא שהמשתמש מנהל
- * - מציג רשימת פניות עם מסננים
- */
 export default function AdminMessages() {
   const { user } = useAuth();
-  const [boardKey, setBoardKey] = useState(0); // לרענון מהיר של הלוח
+  const [boardKey, setBoardKey] = useState(0);
 
   if (!user || user.role !== "admin") {
     return (
@@ -27,16 +18,17 @@ export default function AdminMessages() {
     );
   }
 
-  return (
-    <main className={s.page}>
-      <header className={s.hero} role="banner">
+return (
+  <main className={s.page}>
+    {/* שכבת כתמים גלובלית לעמוד */}
+    <div className={s.pageBg} aria-hidden />
+
+    <header className={s.hero} role="banner">
+      <div className={s.heroCard}>
         <div className={s.heroHead}>
-          <div className={s.heroIcon} aria-hidden>📮</div>
           <div className={s.headerText}>
             <h1 className={s.title}>ניהול פניות</h1>
-            <p className={s.subtitle}>
-              צפייה, סינון ומענה לפניות גולשים — דיווחים והודעות כלליות.
-            </p>
+            <p className={s.subtitle}>צפייה, סינון ומענה לפניות גולשים — דיווחים והודעות כלליות.</p>
           </div>
         </div>
 
@@ -50,11 +42,13 @@ export default function AdminMessages() {
             ⟳ רענון
           </button>
         </div>
-      </header>
+      </div>
+    </header>
 
-      <section className={s.contentCard} aria-label="לוח פניות">
-        <TicketsBoard key={boardKey} />
-      </section>
-    </main>
-  );
+    <section className={s.contentCard} aria-label="לוח פניות">
+      <TicketsBoard key={boardKey} />
+    </section>
+  </main>
+);
+
 }

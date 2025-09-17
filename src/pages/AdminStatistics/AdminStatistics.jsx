@@ -294,58 +294,57 @@ function AdminStatistics() {
   const handleAllTime = () => { setFrom(ALL_TIME_FROM); setTo(todayStr); setGroup("month"); };
   const isAllTime = from === ALL_TIME_FROM && to === todayStr && group === "month";
 
-  return (
-    <div className={styles.adminStatsContainer}>
-      <h2 className={styles.adminStatsTitle}>סטטיסטיקות מערכת</h2>
+return (
+  <div className={styles.page}>
+    {/* Hero עליון – תואם אתר, בלי כתמים */}
+    <section className={styles.hero}>
+      <div className={styles.heroCard}>
+        <h2 className={styles.title}>סטטיסטיקות מערכת</h2>
+        <p className={styles.subtitle}>מעקב אחרי מדדים, הכנסות ומוכרים — לפי טווח תאריכים</p>
+      </div>
+    </section>
 
-      {/* מסננים כלליים */}
-      <div className={styles.adminStatsSection}>
-        <div className={styles.adminStatsSectionHeader}>
-          <h3 className={styles.adminStatsSectionTitle}>מסננים</h3>
-          <div className={styles.adminStatsFiltersRow}>
-            <div className={styles.adminStatsFilterGroup}>
-              <label>מ־</label>
-              <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-            </div>
-            <div className={styles.adminStatsFilterGroup}>
-              <label>עד</label>
-              <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-            </div>
-            <div className={styles.adminStatsFilterGroup}>
-              <label>קיבוץ (רוב הגרפים)</label>
-              <select value={group} onChange={(e) => setGroup(e.target.value)}>
-                <option value="day">יום</option>
-                <option value="month">חודש</option>
-              </select>
-            </div>
-            <div className={styles.adminStatsFilterGroup}>
-              <label>קיבוץ הכנסות</label>
-              <select value={revenueGroup} onChange={(e) => setRevenueGroup(e.target.value)}>
-                <option value="day">יום</option>
-                <option value="month">חודש</option>
-              </select>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleAllTime}
-              className={styles.adminStatsAllTimeBtn}
-              title="הצגת נתונים לכל התקופות (קיבוץ חודשי)"
-              disabled={isAllTime}
-              style={{
-                marginInlineStart: 8,
-                padding: "8px 12px",
-                borderRadius: 8,
-                border: "1px solid #e5e7eb",
-                background: isAllTime ? "#f3f4f6" : "#fff",
-                cursor: isAllTime ? "default" : "pointer",
-              }}
-            >
-              כל הזמנים
-            </button>
+    {/* מסננים כלליים */}
+    <div className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h3 className={styles.sectionTitle}>מסננים</h3>
+        <div className={styles.filtersRow}>
+          <div className={styles.filterGroup}>
+            <label>מ־</label>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
           </div>
+          <div className={styles.filterGroup}>
+            <label>עד</label>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </div>
+          <div className={styles.filterGroup}>
+            <label>קיבוץ (רוב הגרפים)</label>
+            <select value={group} onChange={(e) => setGroup(e.target.value)}>
+              <option value="day">יום</option>
+              <option value="month">חודש</option>
+            </select>
+          </div>
+          <div className={styles.filterGroup}>
+            <label>קיבוץ הכנסות</label>
+            <select value={revenueGroup} onChange={(e) => setRevenueGroup(e.target.value)}>
+              <option value="day">יום</option>
+              <option value="month">חודש</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAllTime}
+            className={styles.allTimeBtn}
+            title="הצגת נתונים לכל התקופות (קיבוץ חודשי)"
+            disabled={isAllTime}
+          >
+            כל הזמנים
+          </button>
         </div>
       </div>
+    </div>
+
 
       {/* גרפים כללים */}
       <div className={styles.adminStatsSection}>

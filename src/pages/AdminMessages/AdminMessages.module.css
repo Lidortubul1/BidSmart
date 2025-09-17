@@ -1,137 +1,157 @@
 :root{
-  --bg: #f8fafc;
-  --ink: #0f172a;
-  --muted: #475569;
-  --card: #ffffff;
-  --border: #e7ebf0;
-  --shadow: 0 10px 24px rgba(2, 6, 23, .06);
-
-  --brand: #2563eb;     /* כחול ראשי */
-  --brand-weak: #e8f0ff;
-
-  --danger: #b91c1c;
+  --ap-card:#ffffff;
+  --ap-text:#0f172a;
+  --ap-muted:#56637a;
+  --ap-border:#e2e8f0;
+  --ap-shadow-lg:0 12px 40px rgba(16,24,40,.12);
+  --ap-shadow-md:0 6px 18px rgba(2,32,71,.08);
+  --ap-ring:0 0 0 4px rgba(26,137,255,.18);
+  --ap-radius-xl:22px;
+  --page-w:1160px;
 }
 
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#0b1220; --ink:#e5e7eb; --muted:#9aa4b2;
-    --card:#0f172a; --border:#1f2937; --shadow: 0 10px 24px rgba(0,0,0,.35);
-    --brand-weak:#0b1b3f;
-  }
+/* ===== מעטפת העמוד ===== */
+.page{
+  direction:rtl;
+  background: linear-gradient(145deg, #f0efee, #ffffff);
+  background-attachment: fixed;
+  font-family:"Heebo",sans-serif;
+  color:var(--ap-text);
+  min-height:100vh;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  position:relative;
+  padding:0;                /* ההירו אחראי על המרווח העליון */
 }
 
-/* פריסה כללית */
-.page {
-  direction: rtl;
-  min-height: 100dvh;
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-  color: var(--ink);
-  background:
-    radial-gradient(1200px 420px at 100% -60%, var(--brand-weak) 18%, transparent 55%) no-repeat,
-    radial-gradient(900px 360px at -20% -50%, #fff3e6 10%, transparent 50%) no-repeat,
-    var(--bg);
+/* אם נשאר אלמנט pageBg ב־JSX — ננטרל אותו */
+.pageBg{ display:none; }
+
+/* ===== כותרת (Hero) עם כתמי אור כמו בדוגמה ===== */
+.hero{
+  width:100%;
+  max-width:var(--page-w);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  background:transparent;
+  padding:96px 5% 56px;     /* אותו ריווח כמו בדוגמה */
+  position:relative;
+  overflow:visible;
+  z-index:1;
 }
 
-/* Hero / Header */
-.hero {
-  position: sticky;
-  top: 0;
-  z-index: 6;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 14px;
-  align-items: center;
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: rgba(255,255,255,.86);
-  backdrop-filter: saturate(140%) blur(8px);
-  box-shadow: var(--shadow);
+/* כתמי אור */
+.hero::before,
+.hero::after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  filter:blur(70px);
+  opacity:.28;
+  z-index:0;
+  pointer-events:none;
 }
-@media (prefers-color-scheme: dark){
-  .hero{ background: rgba(15,23,42,.7); }
+.hero::before{
+  width:300px; height:300px; background:#9e9b7f;
+  top:-100px; 
+  right:-220px;   /* 👈 יותר החוצה לצד ימין */
 }
 
-.heroHead{
-  display:flex; align-items:center; gap:12px; min-width:0;
+.hero::after{
+  width:420px; height:420px; background:#9e9b7f;
+  bottom:-160px; 
+  left:-220px;    /* 👈 יותר החוצה לצד שמאל */
 }
 
-.heroIcon{
-  width:38px; height:38px; flex:0 0 38px;
-  display:grid; place-items:center;
-  border-radius:10px;
-  background: var(--brand-weak);
-  font-size:18px;
+
+/* כרטיס ההירו */
+.heroCard{
+  width:100%;
+  max-width:760px;
+  background:rgba(255,255,255,.65);
+  backdrop-filter:blur(10px);
+  padding:36px 24px 28px;
+  border-radius:var(--ap-radius-xl);
+  box-shadow:var(--ap-shadow-lg);
+  position:relative; z-index:1; /* מעל הכתמים */
 }
 
-.headerText{ display:grid; gap:4px; min-width:0; }
+.heroHead{ display:flex; align-items:center; justify-content:center; gap:12px; }
+.headerText{ display:grid; gap:6px; }
 .title{
-  margin:0; font-size:26px; line-height:1.25; color:var(--ink);
-  text-wrap: balance;
+  margin:0;
+  font-size:clamp(1.6rem,1.2rem + 1.2vw,2rem);
+  line-height:1.25;
+  color:var(--ap-text);
 }
-.subtitle{
-  margin:0; color:var(--muted); font-size:14px;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+.subtitle{ margin:0; color:var(--ap-muted); font-size:14px; text-wrap:balance; }
+
+/* כפתורים */
+.headerActions{
+  display:flex; gap:10px; align-items:center; justify-content:center; margin-top:14px;
 }
-
-.headerActions{ display:flex; gap:8px; align-items:center; }
-
 .btn{
-  appearance:none; border:none; cursor:pointer; user-select:none;
-  border-radius:999px; font-weight:700; letter-spacing:.2px;
-  padding:10px 16px; box-shadow: var(--shadow);
-  transition: transform .12s ease, box-shadow .12s ease, opacity .15s ease;
+  appearance:none; border:1px solid var(--ap-border); cursor:pointer; user-select:none;
+  border-radius:12px; font-weight:700; letter-spacing:.2px;
+  padding:10px 16px;
+  background:linear-gradient(180deg,#fff 0%,#f7fbff 100%);
+  color:var(--ap-text);
+  box-shadow:var(--ap-shadow-md);
+  transition:transform .06s, box-shadow .2s, border-color .2s;
 }
-.btn:hover{ transform: translateY(-1px); }
-.btn:active{ transform: translateY(0); }
-.btn:focus-visible{ outline:none; box-shadow: 0 0 0 3px rgba(37,99,235,.25), var(--shadow); }
+.btn:hover{ transform:translateY(-1px); border-color:#bcd7ff; box-shadow:0 10px 26px rgba(2,32,71,.12); }
+.btn:focus-visible{ outline:none; box-shadow:var(--ap-ring); border-color:#1a89ff; }
+.btnPrimary{ background:linear-gradient(180deg,#fff 0%,#f7fbff 100%); }
 
-.btnPrimary{ background:#111; color:#fff; }
-@media (prefers-color-scheme: dark){
-  .btnPrimary{ background:#e5e7eb; color:#0b1220; }
+/* ===== גוף הדף ===== */
+.contentCard{
+  width:100%;
+  max-width:var(--page-w);
+  padding: 0 5% 40px;  /* ריווח נעים לתוכן מתחת להירו */
+  position:relative;
+  z-index:1;          /* מעל הכתמים של ההירו */
+}
+.contentCard > *{
+  background:var(--ap-card);
+  border:1px solid var(--ap-border);
+  border-radius:var(--ap-radius-xl);
+  box-shadow:var(--ap-shadow-md);
+  padding:14px;
 }
 
-/* כרטיס התוכן */
-.contentCard {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: var(--shadow);
-}
-
-/* דף ללא הרשאה */
-.noAccess {
-  direction: rtl;
-  min-height: 60dvh;
+/* ===== אין הרשאה ===== */
+.noAccess{
+  direction:rtl;
+  min-height:60dvh;
+  width:100%;
+  max-width:720px;
+  margin:120px auto 0;
   display:grid; place-items:center;
-  text-align: center;
-  gap: 8px;
-  padding: 48px 24px;
-  max-width: 800px;
-  margin: 0 auto;
-  color: var(--muted);
+  text-align:center; gap:8px;
+  padding:48px 24px; color:var(--ap-muted);
+  background:var(--ap-card);
+  border:1px solid var(--ap-border);
+  border-radius:var(--ap-radius-xl);
+  box-shadow:var(--ap-shadow-lg);
 }
-.noAccess h2 {
-  margin: 0 0 6px;
-  font-size: 24px;
-  color: var(--ink);
-}
-.noAccess p {
-  margin: 0;
-  font-size: 14px;
-}
+.noAccess h2{ margin:0 0 6px; font-size:24px; color:var(--ap-text); }
+.noAccess p{ margin:0; font-size:14px; }
 .lockBadge{
-  width:54px; height:54px; border-radius:14px;
-  display:grid; place-items:center;
-  font-size:26px; background: var(--brand-weak);
-  box-shadow: var(--shadow); margin-bottom: 6px;
+  width:54px; height:54px; border-radius:14px; display:grid; place-items:center; font-size:26px;
+  background:linear-gradient(180deg,#fff 0%,#f7fbff 100%);
+  border:1px solid var(--ap-border);
+  box-shadow:var(--ap-shadow-md);
+  margin-bottom:6px;
 }
 
-/* הפחתת אנימציות למבקשים זאת */
-@media (prefers-reduced-motion: reduce){
-  .btn, .hero { transition:none; }
+/* ===== מובייל ===== */
+@media (max-width:640px){
+  .hero{ padding:70px 4% 42px; }
+  .heroCard{ padding:24px; }
+  .title{ font-size:1.8rem; }
 }

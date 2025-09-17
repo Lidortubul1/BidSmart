@@ -3,7 +3,7 @@ import { getUsers, updateUserStatus } from "../../services/adminApi";
 import AdminUserDetails from "./AdminUserDetails";
 import styles from "./AdminUsers.module.css";
 
-/** טבלת ניהול משתמשים — ללא שינוי פונקציונלי */
+/** טבלת ניהול משתמשים — מציגה רק ת"ז + שם + דוא"ל + תפקיד + סטטוס + נרשם בתאריך */
 export default function AdminUsersList({ selectedId, onSelectUser }) {
   const [users, setUsers] = useState([]);
   const [role, setRole] = useState("");
@@ -28,6 +28,16 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
       }
     })();
   }, [role]);
+
+  // === עזרי תצוגה ===
+  const formatRole = (r) => {
+    const val = String(r || "").toLowerCase();
+    if (val === "seller") return "משתמש מוכר";
+    if (val === "buyer") return "משתמש רגיל";
+    return r || "-";
+  };
+
+
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -59,11 +69,12 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
     }
   };
 
-  const COLS = 7;
+  // מספר עמודות בטבלה לאחר הסרת הטלפון
+  const COLS = 6;
 
   return (
     <div className={styles.adminUsersListWrap}>
-      {/* כותרת + מסננים בסגנון הכדורי/גרדיאנט כמו בקטגוריות */}
+      {/* כותרת + מסננים */}
       <div className={styles.adminUsersHeaderCard}>
         <div className={styles.adminUsersHeaderText}>
           <h2 className={styles.adminUsersTitle}>כל המשתמשים</h2>
@@ -115,7 +126,6 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
                 <th>ת״ז</th>
                 <th>שם</th>
                 <th>דוא״ל</th>
-                <th>טלפון</th>
                 <th>תפקיד</th>
                 <th>סטטוס</th>
                 <th>נרשם בתאריך</th>
@@ -131,13 +141,19 @@ export default function AdminUsersList({ selectedId, onSelectUser }) {
                       {[u.first_name, u.last_name].filter(Boolean).join(" ") || "-"}
                     </td>
                     <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>{u.email || "-"}</td>
-                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>{u.phone || "-"}</td>
-                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>{u.role}</td>
+
+                    {/* תפקיד ממופה */}
+                    <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>
+                      {formatRole(u.role)}
+                    </td>
+
+                    {/* סטטוס בתגית — כמו שהיה */}
                     <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>
                       <span className={`${styles.adminUsersBadge} ${u.status === "active" ? styles.adminUsersBadgeActive : styles.adminUsersBadgeBlocked}`}>
                         {u.status === "active" ? "פעיל" : "חסום"}
                       </span>
                     </td>
+
                     <td className={styles.adminUsersRow} onClick={() => toggleRow(u.id)}>
                       {u.registered ? new Date(u.registered).toLocaleDateString("he-IL") : "-"}
                     </td>

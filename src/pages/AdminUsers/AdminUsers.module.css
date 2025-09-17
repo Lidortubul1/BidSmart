@@ -99,7 +99,7 @@
 /* ===== טבלה חדה ורספונסיבית ===== */
 .adminUsersTableWrap{
   border:1px solid var(--au-border); border-radius:var(--au-radius-xl);
-  overflow-x:auto; background:var(--au-card); box-shadow:var(--au-shadow-lg); position:relative;
+  overflow-x:auto; box-shadow:var(--au-shadow-lg); position:relative;
 }
 .adminUsersTable{
   width:100%; min-width:980px; border-collapse:separate; border-spacing:0; direction:rtl;
