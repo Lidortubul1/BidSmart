@@ -291,11 +291,20 @@
   cursor: pointer;
   transition: transform .12s ease, background-color .2s ease, box-shadow .2s ease;
   border: none;
-  margin-top: 10px;
-  width: 100%;
-  max-width: 280px;
+  margin-top: 16px;
+  
+  display: block;        /* כדי שנוכל למרכז עם margin auto */
+  margin-left: auto;     /* מרכז אופקית בתוך centerPanel */
+  margin-right: auto;    /* מרכז אופקית בתוך centerPanel */
+  
+  width: auto;           /* שלא יתפרס על כל הרוחב */
+  min-width: 200px;      /* שיראה אחיד */
+  max-width: 280px;      /* שלא יתפוס יותר מדי */
+  
   box-shadow: 0 6px 16px rgba(0,0,0,.08);
 }
+
+
 .bidButton:hover,
 .paymentButton:hover {
   background-color: #222;

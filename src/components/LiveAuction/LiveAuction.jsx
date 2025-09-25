@@ -365,6 +365,8 @@ function LiveAuction() {
       onCancel: () => setModalVisible(false),
     });
   };
+console.log("product keys:", Object.keys(product || {}));
+console.log("product_status:", product?.product_status);
 
   // -------- UI מפוצל לתת־קומפוננטות --------
   // במקום שלושה returns גדולים, נחזיר Grid אחד עם מרכז משתנה לפי מצב
@@ -417,7 +419,7 @@ return (
     isWinner={buyerId === winnerId}
     currentPrice={currentPrice}
     onPayClick={openPayModal}
-    isForSale={product?.status === "for sale"}   // ← חדש
+    isForSale={product?.product_status === "for sale"}
   />
 )}
 

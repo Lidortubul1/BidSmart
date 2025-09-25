@@ -22,7 +22,7 @@
   max-width: 720px;
   margin: clamp(16px, 4vw, 32px) auto;
   padding: clamp(18px, 3vw, 28px);
-  background-color: var(--card);
+ 
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow);
   direction: rtl;
