@@ -38,17 +38,20 @@ export default function UserGuestView({
   const sellerId = product?.seller_id_number != null ? String(product.seller_id_number) : null;
   const isOwner = userId && sellerId && userId === sellerId;
   const isAdmin = user?.role === "admin";
+const winnerId = product?.winner_id_number != null ? String(product.winner_id_number) : null;
+const isAuctionOverForUser = !!winnerId && userId !== winnerId;
 
   return (
     <ProductLayout images={images} adminPanel={adminPanel}>
       <div className={`${styles.textWrap} ${styles.blockGap}`}>
-        {isEnded && derivedStatus !== "awaiting_payment" ? (
-          <div className={styles.infoSection}>
-            <h1 className={styles.productTitle}>{product.product_name}</h1>
-            <p className={styles.textNote}>המכרז הסתיים — לא זכית במכרז זה.</p>
-            <SellerRating rating={sellerRating} />
-          </div>
-        ) : (
+      {isAuctionOverForUser ? (
+  <div className={styles.infoSection}>
+    <h1 className={styles.productTitle}>{product.product_name}</h1>
+    <p className={styles.textNote}>המכרז הסתיים — לא זכית במכרז זה.</p>
+    <SellerRating rating={sellerRating} />
+  </div>
+) : (
+
           <>
             {/* פרטי המוצר – בכרטיס אחד */}
             <div className={styles.infoSection}>
@@ -94,12 +97,13 @@ export default function UserGuestView({
 
 
 
-              {isLive && (
-                <p className={styles.statusText}>
-                  <span className={`${styles.inlineBadge} ${styles["inlineBadge--warn"]}`}>LIVE</span>
-                  <span className={styles.statusLiveText}>  המכירה מתקיימת עכשיו</span>
-                </p>
-              )}
+            {isLive && !isAuctionOverForUser && (
+  <p className={styles.statusText}>
+    <span className={`${styles.inlineBadge} ${styles["inlineBadge--warn"]}`}>LIVE</span>
+    <span className={styles.statusLiveText}>  המכירה מתקיימת עכשיו</span>
+  </p>
+)}
+
 
               {/* דירוג מוכר כחלק מפרטי המוצר */}
               <SellerRating rating={sellerRating} />
@@ -107,7 +111,7 @@ export default function UserGuestView({
 
             {/* כפתורי הפעולה – מתחת לכרטיס */}
             <div className={styles.ctaWrap}>
-              {!isOwner && canRegister && (
+              {!isOwner && canRegister && !isAuctionOverForUser && (
                 <RegistrationBlock
                   product={product}
                   user={user}

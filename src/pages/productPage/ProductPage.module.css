@@ -111,7 +111,7 @@
 
 /* בקרים לגלריה (חיצים/אינדקס) */
 .imageControls{ display:flex; justify-content:center; align-items:center; gap:15px; margin-top:10px; }
-.imageButton{ background:#eee; border:none; border-radius:50%; width:40px; height:40px; font-size:20px; font-weight:700; cursor:pointer; transition:background .3s ease, transform .2s ease; }
+.imageButton{ background:#fffcfa; border:none; border-radius:50%; width:40px; height:40px; font-size:20px; font-weight:700; cursor:pointer; transition:background .3s ease, transform .2s ease; }
 .imageButton:hover{ background:#e2e2e2; transform:scale(1.06); }
 .imageIndex{ font-size:1rem; font-weight:500; color:#333; }
 
@@ -487,4 +487,24 @@
   .bidButton{ position:sticky; bottom:12px; z-index:2; }
   .infoSection{ padding:16px; }
   .ctaWrap{ padding-top:16px; }
+}
+
+
+
+.backButton {
+  display: block;
+  margin: 15px auto 0;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 25px;
+  color: rgb(255, 255, 255);
+  border: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  background-color:#9e8859; 
+  margin-bottom: auto;
+}
+
+.backButton:hover {
+  transform: scale(1.05);
 }

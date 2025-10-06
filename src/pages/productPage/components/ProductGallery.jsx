@@ -1,12 +1,12 @@
-// src/pages/ProductPage/components/ProductGallery.jsx
-// גלריית תמונות מוצר: מציגה את התמונה הנוכחית עם חיצים לדפדוף ומספר תמונה כולל, מאפשרת לפתוח תצוגה מוגדלת (modal overlay) בלחיצה; מקבלת מערך נתיבי תמונות ומנהלת מצב פנימי של אינדקס נבחר ופתיחה.
-
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../ProductPage.module.css";
-//גלריית תמונות
+
 export default function ProductGallery({ images = [] }) {
   const [idx, setIdx] = useState(0);
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
   if (!images.length) return <p>אין תמונות זמינות</p>;
 
   return (
@@ -20,14 +20,32 @@ export default function ProductGallery({ images = [] }) {
           style={{ cursor: "zoom-in" }}
         />
         <div className={styles.imageControls}>
-          <button className={styles.imageButton}
+          <button
+            className={styles.imageButton}
             onClick={() => setIdx((p) => (p - 1 + images.length) % images.length)}
-            aria-label="תמונה קודמת">‹</button>
-          <span className={styles.imageIndex}>{idx + 1} / {images.length}</span>
-          <button className={styles.imageButton}
+            aria-label="תמונה קודמת"
+          >
+            ‹
+          </button>
+          <span className={styles.imageIndex}>
+            {idx + 1} / {images.length}
+          </span>
+          <button
+            className={styles.imageButton}
             onClick={() => setIdx((p) => (p + 1) % images.length)}
-            aria-label="תמונה הבאה">›</button>
+            aria-label="תמונה הבאה"
+          >
+            ›
+          </button>
         </div>
+
+        {/* כפתור חזרה מתחת לגלריה */}
+        <button
+          className={` ${styles.backButton}`}
+          onClick={() => navigate(-1)}
+        >
+           חזרה לדף הקודם
+        </button>
       </div>
 
       {open && (
