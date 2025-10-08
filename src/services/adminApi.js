@@ -101,7 +101,7 @@ export async function getAuctionFunnel({ from, to, seller_id_number }) {
     return res.data; // { started, sold, not_sold, conversion }
   } catch (err) {
     console.error("שגיאה ב-auction funnel:", err);
-    return { started: 0, sold: 0, not_sold: 0, conversion: 0 };
+    return { started: 0, sold: 0, not_sold: 0,not_started: 0, conversion: 0 };
   }
 }
 

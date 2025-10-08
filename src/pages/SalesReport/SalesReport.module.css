@@ -22,11 +22,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ink: #e5e7eb;
-    --muted: #9aa3af;
-    --bg: #0b1220;
-    --card: #0f172a;
-    --border: #1f2a44;
+    --ink: #000000;
+    --muted: #000000;
+    --bg: #0449d1;
+    --card: #ffffff;
+    --border: #4e4e4e;
     --shadow: 0 12px 30px rgba(2, 6, 23, 0.5);
     --shadow-soft: 0 10px 20px rgba(2, 6, 23, 0.35);
     --ring: 0 0 0 3px rgba(20, 184, 166, 0.25);
@@ -107,7 +107,7 @@
 @media (prefers-color-scheme: dark) {
   .sellerStatsFiltersRow input[type="date"],
   .sellerStatsFiltersRow select {
-    background: #0b1220;
+    background: #ffffff;
   }
 }
 .sellerStatsFiltersRow input[type="date"]:hover,
@@ -279,7 +279,7 @@
   color: var(--ink);
 }
 @media (prefers-color-scheme: dark) {
-  .sellerStatsInlineFilters select { background: #0b1220; }
+  .sellerStatsInlineFilters select { background: #ffffff; }
 }
 
 .sellerStatsConv {

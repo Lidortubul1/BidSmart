@@ -18,6 +18,10 @@ router.use((req, res, next) => {
 
 //סטטיסטיקות מנהל
 
+
+
+
+
 //כמות נרשמים לפי חודש ושנה שהתקבל מהמנהל
 router.get("/stats/registrations", async (req, res) => {
   const { year, month } = req.query;
@@ -281,9 +285,21 @@ router.get("/stats/auction-funnel", async (req, res) => {
       params
     );
 
+const [[{ not_started }]] = await conn.execute(
+  `SELECT COUNT(*) AS not_started
+   FROM product
+       WHERE product_status = 'for sale'
+         AND start_date BETWEEN ? AND ? ${whereSeller}`,
+  params
+);
+
+
+
+
+
     const conversion = started > 0 ? Math.round((sold / started) * 100) : 0;
 
-    res.json({ started, sold, not_sold, conversion });
+    res.json({ started, sold, not_sold,not_started ,conversion   });
   } catch (err) {
     console.error("שגיאה במשפך מכירות:", err);
     res.status(500).json({ message: "שגיאה בשרת" });
@@ -422,6 +438,25 @@ router.get("/users", async (req, res) => {
     res.status(500).json({ message: "שגיאה בשרת" });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //ניהול משתמשים
@@ -834,6 +869,25 @@ router.get("/seller/:id_number/products", async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //ניהול קטגוריות
 
 // הוספת קטגוריה
@@ -843,6 +897,7 @@ router.post("/category", async (req, res) => {
   const [result] = await conn.execute("INSERT INTO categories (name) VALUES (?)", [name]);
   res.json({ id: result.insertId, name });
 });
+
 // הוספת תת-קטגוריה
 router.post("/category/subcategory", async (req, res) => {
   const { name, category_id } = req.body;

@@ -16,7 +16,7 @@ import CustomModal from "../../components/CustomModal/CustomModal";
 function RevenueFunnelCard({
   title = "הכנסות / משפך",
   revenueData = [],
-  funnel = { started: 0, sold: 0, not_sold: 0, conversion: 0 },
+  funnel = { started: 0, sold: 0, not_sold: 0, conversion: 0 ,not_started: 0},
   revenueGroup = "month",
   setRevenueGroup = () => {},
   fmtDay,
@@ -78,8 +78,10 @@ function RevenueFunnelCard({
           ) : (
             <BarChart
               data={[
-                { name: "התחילו", value: funnel?.started || 0 },
+                { name: "לא זמינים", value: funnel?.started || 0 },
                 { name: "נמכרו", value: funnel?.sold || 0 },
+                { name: "לא התחילו", value: funnel?.not_started || 0 },
+
                 { name: "לא נמכרו", value: funnel?.not_sold || 0 },
               ]}
             >
@@ -118,7 +120,7 @@ export default function SalesReport() {
 
   // ----- סטייטים -----
   const [revenue, setRevenue] = useState([]);
-  const [funnel, setFunnel] = useState({ started: 0, sold: 0, not_sold: 0, conversion: 0 });
+const [funnel, setFunnel] = useState({ started: 0, sold: 0, not_sold: 0, not_started: 0, conversion: 0 });
   const [productsStatusTrend, setProductsStatusTrend] = useState([]);
   const [salesByCategory, setSalesByCategory] = useState([]);
   const [categoryMetric, setCategoryMetric] = useState("sold_count");
@@ -151,7 +153,7 @@ export default function SalesReport() {
       if (!sellerIdNumber) {
         if (!cancelled) {
           setRevenue([]); setSalesByCategory([]); setProductsStatusTrend([]);
-          setFunnel({ started: 0, sold: 0, not_sold: 0, conversion: 0 });
+          setFunnel({ started: 0, sold: 0, not_sold: 0, not_started: 0, conversion: 0 });
         }
         return;
       }
@@ -193,7 +195,7 @@ export default function SalesReport() {
           openModal("מוצרים לפי סטטוס (בטווח)", (
             <div>
               <p><b>תקופה:</b> {fmtBucket(p?.bucket, group)}</p>
-              <p><b>טרם התחיל:</b> {fmtInt(p?.for_sale)}</p>
+              <p><b>טרם התחיל:</b> {fmtInt(p?.not_started)}</p>
               <p><b>נמכר:</b> {fmtInt(p?.sale)}</p>
               <p><b>לא נמכר:</b> {fmtInt(p?.not_sold)}</p>
               <p><b>נמחק:</b> {fmtInt(p?.blocked)}</p>
@@ -220,12 +222,14 @@ export default function SalesReport() {
   const handleAllTime = () => { setFrom(ALL_TIME_FROM); setTo(todayStr); setGroup("month"); };
   const isAllTime = from === ALL_TIME_FROM && to === todayStr && group === "month";
 
-  const kpis = useMemo(() => ([
-    { label: "פריטים התחילו", value: fmtInt(funnel?.started || 0) },
-    { label: "נמכרו", value: fmtInt(funnel?.sold || 0) },
-    { label: "לא נמכרו", value: fmtInt(funnel?.not_sold || 0) },
-    { label: "שיעור המרה", value: `${funnel?.conversion ?? 0}%` },
-  ]), [funnel]);
+ const kpis = useMemo(() => ([
+  { label: "פריטים לא זמינים", value: fmtInt(funnel?.started || 0) },
+  { label: "נמכרו", value: fmtInt(funnel?.sold || 0) },
+  { label: "לא נמכרו", value: fmtInt(funnel?.not_sold || 0) },
+  { label: "טרם התחילו", value: fmtInt(funnel?.not_started || 0) }, // הוספה
+  { label: "שיעור המרה", value: `${funnel?.conversion ?? 0}%` },
+]), [funnel]);
+
 
   return (
     <>
@@ -239,8 +243,9 @@ export default function SalesReport() {
 
         {/* מסננים */}
         <div className={styles.sellerStatsSection}>
+          <h3 className={styles.sellerStatsSectionTitle}>נתונים כלליים</h3>
+
           <div className={styles.sellerStatsSectionHeader}>
-            <h3 className={styles.sellerStatsSectionTitle}>מסננים</h3>
             <div className={styles.sellerStatsFiltersRow}>
               <div className={styles.sellerStatsFilterGroup}>
                 <label>מ־</label>
@@ -298,7 +303,7 @@ export default function SalesReport() {
 
           <div className={styles.sellerStatsGrid}>
             <RevenueFunnelCard
-              title="הכנסות / משפך — אני"
+              title="הכנסות / משפך"
               revenueData={revenue}
               funnel={funnel}
               revenueGroup={revenueGroup}
@@ -309,7 +314,7 @@ export default function SalesReport() {
             />
 
             <div className={styles.sellerStatsCard}>
-              <h4 className={styles.sellerStatsCardTitle}>מוצרים לפי סטטוס — אני</h4>
+              <h4 className={styles.sellerStatsCardTitle}>מוצרים לפי סטטוס </h4>
               <div className={styles.sellerStatsChart}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={productsStatusTrend} barCategoryGap="20%" barGap={4}>
@@ -338,7 +343,7 @@ export default function SalesReport() {
 
             <div className={styles.sellerStatsCard}>
               <div className={styles.sellerStatsCardHeaderRow}>
-                <h4 className={styles.sellerStatsCardTitle}>מוצרים לפי קטגוריה — אני</h4>
+                <h4 className={styles.sellerStatsCardTitle}>מוצרים לפי קטגוריה </h4>
                 <div className={styles.sellerStatsFilterGroup}>
                   <label>מדד</label>
                   <select value={categoryMetric} onChange={(e) => setCategoryMetric(e.target.value)}>
