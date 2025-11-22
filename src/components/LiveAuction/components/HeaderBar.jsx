@@ -66,7 +66,7 @@ export default function HeaderBar({
         </div>
 
         {/* טיימר מוצג רק אם מועברים ערכים תקינים */}
-        {minutesLeft != null && secondsLeft != null && (
+        {isLive && minutesLeft != null && secondsLeft != null && (
           <div
             className={styles.metaItem}
             aria-live="polite" // עדכון רציף של הזמן בזמן אמת

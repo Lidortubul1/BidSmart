@@ -108,9 +108,10 @@ server.listen(PORT, () => {
 });
 
 // מריץ את הפונקציה שבודקת אילו מוצרים אמורים להפוך ל"לייב"
+// server/server.js
 setInterval(() => {
-  checkIsLiveProducts(io);
-}, 10000);
+  checkIsLiveProducts(io);
+}, 5000); // 5 שניות
 
 // כל 12 שעות בודק אם יש זוכים שלא שילמו בזמן – שולח מיילים או הודעות
 setInterval(() => {
