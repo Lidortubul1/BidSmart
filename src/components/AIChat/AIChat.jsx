@@ -1,12 +1,21 @@
-//src\components\AIChat\AIChat.jsx
+// src\components\AIChat\AIChat.jsx
 // ווידג'ט צ׳אט AI צף: פתיחה/סגירה, ניהול היסטוריית הודעות, שליחת שאלה לשרת וקבלת תשובת AI, ותצוגת קלט/שליחה למשתמש.
 
 import { useState } from "react";
 import axios from "axios";
 import styles from "./AIChat.module.css";
 
+// הוספת הודעת פתיחה ראשונית במקום מערך ריק
+const initialMessages = [
+  {
+    role: "ai",
+    text: "היי, אני רוז הנציגה החכמה של bidsmart. במה ניתן לעזור?",
+  },
+];
+
 export default function AIChat() {
-  const [messages, setMessages] = useState([]);
+  // משתמשים במערך ההודעות ההתחלתי
+  const [messages, setMessages] = useState(initialMessages);
   const [userInput, setUserInput] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -16,11 +25,21 @@ export default function AIChat() {
     setMessages((prev) => [...prev, userMessage]);
     setUserInput("");
 
-    const res = await axios.post("http://localhost:5000/api/ai-chat", {
-      message: userInput,
-    });
-    const aiMessage = { role: "ai", text: res.data.reply };
-    setMessages((prev) => [...prev, aiMessage]);
+    try {
+      // הוספת טיפול בשגיאות
+      const res = await axios.post("http://localhost:5000/api/ai-chat", {
+        message: userInput,
+      });
+      const aiMessage = { role: "ai", text: res.data.reply };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("שגיאה בשליחת הודעה לשרת:", error);
+      const errorMessage = {
+        role: "ai",
+        text: "אני מצטערת, אירעה שגיאה בחיבור. נסה שוב מאוחר יותר.",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    }
   };
 
   return (
@@ -28,7 +47,13 @@ export default function AIChat() {
       {isOpen ? (
         <div className={styles.chatBox}>
           <div className={styles.header}>
-            <span>AI נציגת</span>
+            {/* שינוי שם הנציגה לשם שביקשת */}
+            <span>
+              <span role="img" aria-label="רובוט">
+                🤖
+              </span>
+            AI רוז -נציגת
+            </span>
             <button onClick={() => setIsOpen(false)}>✖️</button>
           </div>
 
@@ -48,7 +73,12 @@ export default function AIChat() {
               type="text"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
-              placeholder="כתוב שאלה לנציג..."
+              placeholder="כתוב שאלה לרוז..."
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleSend();
+                }
+              }}
             />
             <button onClick={handleSend}>שלח</button>
           </div>
